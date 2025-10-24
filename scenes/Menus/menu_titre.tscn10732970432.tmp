@@ -1,0 +1,118 @@
+[gd_scene load_steps=11 format=3 uid="uid://bxhvsp0qy5nos"]
+
+[ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/Menus/menu_titre.gd" id="1_b4npc"]
+[ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/autoloads/GestionnaireMenuTitre.gd" id="2_ru77k"]
+[ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/world.tscn" id="3_iipul"]
+[ext_resource type="PackedScene" uid="uid://b4vof4sahscqd" path="res://scenes/Menus/options_menu.tscn" id="4_y535g"]
+[ext_resource type="PackedScene" uid="uid://cmle5kbdu3q7b" path="res://scenes/Menus/menu_credits.tscn" id="5_iipul"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vrwda"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prkpd"]
+bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 13.0
+expand_margin_top = 2.0
+expand_margin_right = 13.0
+expand_margin_bottom = 2.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3k1r1"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 10.0
+expand_margin_top = 1.0
+expand_margin_right = 10.0
+expand_margin_bottom = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b06b5"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 18.0
+expand_margin_top = 2.0
+expand_margin_right = 18.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_ifyg5"]
+default_font_size = 50
+Button/font_sizes/font_size = 50
+Button/styles/focus = SubResource("StyleBoxEmpty_vrwda")
+Button/styles/hover = SubResource("StyleBoxFlat_prkpd")
+Button/styles/normal = SubResource("StyleBoxFlat_3k1r1")
+Button/styles/pressed = SubResource("StyleBoxFlat_b06b5")
+
+[node name="MenuTitre" type="CanvasLayer"]
+script = ExtResource("1_b4npc")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.717647)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -49.5
+offset_top = -68.0
+offset_right = 49.5
+offset_bottom = 68.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_ifyg5")
+
+[node name="btn_play" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Jouer"
+
+[node name="btn_settings" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Parametres"
+
+[node name="btn_credits" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Crédits"
+
+[node name="btn_quit" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quitter
+"
+
+[node name="GestionnaireMenuTitre" type="Node" parent="."]
+script = ExtResource("2_ru77k")
+scene_jeu = ExtResource("3_iipul")
+scene_options = ExtResource("4_y535g")
+scene_credits = ExtResource("5_iipul")
+scene_menu_titre = null
+metadata/_custom_type_script = "uid://b7hstmkshyre5"

@@ -1,0 +1,91 @@
+[gd_scene load_steps=7 format=3 uid="uid://b4vof4sahscqd"]
+
+[ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="1_h1g31"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h1g31"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qldvp"]
+bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 13.0
+expand_margin_top = 2.0
+expand_margin_right = 13.0
+expand_margin_bottom = 2.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg86w"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 10.0
+expand_margin_top = 1.0
+expand_margin_right = 10.0
+expand_margin_bottom = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gn0ho"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 18.0
+expand_margin_top = 2.0
+expand_margin_right = 18.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_qldvp"]
+default_font_size = 50
+Button/font_sizes/font_size = 50
+Button/styles/focus = SubResource("StyleBoxEmpty_h1g31")
+Button/styles/hover = SubResource("StyleBoxFlat_qldvp")
+Button/styles/normal = SubResource("StyleBoxFlat_sg86w")
+Button/styles/pressed = SubResource("StyleBoxFlat_gn0ho")
+
+[node name="OptionsMenu" type="CanvasLayer"]
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.658824)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -82.0
+offset_top = -34.5
+offset_right = 82.0
+offset_bottom = 34.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_qldvp")
+
+[node name="BtnBack" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "Retour
+"
+script = ExtResource("1_h1g31")
+metadata/_custom_type_script = "uid://2fboxjeho0mu"

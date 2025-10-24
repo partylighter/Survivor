@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3 uid="uid://0182ilsqlcwo"]
+
+[ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/player.tscn" id="1_nnsk1"]
+[ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaire_enemies.tscn" id="2_4wyf3"]
+[ext_resource type="PackedScene" uid="uid://dfhm7tju5pnm" path="res://scenes/enemy_class_c.tscn" id="3_k0juu"]
+[ext_resource type="PackedScene" uid="uid://blg7jbv4ugjh5" path="res://scenes/enemy_class_b.tscn" id="4_71j4m"]
+[ext_resource type="PackedScene" uid="uid://c4kx0bkweb15" path="res://scenes/Menus/pause_menu.tscn" id="5_71j4m"]
+
+[node name="World" type="Node2D"]
+
+[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
+position = Vector2(606, 294)
+
+[node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
+chemin_joueur = NodePath("../Player")
+scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m"), ExtResource("3_k0juu")])
+max_ennemis = 10
+apparitions_par_sec = 1.0
+interlude_s = 5.0
+croissance_taux = 1.0
+croissance_max = 1.0
+croissance_total = 1.0
+poids_par_vague = Array[PackedFloat32Array]([PackedFloat32Array(50, 50), PackedFloat32Array(80, 20)])
+
+[node name="PauseMenu" parent="." instance=ExtResource("5_71j4m")]

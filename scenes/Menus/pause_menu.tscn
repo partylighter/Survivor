@@ -1,0 +1,112 @@
+[gd_scene load_steps=8 format=3 uid="uid://c4kx0bkweb15"]
+
+[ext_resource type="Script" uid="uid://pcviey6inc7e" path="res://scripts/Menus/pause_menu.gd" id="1_vrwda"]
+[ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="2_prkpd"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vrwda"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prkpd"]
+bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 13.0
+expand_margin_top = 2.0
+expand_margin_right = 13.0
+expand_margin_bottom = 2.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3k1r1"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 10.0
+expand_margin_top = 1.0
+expand_margin_right = 10.0
+expand_margin_bottom = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b06b5"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 18.0
+expand_margin_top = 2.0
+expand_margin_right = 18.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_dbadf"]
+default_font_size = 50
+Button/font_sizes/font_size = 50
+Button/styles/focus = SubResource("StyleBoxEmpty_vrwda")
+Button/styles/hover = SubResource("StyleBoxFlat_prkpd")
+Button/styles/normal = SubResource("StyleBoxFlat_3k1r1")
+Button/styles/pressed = SubResource("StyleBoxFlat_b06b5")
+
+[node name="PauseMenu" type="CanvasLayer"]
+script = ExtResource("1_vrwda")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.67451)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -45.0
+offset_top = -68.0
+offset_right = 45.0
+offset_bottom = 68.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_dbadf")
+
+[node name="BtnResume" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Reprendre"
+
+[node name="BtnSettings" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Options"
+
+[node name="BtnRestart" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Relancer"
+
+[node name="BtnBack" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "Retour"
+script = ExtResource("2_prkpd")
+metadata/_custom_type_script = "uid://2fboxjeho0mu"
+
+[node name="BtnQuit" type="Button" parent="Root/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Quitter"
