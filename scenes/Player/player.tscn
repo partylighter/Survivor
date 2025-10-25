@@ -1,11 +1,11 @@
 [gd_scene load_steps=15 format=3 uid="uid://bxw0i82773n7u"]
 
-[ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/player.gd" id="1_g2els"]
+[ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
-[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/santé.gd" id="3_qhqgy"]
-[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/hurtbox.gd" id="4_dqkch"]
-[ext_resource type="Script" uid="uid://bauxt8yxsin5i" path="res://scripts/hitbox.gd" id="5_qlg0r"]
-[ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/bar_pv.gd" id="6_tuyoq"]
+[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/Utilitaires/santé.gd" id="3_qhqgy"]
+[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_dqkch"]
+[ext_resource type="Script" uid="uid://bauxt8yxsin5i" path="res://scripts/Utilitaires/hitbox.gd" id="5_qlg0r"]
+[ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="6_tuyoq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
 size = Vector2(131, 131)

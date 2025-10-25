@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://8qkvcq5m0sha"]
 
-[ext_resource type="Script" uid="uid://be80fcse3x41q" path="res://scripts/stats_displayer.gd" id="1_x3qox"]
+[ext_resource type="Script" uid="uid://be80fcse3x41q" path="res://scripts/Managers/Managers En Jeu/stats_displayer.gd" id="1_x3qox"]
 
 [node name="StatsDisplayer" type="CanvasLayer"]
 script = ExtResource("1_x3qox")

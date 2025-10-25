@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://6b4541veqfmk"]
-
-[ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/enemy.gd" id="1_7p1mj"]
-
-[node name="Enemy" type="CharacterBody2D"]
-script = ExtResource("1_7p1mj")
-recul_amorti = 12.0

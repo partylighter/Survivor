@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c4frvi1p85wxd"]
 
-[ext_resource type="Script" uid="uid://b6224w7np6m50" path="res://scripts/gestionnaire_enemies.gd" id="1_lsmnm"]
+[ext_resource type="Script" uid="uid://b6224w7np6m50" path="res://scripts/Managers/Managers En Jeu/gestionnaire_enemies.gd" id="1_lsmnm"]
 
 [node name="Gestionnaire Enemies" type="Node2D"]
 script = ExtResource("1_lsmnm")

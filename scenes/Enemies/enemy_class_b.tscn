@@ -1,10 +1,10 @@
 [gd_scene load_steps=13 format=3 uid="uid://blg7jbv4ugjh5"]
 
-[ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/enemy.gd" id="1_j7xsw"]
-[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_7ljsb"]
-[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/santé.gd" id="3_p6dij"]
-[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/hurtbox.gd" id="4_som01"]
-[ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/bar_pv.gd" id="5_som01"]
+[ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/Enemies/enemy.gd" id="1_4oad4"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_flehi"]
+[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/Utilitaires/santé.gd" id="3_t4t15"]
+[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_htv04"]
+[ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="5_n048n"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_p6dij"]
 radius = 99.29
@@ -29,7 +29,7 @@ bg_color = Color(0.760784, 0.180392, 0, 1)
 [node name="Enemy Class B" type="CharacterBody2D"]
 collision_layer = 32
 collision_mask = 97
-script = ExtResource("1_j7xsw")
+script = ExtResource("1_4oad4")
 type_ennemi = 1
 valeur_score = 20
 chemin_sante = NodePath("Sante")
@@ -37,20 +37,20 @@ metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(1, 0, 1, 1)
-texture = ExtResource("2_7ljsb")
+texture = ExtResource("2_flehi")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_p6dij")
 
 [node name="Sante" type="Node" parent="."]
-script = ExtResource("3_p6dij")
+script = ExtResource("3_t4t15")
 max_pv = 2
 metadata/_custom_type_script = "uid://dckl6i06hmi3g"
 
 [node name="HurtBox" type="Area2D" parent="."]
 collision_layer = 32
 collision_mask = 0
-script = ExtResource("4_som01")
+script = ExtResource("4_htv04")
 chemin_sante = NodePath("../Sante")
 metadata/_custom_type_script = "uid://cp87fy13f23lc"
 
@@ -59,7 +59,7 @@ shape = SubResource("CircleShape2D_p6dij")
 debug_color = Color(1, 1, 1, 0)
 
 [node name="BarPV" type="Node" parent="."]
-script = ExtResource("5_som01")
+script = ExtResource("5_n048n")
 chemin_hote = NodePath("..")
 chemin_bar = NodePath("../HScrollBar")
 chemin_sante = NodePath("../Sante")

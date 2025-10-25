@@ -1,11 +1,11 @@
 [gd_scene load_steps=7 format=3 uid="uid://0182ilsqlcwo"]
 
-[ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/player.tscn" id="1_nnsk1"]
-[ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaire_enemies.tscn" id="2_4wyf3"]
-[ext_resource type="PackedScene" uid="uid://dfhm7tju5pnm" path="res://scenes/enemy_class_c.tscn" id="3_k0juu"]
-[ext_resource type="PackedScene" uid="uid://blg7jbv4ugjh5" path="res://scenes/enemy_class_b.tscn" id="4_71j4m"]
-[ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/stats_vagues.tscn" id="5_71j4m"]
-[ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/stats_displayer.tscn" id="6_qfnet"]
+[ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
+[ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
+[ext_resource type="PackedScene" uid="uid://dfhm7tju5pnm" path="res://scenes/Enemies/enemy_class_c.tscn" id="3_k0juu"]
+[ext_resource type="PackedScene" uid="uid://blg7jbv4ugjh5" path="res://scenes/Enemies/enemy_class_b.tscn" id="4_71j4m"]
+[ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
+[ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
 
 [node name="World" type="Node2D"]
 

@@ -1,8 +1,8 @@
 [gd_scene load_steps=11 format=3 uid="uid://bxhvsp0qy5nos"]
 
 [ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/Menus/menu_titre.gd" id="1_b4npc"]
-[ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/autoloads/GestionnaireMenuTitre.gd" id="2_ru77k"]
-[ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/world.tscn" id="3_iipul"]
+[ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/autoloads/AutoloadsMenuing/GestionnaireMenuTitre.gd" id="2_ru77k"]
+[ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/Niveaux/NiveauTest/world.tscn" id="3_iipul"]
 [ext_resource type="PackedScene" uid="uid://b4vof4sahscqd" path="res://scenes/Menus/options_menu.tscn" id="4_y535g"]
 [ext_resource type="PackedScene" uid="uid://cmle5kbdu3q7b" path="res://scenes/Menus/menu_credits.tscn" id="5_iipul"]
 

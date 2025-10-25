@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bqmjjk1km3rra"]
 
-[ext_resource type="Script" uid="uid://swit6dgfhaae" path="res://scripts/stats_vagues.gd" id="1_jpjlw"]
+[ext_resource type="Script" uid="uid://swit6dgfhaae" path="res://scripts/Managers/Managers En Jeu/stats_vagues.gd" id="1_jpjlw"]
 
 [node name="StatsVagues" type="Node"]
 script = ExtResource("1_jpjlw")
