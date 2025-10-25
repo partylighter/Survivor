@@ -55,6 +55,10 @@ Button/styles/pressed = SubResource("StyleBoxFlat_b06b5")
 
 [node name="MenuTitre" type="CanvasLayer"]
 script = ExtResource("1_b4npc")
+chemin_btn_jouer = NodePath("Root/VBoxContainer/btn_play")
+chemin_btn_parametres = NodePath("Root/VBoxContainer/btn_settings")
+chemin_btn_credits = NodePath("Root/VBoxContainer/btn_credits")
+chemin_btn_quitter = NodePath("Root/VBoxContainer/btn_quit")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3

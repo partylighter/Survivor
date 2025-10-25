@@ -8,6 +8,8 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export_group("Type")
 @export_enum("C","B","A","S","BOSS") var type_ennemi: int = TypeEnnemi.C
 
+@export var valeur_score: int = 10
+
 @export var speed: float = 120.0
 @export_node_path("Node") var chemin_sante: NodePath
 
@@ -27,6 +29,9 @@ func get_type_id() -> int:
 
 func get_type_nom() -> StringName:
 	return StringName(TypeEnnemi.find_key(type_ennemi))
+
+func get_score() -> int:
+	return valeur_score
 
 func appliquer_recul(direction: Vector2, force: float) -> void:
 	# additionne les impacts et limite la magnitude

@@ -31,6 +31,7 @@ collision_layer = 32
 collision_mask = 97
 script = ExtResource("1_j7xsw")
 type_ennemi = 1
+valeur_score = 20
 chemin_sante = NodePath("Sante")
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
