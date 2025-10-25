@@ -14,12 +14,13 @@ position = Vector2(606, 294)
 [node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m"), ExtResource("3_k0juu")])
-max_ennemis = 10
-apparitions_par_sec = 1.0
-interlude_s = 5.0
-croissance_taux = 1.0
-croissance_max = 1.0
-croissance_total = 1.0
+poids_types = [50.0, 50.0]
+max_ennemis = 200
+rayon_spawn_min = 2500.0
+rayon_spawn_max = 2500.0
+rayon_disparition = 3000.0
+mode_vagues = false
 poids_par_vague = Array[PackedFloat32Array]([PackedFloat32Array(50, 50), PackedFloat32Array(80, 20)])
 
 [node name="PauseMenu" parent="." instance=ExtResource("5_71j4m")]
+visible = false
