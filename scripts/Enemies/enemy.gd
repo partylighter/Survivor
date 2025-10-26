@@ -23,6 +23,8 @@ var _doit_emit_reapparu_next_frame: bool = false
 var _layer_orig: int = -1
 var _mask_orig: int = -1
 
+var _ai_enabled: bool = true
+
 @onready var sante: Sante = get_node(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
 
@@ -30,7 +32,6 @@ func _ready() -> void:
 	if sante:
 		sante.died.connect(_on_mort)
 
-	# stock valeurs coll d'origine une seule fois
 	if self is CollisionObject2D:
 		_layer_orig = collision_layer
 		_mask_orig = collision_mask
@@ -55,13 +56,14 @@ func appliquer_recul_depuis(source: Node2D, force: float) -> void:
 	appliquer_recul(dir, force)
 
 func _physics_process(dt: float) -> void:
-	# émettre reapparu une frame après réactivation
 	if _doit_emit_reapparu_next_frame:
 		_doit_emit_reapparu_next_frame = false
 		emit_signal("reapparu")
 
-	# si mort on ne bouge plus
 	if deja_mort:
+		return
+
+	if not _ai_enabled:
 		return
 
 	if target != null and recul.length_squared() < 1.0:
@@ -92,9 +94,6 @@ func _on_mort() -> void:
 		return
 	deja_mort = true
 
-	# très important:
-	# 1. sauver les couches réelles dans les metas sl/sm si pas déjà fait
-	# 2. ensuite seulement couper les collisions
 	if self is CollisionObject2D:
 		if _layer_orig < 0:
 			_layer_orig = collision_layer
@@ -116,12 +115,13 @@ func _on_mort() -> void:
 	set_physics_process(false)
 	set_process(false)
 
+	_ai_enabled = false
+
 	emit_signal("mort")
 
 func reactiver_apres_pool() -> void:
 	deja_mort = false
 
-	# full heal
 	if sante:
 		var max_pv_now: float = float(sante.get("max_pv"))
 		sante.set("pv", max_pv_now)
@@ -130,12 +130,37 @@ func reactiver_apres_pool() -> void:
 	velocity = Vector2.ZERO
 	recul = Vector2.ZERO
 
-	# on relance le process ici
 	set_physics_process(true)
 	set_process(true)
 
-	# collisions seront remises juste après par
-	# GestionnaireEnnemis._activer_ennemi(e, true)
-	# qui lit sl/sm et restaure collision_layer/mask
+	_ai_enabled = true
 
 	_doit_emit_reapparu_next_frame = true
+
+# appelé par GestionnaireEnnemis._set_enemy_mode
+# actif_moteur = true  => IA active, move_and_slide actif
+# actif_moteur = false => figé (ne calcule plus la poursuite ni move_and_slide)
+# collision_joueur est passé mais on ne retire pas encore sélectivement le bit joueur
+func set_combat_state(actif_moteur: bool, collision_joueur: bool) -> void:
+	if deja_mort:
+		return
+
+	_ai_enabled = actif_moteur
+
+	set_physics_process(actif_moteur)
+	set_process(actif_moteur)
+
+	if self is CollisionObject2D:
+		# collision_layer garde la valeur d'origine
+		if has_meta("sl"):
+			collision_layer = get_meta("sl")
+		elif _layer_orig >= 0:
+			collision_layer = _layer_orig
+
+		# on restaure le mask normal si collision_joueur == true
+		# si collision_joueur == false on pourrait enlever le bit joueur
+		# mais tant qu'on n'a pas séparé les bits on réutilise _mask_orig
+		if has_meta("sm"):
+			collision_mask = get_meta("sm")
+		elif _mask_orig >= 0:
+			collision_mask = _mask_orig

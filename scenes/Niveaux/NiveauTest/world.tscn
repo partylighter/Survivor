@@ -21,7 +21,8 @@ rayon_spawn_min = 5000.0
 rayon_spawn_max = 10000.0
 rayon_simulation = 8000.0
 rayon_disparition = 10000.0
-max_actifs_proches = 200
+max_full_actifs = 150
+rayon_engage = 1.0
 vitesse_lointain = 0.0
 mode_vagues = false
 

@@ -14,7 +14,7 @@ size = Vector2(131, 131)
 radius = 62.0081
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fjrip"]
-radius = 92.5419
+radius = 287.028
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tuyoq"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)

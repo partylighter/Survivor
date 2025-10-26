@@ -32,9 +32,9 @@ collision_mask = 97
 script = ExtResource("1_4oad4")
 type_ennemi = 1
 valeur_score = 20
-speed = 300.0
+speed = 500.0
 chemin_sante = NodePath("Sante")
-recul_amorti = 25.0
+recul_amorti = 9.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
