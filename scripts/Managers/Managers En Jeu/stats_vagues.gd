@@ -10,7 +10,7 @@ var historique: Array = []                   # liste des vagues finies
 var stats_vague: Dictionary = {}             # stats de la vague en cours
 var kills_total: int = 0                     # ennemis tués au total
 var score_total: int = 0                     # score total cumulé
-var vivants: int = 0                         # ennemis encore en vie
+var vivants: int = 0                         # ennemis actuellement présents dans l'arène
 
 var par_type_global: Dictionary = {}         # { "C": {"kills": X, "score": Y}, ... }
 var morts_joueur_global: Dictionary = {}     # { "C": nb de fois joueur tué par type }
@@ -24,8 +24,14 @@ func _ready() -> void:
 		push_warning("chemin_manager invalide")
 		return
 
-	manager.ennemi_cree.connect(_on_ennemi_cree)
-	manager.ennemi_tue.connect(_on_ennemi_tue)
+	if not manager.ennemi_cree.is_connected(_on_ennemi_cree):
+		manager.ennemi_cree.connect(_on_ennemi_cree)
+
+	if not manager.ennemi_tue.is_connected(_on_ennemi_tue):
+		manager.ennemi_tue.connect(_on_ennemi_tue)
+
+	if not manager.ennemi_retire.is_connected(_on_ennemi_retire):
+		manager.ennemi_retire.connect(_on_ennemi_retire)
 
 	_start_vague_si_besoin()
 
@@ -56,7 +62,7 @@ func _debut_vague() -> void:
 		"t_fin": 0.0,
 		"duree": 0.0,
 
-		"spawns": 0,                                   # ennemis apparus dans cette vague
+		"spawns": 0,                                   # apparitions ennemies visibles cette vague (inclut réutilisation du pool)
 		"kills": 0,                                    # ennemis tués dans cette vague
 		"score": 0,                                    # score gagné dans cette vague
 
@@ -77,11 +83,24 @@ func _fin_vague() -> void:
 	_d("FIN VAGUE index=" + str(stats_vague["index"]) + " duree=" + str(stats_vague["duree"]))
 
 func _on_ennemi_cree(e: Node2D) -> void:
+	# un ennemi devient présent sur le terrain (nouveau ou repris du pool)
 	vivants += 1
+
 	if stats_vague.get("active", false):
 		stats_vague["spawns"] += 1
 
+func _on_ennemi_retire(e: Node2D) -> void:
+	# l'ennemi est retiré du terrain (trop loin / pooling / despawn non létal)
+	vivants = max(0, vivants - 1)
+
+	# pas de kill ici
+	# pas de score ici
+	# pas d'update kills_par_type
+
+	_d("ENNEMI RETIRE vivants=" + str(vivants))
+
 func _on_ennemi_tue(e: Node2D) -> void:
+	# vrai kill
 	vivants = max(0, vivants - 1)
 	kills_total += 1
 
@@ -95,7 +114,6 @@ func _on_ennemi_tue(e: Node2D) -> void:
 
 	score_total += score_e
 
-	# global par type
 	if not par_type_global.has(type_nom):
 		par_type_global[type_nom] = {"kills": 0, "score": 0}
 	var bloc: Dictionary = par_type_global[type_nom]
@@ -103,7 +121,6 @@ func _on_ennemi_tue(e: Node2D) -> void:
 	bloc["score"] = int(bloc["score"]) + score_e
 	par_type_global[type_nom] = bloc
 
-	# vague en cours
 	if stats_vague.get("active", false):
 		stats_vague["kills"] += 1
 		stats_vague["score"] += score_e
@@ -116,7 +133,7 @@ func _on_ennemi_tue(e: Node2D) -> void:
 		spt[type_nom] = spt.get(type_nom, 0) + score_e
 		stats_vague["score_par_type"] = spt
 
-	_d("ENNEMI TUE type=" + type_nom + " score=" + str(score_e))
+	_d("ENNEMI TUE type=" + type_nom + " score=" + str(score_e) + " vivants=" + str(vivants))
 
 # appel manuel quand le joueur meurt tué par un ennemi e
 func ajouter_mort_joueur(e: Node2D) -> void:

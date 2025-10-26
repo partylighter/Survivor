@@ -85,6 +85,7 @@ chemin_hote = NodePath("../Sprite2D")
 chemin_bar = NodePath("../HScrollBarPV")
 chemin_sante = NodePath("../Santé")
 offset = Vector2(-61, -100)
+toujours_visible = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.3, 0.3)
+zoom = Vector2(0.15, 0.15)

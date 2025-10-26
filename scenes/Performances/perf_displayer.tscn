@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://f781o1e023pe"]
+
+[ext_resource type="Script" uid="uid://320rsjkqtl10" path="res://scripts/Performances/perf_displayer.gd" id="1_7ptjy"]
+
+[node name="PerfDisplayer" type="CanvasLayer"]
+script = ExtResource("1_7ptjy")

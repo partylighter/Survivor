@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=8 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://blg7jbv4ugjh5" path="res://scenes/Enemies/enemy_class_b.tscn" id="4_71j4m"]
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
+[ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
 
 [node name="World" type="Node2D"]
 
@@ -15,13 +16,14 @@ position = Vector2(606, 294)
 [node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m"), ExtResource("3_k0juu")])
-poids_types = [50.0, 50.0]
-max_ennemis = 200
-rayon_spawn_min = 2500.0
-rayon_spawn_max = 2500.0
-rayon_disparition = 3000.0
+apparitions_par_sec = 20.0
+rayon_spawn_min = 5000.0
+rayon_spawn_max = 10000.0
+rayon_simulation = 8000.0
+rayon_disparition = 10000.0
+max_actifs_proches = 200
+vitesse_lointain = 0.0
 mode_vagues = false
-poids_par_vague = Array[PackedFloat32Array]([PackedFloat32Array(50, 50), PackedFloat32Array(80, 20)])
 
 [node name="StatsVagues" parent="." instance=ExtResource("5_71j4m")]
 debug_actif = true
@@ -29,3 +31,7 @@ chemin_manager = NodePath("../Gestionnaire Enemies")
 
 [node name="StatsDisplayer" parent="." instance=ExtResource("6_qfnet")]
 chemin_stats = NodePath("../StatsVagues")
+
+[node name="PerfDisplayer" parent="." instance=ExtResource("7_i7xtm")]
+visibility = true
+margin = Vector2(8, 50)

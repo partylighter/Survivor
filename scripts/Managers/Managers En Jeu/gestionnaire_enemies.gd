@@ -3,6 +3,7 @@ class_name GestionnaireEnnemis
 
 signal ennemi_cree(e)
 signal ennemi_tue(e)
+signal ennemi_retire(e)
 signal limite_atteinte()
 
 @export var chemin_joueur: NodePath
@@ -19,6 +20,12 @@ signal limite_atteinte()
 @export var rayon_simulation: float = 1400.0
 @export var rayon_disparition: float = 2000.0
 @export var budget_par_frame: int = 200
+@export var max_spawn_par_frame: int = 15
+
+@export var max_actifs_proches: int = 60
+
+@export var vitesse_lointain: float = 40.0
+@export var freq_lointain_frames: int = 6
 
 @export var mode_vagues: bool = true
 @export var interlude_s: float = 4.0
@@ -35,6 +42,8 @@ signal limite_atteinte()
 @export var poids_par_vague: Array[PackedFloat32Array] = []
 
 var ennemis: Array[Node2D] = []
+var pools: Array = []
+
 var accumulateur: float = 0.0
 var hasard: RandomNumberGenerator = RandomNumberGenerator.new()
 
@@ -60,6 +69,7 @@ func _ready() -> void:
 		push_warning("poids_types et scenes_ennemis de tailles différentes")
 	if not (rayon_disparition > rayon_simulation and rayon_simulation >= rayon_spawn_max and rayon_spawn_max >= rayon_spawn_min):
 		push_warning("invariants de rayon invalides")
+	_init_pools()
 	if mode_vagues and _nb_vagues() > 0:
 		_demarrer_vague(0)
 
@@ -79,13 +89,16 @@ func _process(dt: float) -> void:
 				emit_signal("limite_atteinte")
 				break
 			_creer_ennemi()
+
+	_appliquer_lod()
 	_maj_budget()
 
 func _tick_vague(dt: float) -> void:
 	t_vague += dt
 	var taux: float = _taux_courant()
 	acc_vague += taux * dt
-	while acc_vague >= 1.0:
+	var crees_ce_frame: int = 0
+	while acc_vague >= 1.0 and crees_ce_frame < max_spawn_par_frame:
 		if ennemis.size() >= max_ennemis:
 			break
 		var max_viv: int = _max_vivants_courant()
@@ -102,6 +115,7 @@ func _tick_vague(dt: float) -> void:
 		e.set_meta("vague_id", i_vague)
 		vivants_vague += 1
 		total_spawn_vague += 1
+		crees_ce_frame += 1
 	var cible: int = _cible_tues_courante()
 	if cible >= 0 and tues_vague >= cible:
 		_finir_vague()
@@ -138,30 +152,67 @@ func _demarrer_vague(index: int) -> void:
 	total_spawn_vague = 0
 	tues_vague = 0
 
+func _init_pools() -> void:
+	pools.clear()
+	for i in range(scenes_ennemis.size()):
+		pools.append([])
+
+func _prendre_depuis_pool(type_idx: int) -> Node2D:
+	if type_idx < 0 or type_idx >= pools.size():
+		return null
+	var pile: Array = pools[type_idx]
+	while not pile.is_empty():
+		var e: Node2D = pile.pop_back()
+		if is_instance_valid(e):
+			return e
+	return null
+
+func _rendre_a_pool(e: Node2D) -> void:
+	if not is_instance_valid(e):
+		return
+	if not e.has_meta("type_idx"):
+		e.queue_free()
+		return
+	var type_idx: int = int(e.get_meta("type_idx"))
+	_activer_ennemi(e, false)
+	e.hide()
+	if e.get_parent() == self:
+		remove_child(e)
+	if type_idx >= 0 and type_idx < pools.size():
+		if is_instance_valid(e):
+			pools[type_idx].append(e)
+	else:
+		e.queue_free()
+
 func _creer_ennemi() -> void:
 	if scenes_ennemis.is_empty():
 		return
 	var idx: int = _choisir_type()
-	var e: Node2D = scenes_ennemis[idx].instantiate() as Node2D
-	e.global_position = _position_spawn()
-	add_child(e)
-	ennemis.append(e)
-	e.set_meta("vague_id", i_vague if mode_vagues else -1)
-	if e.has_signal("mort"):
-		e.connect("mort", Callable(self, "_sur_mort").bind(e))
-	emit_signal("ennemi_cree", e)
+	_creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
 
 func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 	if scenes_ennemis.is_empty():
 		return null
 	idx = clamp(idx, 0, scenes_ennemis.size() - 1)
-	var e: Node2D = scenes_ennemis[idx].instantiate() as Node2D
+	var e: Node2D = _prendre_depuis_pool(idx)
+	if e == null:
+		e = scenes_ennemis[idx].instantiate() as Node2D
+		e.set_meta("type_idx", idx)
+	else:
+		if e.has_method("reactiver_apres_pool"):
+			e.reactiver_apres_pool()
 	e.global_position = _position_spawn_rayon(rmin, rmax)
-	add_child(e)
-	ennemis.append(e)
+	if e.get_parent() != self:
+		add_child(e)
+	_activer_ennemi(e, true)
+	e.show()
+	if not ennemis.has(e):
+		ennemis.append(e)
 	e.set_meta("vague_id", i_vague if mode_vagues else -1)
 	if e.has_signal("mort"):
-		e.connect("mort", Callable(self, "_sur_mort").bind(e))
+		var callable := Callable(self, "_sur_mort").bind(e)
+		if not e.is_connected("mort", callable):
+			e.connect("mort", callable)
 	emit_signal("ennemi_cree", e)
 	return e
 
@@ -172,8 +223,59 @@ func _sur_mort(e: Node2D) -> void:
 		if typeof(v) == TYPE_INT and int(v) == i_vague:
 			vivants_vague = max(0, vivants_vague - 1)
 			tues_vague += 1
-	e.queue_free()
+	_rendre_a_pool(e)
 	emit_signal("ennemi_tue", e)
+
+func _activer_ennemi(e: Node2D, actif: bool) -> void:
+	e.set_physics_process(actif)
+	e.set_process(actif)
+	if e is CollisionObject2D:
+		if actif:
+			if e.has_meta("sl"):
+				e.collision_layer = e.get_meta("sl")
+			if e.has_meta("sm"):
+				e.collision_mask = e.get_meta("sm")
+		else:
+			if not e.has_meta("sl"):
+				e.set_meta("sl", e.collision_layer)
+			if not e.has_meta("sm"):
+				e.set_meta("sm", e.collision_mask)
+			e.collision_layer = 0
+			e.collision_mask = 0
+
+func _tick_lointain(e: Node2D) -> void:
+	var dir: Vector2 = (joueur.global_position - e.global_position).normalized()
+	e.global_position += dir * vitesse_lointain * 0.1
+
+func _cmp_proches(a, b) -> bool:
+	return a["d2"] < b["d2"]
+
+func _appliquer_lod() -> void:
+	if ennemis.is_empty():
+		return
+	var r2_sim: float = rayon_simulation * rayon_simulation
+	var proches: Array = []
+	proches.resize(0)
+	for e in ennemis:
+		if not is_instance_valid(e):
+			continue
+		var d2: float = joueur.global_position.distance_squared_to(e.global_position)
+		if d2 <= r2_sim:
+			proches.append({"d2": d2, "e": e})
+	if proches.size() <= max_actifs_proches:
+		for item in proches:
+			var e: Node2D = item["e"]
+			_activer_ennemi(e, true)
+	else:
+		proches.sort_custom(Callable(self, "_cmp_proches"))
+		var count_actifs: int = 0
+		for item in proches:
+			var e2: Node2D = item["e"]
+			if count_actifs < max_actifs_proches:
+				_activer_ennemi(e2, true)
+				count_actifs += 1
+			else:
+				_activer_ennemi(e2, false)
 
 func _maj_budget() -> void:
 	if ennemis.is_empty():
@@ -198,22 +300,32 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	if i < 0 or i >= ennemis.size():
 		return false
 	var e: Node2D = ennemis[i]
-	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
-	e.set_process(d2 <= r2_sim)
-	if d2 > r2_disp:
-		var doit_decrementer := false
-		if e.has_meta("vague_id"):
-			var v: Variant = e.get_meta("vague_id")
-			if typeof(v) == TYPE_INT and int(v) == i_vague:
-				doit_decrementer = true
-		if doit_decrementer:
-			vivants_vague = max(0, vivants_vague - 1)
-		var last: int = ennemis.size() - 1
-		ennemis[i] = ennemis[last]
-		ennemis.remove_at(last)
-		e.queue_free()
+	if not is_instance_valid(e):
+		var last_invalid: int = ennemis.size() - 1
+		ennemis[i] = ennemis[last_invalid]
+		ennemis.remove_at(last_invalid)
 		return true
-	return false
+	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
+	if d2 <= r2_sim:
+		return false
+	if d2 <= r2_disp:
+		_activer_ennemi(e, false)
+		if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
+			_tick_lointain(e)
+		return false
+	var doit_decrementer := false
+	if e.has_meta("vague_id"):
+		var v: Variant = e.get_meta("vague_id")
+		if typeof(v) == TYPE_INT and int(v) == i_vague:
+			doit_decrementer = true
+	if doit_decrementer:
+		vivants_vague = max(0, vivants_vague - 1)
+	var last: int = ennemis.size() - 1
+	ennemis[i] = ennemis[last]
+	ennemis.remove_at(last)
+	_rendre_a_pool(e)
+	emit_signal("ennemi_retire", e)
+	return true
 
 func _position_spawn() -> Vector2:
 	var a: float = hasard.randf_range(0.0, TAU)
@@ -235,7 +347,7 @@ func _choisir_type() -> int:
 		return 0
 	var x: float = hasard.randf() * total
 	var s: float = 0.0
-	for i: int in poids_types.size():
+	for i: int in range(poids_types.size()):
 		s += poids_types[i]
 		if x <= s:
 			return i
@@ -252,7 +364,7 @@ func _choisir_type_vague() -> int:
 		return _choisir_type()
 	var x: float = hasard.randf() * total
 	var s: float = 0.0
-	for i: int in p.size():
+	for i: int in range(p.size()):
 		s += p[i]
 		if x <= s:
 			return i
@@ -266,7 +378,16 @@ func _poids_courants() -> PackedFloat32Array:
 	return poids_types
 
 func _nb_vagues() -> int:
-	return max(taux_vagues.size(), max(durees_vagues.size(), max(max_vivants_vagues.size(), max(total_max_vagues.size(), cibles_tues_vagues.size()))))
+	return max(
+		taux_vagues.size(),
+		max(
+			durees_vagues.size(),
+			max(
+				max_vivants_vagues.size(),
+				max(total_max_vagues.size(), cibles_tues_vagues.size())
+			)
+		)
+	)
 
 func _duree_courante() -> float:
 	var base: float = 0.0

@@ -4,4 +4,3 @@
 
 [node name="Enemy" type="CharacterBody2D"]
 script = ExtResource("1_5alqo")
-recul_amorti = 12.0

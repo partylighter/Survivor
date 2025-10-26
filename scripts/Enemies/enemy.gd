@@ -2,6 +2,7 @@ extends CharacterBody2D
 class_name Enemy
 
 signal mort
+signal reapparu
 
 enum TypeEnnemi {C, B, A, S, BOSS}
 
@@ -9,13 +10,18 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export_enum("C","B","A","S","BOSS") var type_ennemi: int = TypeEnnemi.C
 
 @export var valeur_score: int = 10
-
 @export var speed: float = 120.0
 @export_node_path("Node") var chemin_sante: NodePath
 
 @export var recul_amorti: float = 18.0
 @export var recul_max: float = 500.0
+
 var recul: Vector2 = Vector2.ZERO
+var deja_mort: bool = false
+var _doit_emit_reapparu_next_frame: bool = false
+
+var _layer_orig: int = -1
+var _mask_orig: int = -1
 
 @onready var sante: Sante = get_node(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
@@ -23,6 +29,11 @@ var recul: Vector2 = Vector2.ZERO
 func _ready() -> void:
 	if sante:
 		sante.died.connect(_on_mort)
+
+	# stock valeurs coll d'origine une seule fois
+	if self is CollisionObject2D:
+		_layer_orig = collision_layer
+		_mask_orig = collision_mask
 
 func get_type_id() -> int:
 	return type_ennemi
@@ -34,7 +45,6 @@ func get_score() -> int:
 	return valeur_score
 
 func appliquer_recul(direction: Vector2, force: float) -> void:
-	# additionne les impacts et limite la magnitude
 	recul += direction.normalized() * max(force, 0.0)
 	var m := recul.length()
 	if m > recul_max:
@@ -44,16 +54,24 @@ func appliquer_recul_depuis(source: Node2D, force: float) -> void:
 	var dir := global_position - source.global_position
 	appliquer_recul(dir, force)
 
-
 func _physics_process(dt: float) -> void:
+	# émettre reapparu une frame après réactivation
+	if _doit_emit_reapparu_next_frame:
+		_doit_emit_reapparu_next_frame = false
+		emit_signal("reapparu")
+
+	# si mort on ne bouge plus
+	if deja_mort:
+		return
+
 	if target != null and recul.length_squared() < 1.0:
 		var d := target.global_position - global_position
 		var L := d.length()
 		velocity = (d / (L if L > 0.0001 else 1.0)) * speed
+
 	velocity += recul
 
-	# DECROISSANCE EXPONENTIELLE + SEUIL ZERO
-	var alpha :float = clamp(recul_amorti * dt, 0.0, 0.95) # proportion absorbée cette frame
+	var alpha: float = clamp(recul_amorti * dt, 0.0, 0.95)
 	recul = recul.lerp(Vector2.ZERO, alpha)
 	if recul.length_squared() < 1.0:
 		recul = Vector2.ZERO
@@ -61,12 +79,63 @@ func _physics_process(dt: float) -> void:
 	move_and_slide()
 
 func _find_player(n: Node) -> Player:
-	if n is Player: return n
+	if n is Player:
+		return n
 	for c in n.get_children():
 		var p := _find_player(c)
-		if p: return p
+		if p:
+			return p
 	return null
 
 func _on_mort() -> void:
+	if deja_mort:
+		return
+	deja_mort = true
+
+	# très important:
+	# 1. sauver les couches réelles dans les metas sl/sm si pas déjà fait
+	# 2. ensuite seulement couper les collisions
+	if self is CollisionObject2D:
+		if _layer_orig < 0:
+			_layer_orig = collision_layer
+		if _mask_orig < 0:
+			_mask_orig = collision_mask
+
+		if not has_meta("sl"):
+			set_meta("sl", _layer_orig)
+		if not has_meta("sm"):
+			set_meta("sm", _mask_orig)
+
+		collision_layer = 0
+		collision_mask = 0
+
+	visible = false
+	velocity = Vector2.ZERO
+	recul = Vector2.ZERO
+
+	set_physics_process(false)
+	set_process(false)
+
 	emit_signal("mort")
-	queue_free()
+
+func reactiver_apres_pool() -> void:
+	deja_mort = false
+
+	# full heal
+	if sante:
+		var max_pv_now: float = float(sante.get("max_pv"))
+		sante.set("pv", max_pv_now)
+
+	visible = true
+	velocity = Vector2.ZERO
+	recul = Vector2.ZERO
+
+	# on relance le process ici
+	set_physics_process(true)
+	set_process(true)
+
+	# collisions seront remises juste après par
+	# GestionnaireEnnemis._activer_ennemi(e, true)
+	# qui lit sl/sm et restaure collision_layer/mask
+
+	_doit_emit_reapparu_next_frame = true
