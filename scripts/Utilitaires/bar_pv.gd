@@ -9,6 +9,7 @@ class_name BarPV
 @export_range(10.0, 1000.0, 1.0) var vitesse_px_s: float = 450.0
 @export_range(0.0, 1.0, 0.01) var valeur_smooth: float = 0.08
 @export var toujours_visible: bool = false
+@export_range(0.0, 500.0, 1.0) var distance_max_px: float = 60.0 # distance max autorisée entre la barre et l'hôte
 
 var _hote: Node2D
 var _bar: HScrollBar
@@ -66,7 +67,18 @@ func _process(delta: float) -> void:
 
 	if _hote and _bar:
 		var cible: Vector2 = _hote.global_position + offset
-		_bar.global_position = _bar.global_position.move_toward(cible, vitesse_px_s * delta)
+
+		# position vers laquelle la barre essaye d'aller ce frame
+		var tentative: Vector2 = _bar.global_position.move_toward(cible, vitesse_px_s * delta)
+
+		# on limite la distance max entre la barre et l'hôte
+		var ecart: Vector2 = tentative - cible
+		var dist: float = ecart.length()
+		if dist > distance_max_px:
+			ecart = ecart * (distance_max_px / dist)
+			tentative = cible + ecart
+
+		_bar.global_position = tentative
 
 	if _sante and _bar:
 		var pv_reel: float = float(_sante.get("pv"))
@@ -124,7 +136,6 @@ func _on_hote_mort() -> void:
 		_bar.hide()
 
 func _on_hote_reapparu() -> void:
-	# ignore si pas locké (évite bruit de signaux chelous)
 	if not _dead_lock:
 		return
 

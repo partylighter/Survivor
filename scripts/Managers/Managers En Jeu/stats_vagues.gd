@@ -82,14 +82,14 @@ func _fin_vague() -> void:
 	historique.append(stats_vague.duplicate(true))
 	_d("FIN VAGUE index=" + str(stats_vague["index"]) + " duree=" + str(stats_vague["duree"]))
 
-func _on_ennemi_cree(e: Node2D) -> void:
+func _on_ennemi_cree(_e: Node2D) -> void:
 	# un ennemi devient présent sur le terrain (nouveau ou repris du pool)
 	vivants += 1
 
 	if stats_vague.get("active", false):
 		stats_vague["spawns"] += 1
 
-func _on_ennemi_retire(e: Node2D) -> void:
+func _on_ennemi_retire(_e: Node2D) -> void:
 	# l'ennemi est retiré du terrain (trop loin / pooling / despawn non létal)
 	vivants = max(0, vivants - 1)
 

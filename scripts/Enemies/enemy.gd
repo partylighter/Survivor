@@ -16,6 +16,10 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var recul_amorti: float = 18.0
 @export var recul_max: float = 500.0
 
+@export_group("Secousse")
+@export var secousse_force_px: float = 4.0      # taille du shake visuel en pixels
+@export var secousse_duree_s: float = 0.12      # durée totale du shake
+
 var recul: Vector2 = Vector2.ZERO
 var deja_mort: bool = false
 var _doit_emit_reapparu_next_frame: bool = false
@@ -25,10 +29,16 @@ var _mask_orig: int = -1
 
 var _ai_enabled: bool = true
 
+var _secousse_t: float = 0.0
+var _sprite_pos_neutre: Vector2 = Vector2.ZERO
+
 @onready var sante: Sante = get_node(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
+@onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
+	_sprite_pos_neutre = sprite.position
+
 	if sante:
 		sante.died.connect(_on_mort)
 
@@ -50,6 +60,11 @@ func appliquer_recul(direction: Vector2, force: float) -> void:
 	var m := recul.length()
 	if m > recul_max:
 		recul = recul * (recul_max / m)
+
+	_prendre_coup_visuel()
+
+func _prendre_coup_visuel() -> void:
+	_secousse_t = secousse_duree_s
 
 func appliquer_recul_depuis(source: Node2D, force: float) -> void:
 	var dir := global_position - source.global_position
@@ -77,6 +92,22 @@ func _physics_process(dt: float) -> void:
 	recul = recul.lerp(Vector2.ZERO, alpha)
 	if recul.length_squared() < 1.0:
 		recul = Vector2.ZERO
+
+	# effet visuel de secousse du sprite (pas de shader)
+	if _secousse_t > 0.0:
+		_secousse_t -= dt
+		var ratio := _secousse_t / secousse_duree_s
+		if ratio < 0.0:
+			ratio = 0.0
+
+		var offset := Vector2(
+			randf_range(-1.0, 1.0),
+			randf_range(-1.0, 1.0)
+		) * secousse_force_px * ratio
+
+		sprite.position = _sprite_pos_neutre + offset
+	else:
+		sprite.position = _sprite_pos_neutre
 
 	move_and_slide()
 
@@ -137,11 +168,11 @@ func reactiver_apres_pool() -> void:
 
 	_doit_emit_reapparu_next_frame = true
 
-# appelé par GestionnaireEnnemis._set_enemy_mode
-# actif_moteur = true  => IA active, move_and_slide actif
-# actif_moteur = false => figé (ne calcule plus la poursuite ni move_and_slide)
-# collision_joueur est passé mais on ne retire pas encore sélectivement le bit joueur
-func set_combat_state(actif_moteur: bool, collision_joueur: bool) -> void:
+	# reset secousse
+	_secousse_t = 0.0
+	sprite.position = _sprite_pos_neutre
+
+func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 	if deja_mort:
 		return
 
@@ -151,15 +182,11 @@ func set_combat_state(actif_moteur: bool, collision_joueur: bool) -> void:
 	set_process(actif_moteur)
 
 	if self is CollisionObject2D:
-		# collision_layer garde la valeur d'origine
 		if has_meta("sl"):
 			collision_layer = get_meta("sl")
 		elif _layer_orig >= 0:
 			collision_layer = _layer_orig
 
-		# on restaure le mask normal si collision_joueur == true
-		# si collision_joueur == false on pourrait enlever le bit joueur
-		# mais tant qu'on n'a pas séparé les bits on réutilise _mask_orig
 		if has_meta("sm"):
 			collision_mask = get_meta("sm")
 		elif _mask_orig >= 0:
