@@ -1,0 +1,125 @@
+[gd_scene load_steps=12 format=3 uid="uid://d3m82iowm74c8"]
+
+[ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="1_k1dad"]
+[ext_resource type="Script" uid="uid://c5vt3c1hxe7p1" path="res://scripts/Menus/menu_parametres.gd" id="1_u7yeo"]
+[ext_resource type="Script" uid="uid://bl3htr71xipyg" path="res://scripts/Managers/Managers Menus/gestionnaire_menu_parametres.gd" id="3_vs7e6"]
+[ext_resource type="PackedScene" uid="uid://cunvexjekho0m" path="res://scenes/Menus/menu_performance.tscn" id="4_3m1d1"]
+[ext_resource type="PackedScene" uid="uid://wwd6oupme0m" path="res://scenes/Menus/menu_touches.tscn" id="4_vs7e6"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h1g31"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qldvp"]
+bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 13.0
+expand_margin_top = 2.0
+expand_margin_right = 13.0
+expand_margin_bottom = 2.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg86w"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 10.0
+expand_margin_top = 1.0
+expand_margin_right = 10.0
+expand_margin_bottom = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gn0ho"]
+bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+expand_margin_left = 18.0
+expand_margin_top = 2.0
+expand_margin_right = 18.0
+shadow_color = Color(1, 1, 1, 1)
+shadow_size = 2
+
+[sub_resource type="Theme" id="Theme_2nwmk"]
+default_font_size = 50
+Button/font_sizes/font_size = 50
+Button/styles/focus = SubResource("StyleBoxEmpty_h1g31")
+Button/styles/hover = SubResource("StyleBoxFlat_qldvp")
+Button/styles/normal = SubResource("StyleBoxFlat_sg86w")
+Button/styles/pressed = SubResource("StyleBoxFlat_gn0ho")
+
+[sub_resource type="Theme" id="Theme_mpuqq"]
+default_font_size = 50
+Button/font_sizes/font_size = 50
+Button/styles/focus = SubResource("StyleBoxEmpty_h1g31")
+Button/styles/hover = SubResource("StyleBoxFlat_qldvp")
+Button/styles/normal = SubResource("StyleBoxFlat_sg86w")
+Button/styles/pressed = SubResource("StyleBoxFlat_gn0ho")
+
+[node name="Menu Parametres" type="CanvasLayer"]
+script = ExtResource("1_u7yeo")
+chemin_btn_perf = NodePath("Root/VBoxContainer/btn_param_perf")
+chemin_btn_touches = NodePath("Root/VBoxContainer/btn_param_touches")
+chemin_btn_graphique = NodePath("Root/VBoxContainer/btn_param_Graphique")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_2nwmk")
+
+[node name="btn_param_perf" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "Performances"
+
+[node name="btn_param_touches" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "Touches"
+
+[node name="btn_param_Graphique" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "Graphique
+"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = SubResource("Theme_mpuqq")
+
+[node name="BtnBack" type="Button" parent="Root/HBoxContainer"]
+layout_mode = 2
+text = "Retour"
+script = ExtResource("1_k1dad")
+metadata/_custom_type_script = "uid://2fboxjeho0mu"
+
+[node name="GestionnaireMenuParametres" type="Node" parent="."]
+script = ExtResource("3_vs7e6")
+scene_perf = ExtResource("4_3m1d1")
+scene_touches = ExtResource("4_vs7e6")

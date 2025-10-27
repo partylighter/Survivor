@@ -1,11 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://b4vof4sahscqd"]
+[gd_scene load_steps=8 format=3 uid="uid://cunvexjekho0m"]
 
-[ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="1_h1g31"]
-[ext_resource type="Script" uid="uid://b4qyicp56tjej" path="res://scripts/Menus/options_menu.gd" id="1_qldvp"]
+[ext_resource type="Script" uid="uid://8r6ay4gxfenx" path="res://scripts/Menus/menu_performance.gd" id="1_4qwe1"]
+[ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="1_q2fq3"]
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qldvp"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h1g31"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg86w"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qldvp"]
 bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
 border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 5
@@ -19,7 +19,7 @@ expand_margin_bottom = 2.0
 shadow_color = Color(1, 1, 1, 1)
 shadow_size = 1
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gn0ho"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg86w"]
 bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -30,7 +30,7 @@ expand_margin_top = 1.0
 expand_margin_right = 10.0
 expand_margin_bottom = 1.0
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_otqhu"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gn0ho"]
 bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -42,16 +42,16 @@ expand_margin_right = 18.0
 shadow_color = Color(1, 1, 1, 1)
 shadow_size = 2
 
-[sub_resource type="Theme" id="Theme_qldvp"]
+[sub_resource type="Theme" id="Theme_4qwe1"]
 default_font_size = 50
 Button/font_sizes/font_size = 50
-Button/styles/focus = SubResource("StyleBoxEmpty_qldvp")
-Button/styles/hover = SubResource("StyleBoxFlat_sg86w")
-Button/styles/normal = SubResource("StyleBoxFlat_gn0ho")
-Button/styles/pressed = SubResource("StyleBoxFlat_otqhu")
+Button/styles/focus = SubResource("StyleBoxEmpty_h1g31")
+Button/styles/hover = SubResource("StyleBoxFlat_qldvp")
+Button/styles/normal = SubResource("StyleBoxFlat_sg86w")
+Button/styles/pressed = SubResource("StyleBoxFlat_gn0ho")
 
-[node name="OptionsMenu" type="CanvasLayer"]
-script = ExtResource("1_qldvp")
+[node name="Menu Performance" type="CanvasLayer"]
+script = ExtResource("1_4qwe1")
 
 [node name="Root" type="Control" parent="."]
 layout_mode = 3
@@ -83,7 +83,7 @@ offset_right = 82.0
 offset_bottom = 34.5
 grow_horizontal = 2
 grow_vertical = 2
-theme = SubResource("Theme_qldvp")
+theme = SubResource("Theme_4qwe1")
 
 [node name="btn_FPS" type="Button" parent="Root/VBoxContainer"]
 unique_name_in_owner = true
@@ -110,5 +110,5 @@ text = "Apliquer"
 layout_mode = 2
 text = "Retour
 "
-script = ExtResource("1_h1g31")
+script = ExtResource("1_q2fq3")
 metadata/_custom_type_script = "uid://2fboxjeho0mu"

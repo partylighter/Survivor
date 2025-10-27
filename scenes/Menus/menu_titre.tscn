@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/Menus/menu_titre.gd" id="1_b4npc"]
 [ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/autoloads/AutoloadsMenuing/GestionnaireMenuTitre.gd" id="2_ru77k"]
 [ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/Niveaux/NiveauTest/world.tscn" id="3_iipul"]
-[ext_resource type="PackedScene" uid="uid://b4vof4sahscqd" path="res://scenes/Menus/options_menu.tscn" id="4_y535g"]
+[ext_resource type="PackedScene" uid="uid://d3m82iowm74c8" path="res://scenes/Menus/menu_parametres.tscn" id="4_iipul"]
 [ext_resource type="PackedScene" uid="uid://cmle5kbdu3q7b" path="res://scenes/Menus/menu_credits.tscn" id="5_iipul"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_vrwda"]
@@ -116,6 +116,6 @@ text = "Quitter
 [node name="GestionnaireMenuTitre" type="Node" parent="."]
 script = ExtResource("2_ru77k")
 scene_jeu = ExtResource("3_iipul")
-scene_options = ExtResource("4_y535g")
+scene_options = ExtResource("4_iipul")
 scene_credits = ExtResource("5_iipul")
 metadata/_custom_type_script = "uid://b7hstmkshyre5"
