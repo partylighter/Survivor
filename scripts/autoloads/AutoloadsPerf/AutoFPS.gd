@@ -2,7 +2,7 @@ extends Node
 
 @export var fps_cible: int = 60
 @export var vsync_mode: int = 1        # 0 = Off, 1 = On, 2 = Adaptatif
-@export var ticks_physique_cible: int = 30   # ticks physique par seconde
+@export var ticks_physique_cible: int = 120   # ticks physique par seconde
 
 func _ready() -> void:
 	charger_parametres()
