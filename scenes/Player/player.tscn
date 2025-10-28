@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=18 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_dqkch"]
 [ext_resource type="Script" uid="uid://bauxt8yxsin5i" path="res://scripts/Utilitaires/hitbox.gd" id="5_qlg0r"]
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="6_tuyoq"]
+[ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/Managers/Managers En Jeu/GestionnaireArme.gd" id="7_a06cl"]
+[ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/Managers/Managers En Jeu/ZoneRamassage.gd" id="8_dl1wr"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
 size = Vector2(131, 131)
@@ -31,9 +33,11 @@ bg_color = Color(0.768627, 0, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4r1p"]
 bg_color = Color(0.768627, 0, 0, 1)
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_wwtew"]
+radius = 473.482
+
 [node name="Player" type="CharacterBody2D"]
 script = ExtResource("1_g2els")
-chemin_hitbox = NodePath("Hitbox")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_qhqgy")
@@ -59,12 +63,11 @@ debug_color = Color(1, 1, 1, 0)
 collision_layer = 8
 collision_mask = 96
 script = ExtResource("5_qlg0r")
-damage = 1
 chemin_hote = NodePath("..")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Hitbox"]
 shape = SubResource("CircleShape2D_fjrip")
-debug_color = Color(0.983305, 0.127716, 0, 0.42)
+debug_color = Color(0.984314, 0.129412, 0, 0)
 
 [node name="HScrollBarPV" type="HScrollBar" parent="."]
 unique_name_in_owner = true
@@ -89,3 +92,23 @@ toujours_visible = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.3, 0.3)
+
+[node name="GestionnaireArme" type="Node2D" parent="."]
+script = ExtResource("7_a06cl")
+chemin_socket_gauche = NodePath("SocketGauche")
+chemin_socket_droite = NodePath("SocketDroite")
+metadata/_custom_type_script = "uid://ca27wv5y28koq"
+
+[node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
+position = Vector2(-155, 0)
+
+[node name="SocketDroite" type="Node2D" parent="GestionnaireArme"]
+position = Vector2(148, 0)
+
+[node name="ZoneRamassage" type="Area2D" parent="."]
+script = ExtResource("8_dl1wr")
+metadata/_custom_type_script = "uid://cni7dvefjr67x"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]
+shape = SubResource("CircleShape2D_wwtew")
+debug_color = Color(0, 0.6, 0.701961, 0)

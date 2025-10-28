@@ -2,12 +2,23 @@ extends CanvasLayer
 class_name MenuTouches
 
 @export var actions_configurables: Array[Dictionary] = [
-	{"action": "droite",  "label": "Aller à droite"},
-	{"action": "gauche",  "label": "Aller à gauche"},
-	{"action": "haut",    "label": "Haut / Saut / Monter"},
-	{"action": "bas",     "label": "Bas / Descendre"},
-	{"action": "attaque", "label": "Attaque"},
-	{"action": "pause",   "label": "Pause / Menu"}
+	{"action": "droite",                "label": "Aller à droite"},
+	{"action": "gauche",                "label": "Aller à gauche"},
+	{"action": "haut",                  "label": "Haut / Saut / Monter"},
+	{"action": "bas",                   "label": "Bas / Descendre"},
+	{"action": "attaque",               "label": "Attaque"},
+	{"action": "pause",                 "label": "Pause / Menu"},
+
+	{"action": "attaque_main_gauche",   "label": "Attaque main gauche"},
+	{"action": "attaque_main_droite",   "label": "Attaque main droite"},
+
+	{"action": "ramasser",              "label": "Ramasser"},
+
+	{"action": "lacher_main_gauche",    "label": "Lâcher main gauche"},
+	{"action": "lacher_main_droite",    "label": "Lâcher main droite"},
+
+	{"action": "jeter_main_gauche",     "label": "Jeter main gauche"},
+	{"action": "jeter_main_droite",     "label": "Jeter main droite"}
 ]
 
 @onready var conteneur_liste: VBoxContainer = %ListeActions
@@ -20,7 +31,7 @@ var action_cible: StringName
 var ignorer_click_souris: bool = false
 var modif_en_attente: bool = false
 
-var binds_init: Dictionary = {} # {StringName: InputEvent or null}
+var binds_init: Dictionary = {}
 
 func _ready() -> void:
 	_snapshot_bind_initial()
