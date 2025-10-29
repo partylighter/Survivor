@@ -5,8 +5,8 @@ class_name GestionnaireArme
 @export_node_path("Node2D") var chemin_socket_secondaire: NodePath
 
 # Portée des bras (distance radiale mini / maxi)
-@export_range(0.0, 1000.0, 0.1) var distance_min: float = 50.0
-@export_range(0.0, 1000.0, 0.1) var distance_max: float = 400.0
+@export_range(0.0, 1000.0, 0.1) var distance_min: float = 300.0
+@export_range(0.0, 1000.0, 0.1) var distance_max: float = 500.0
 
 # Lissage du bras principal (0.0 lent, 1.0 réactif)
 @export_range(0.0, 1.0, 0.01) var vitesse_lissage: float = 0.05
@@ -15,17 +15,17 @@ class_name GestionnaireArme
 @export_range(0.01, 1.0, 0.01) var reactivite_main_secondaire: float = 1.0
 
 # Limite de vitesse angulaire de la main secondaire (radians/frame)
-@export_range(0.0, 3.14159, 0.01) var vitesse_offset_max: float = 0.1
+@export_range(0.0, 3.14159, 0.01) var vitesse_offset_max: float = 0.25
 
 # Zones de distance pour fusion visuelle des deux mains
 # dist <= rayon_proche  -> mains opposées
 # dist >= rayon_loin    -> mains sur le même côté (fusion visuelle)
-@export_range(0.0, 2000.0, 0.1) var rayon_proche: float = 600.0
-@export_range(0.0, 2000.0, 0.1) var rayon_loin: float = 800.0
+@export_range(0.0, 2000.0, 0.1) var rayon_proche: float = 800.0
+@export_range(0.0, 2000.0, 0.1) var rayon_loin: float = 1500.0
 
 # Avance max quand la main secondaire dépasse la principale (radians)
 # Exemple: PI * 0.5 = 90°
-@export_range(0.0, 3.14159, 0.01) var avance_max: float = PI * 0.5
+@export_range(0.0, 3.14159, 0.01) var avance_max: float = PI * 3.14
 
 # Séparation visuelle des deux mains quand elles sont du même côté
 @export_range(0.0, 64.0, 0.1) var ecart_lateral: float = 6.0
@@ -220,11 +220,12 @@ func _gestion_attaques() -> void:
 	if Input.is_action_just_pressed("attaque_main_droite"):
 		if arme_principale and arme_principale.peut_attaquer():
 			arme_principale.attaquer()
+		print("attaque arme principale")
 
 	if Input.is_action_just_pressed("attaque_main_gauche"):
 		if arme_secondaire and arme_secondaire.peut_attaquer():
 			arme_secondaire.attaquer()
-
+		print("attaque arme secondaire")
 
 func equiper_arme_principale(a: ArmeBase) -> void:
 	if a == null:

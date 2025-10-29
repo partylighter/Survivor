@@ -91,14 +91,12 @@ offset = Vector2(-61, -100)
 toujours_visible = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.3, 0.3)
+zoom = Vector2(0.12, 0.12)
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketGauche")
 chemin_socket_secondaire = NodePath("SocketDroite")
-vitesse_offset_max = 0.4
-rayon_loin = 1403.6
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
