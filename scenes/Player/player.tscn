@@ -95,15 +95,23 @@ zoom = Vector2(0.3, 0.3)
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
-chemin_socket_gauche = NodePath("SocketGauche")
-chemin_socket_droite = NodePath("SocketDroite")
+chemin_socket_principale = NodePath("SocketGauche")
+chemin_socket_secondaire = NodePath("SocketDroite")
+vitesse_offset_max = 0.4
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
 position = Vector2(-155, 0)
 
+[node name="Sprite2D" type="Sprite2D" parent="GestionnaireArme/SocketGauche"]
+texture = ExtResource("2_qhqgy")
+
 [node name="SocketDroite" type="Node2D" parent="GestionnaireArme"]
 position = Vector2(148, 0)
+
+[node name="Sprite2D2" type="Sprite2D" parent="GestionnaireArme/SocketDroite"]
+position = Vector2(-1, 0)
+texture = ExtResource("2_qhqgy")
 
 [node name="ZoneRamassage" type="Area2D" parent="."]
 script = ExtResource("8_dl1wr")
