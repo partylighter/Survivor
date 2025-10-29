@@ -98,6 +98,7 @@ script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketGauche")
 chemin_socket_secondaire = NodePath("SocketDroite")
 vitesse_offset_max = 0.4
+rayon_loin = 1403.6
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
