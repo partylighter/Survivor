@@ -61,6 +61,7 @@ var _fusion_t: float = 0.0
 # milieu    -> ~0  (mêmes direction)
 # très loin -> ~-avance_max (elle passe devant)
 var _offset_secondaire_affiche: float = PI
+const LOOT_SCENE: PackedScene = preload("res://scenes/Armes/Armes de contact/loot_arme.tscn")
 
 
 func _ready() -> void:
@@ -80,9 +81,7 @@ func _ready() -> void:
 
 
 func _process(_dt: float) -> void:
-	if Input.is_action_just_pressed("ramasser"):
-		_essayer_ramasser()
-
+	_handle_inputs()
 	_mettre_a_jour_sockets()
 	_gestion_attaques()
 
@@ -191,34 +190,27 @@ func _mettre_a_jour_sockets() -> void:
 
 func _essayer_ramasser() -> void:
 	if not is_instance_valid(zone):
-		print("ramasser: zone absente")
-		return
-	var ref_pos: Vector2 = (_joueur.global_position if is_instance_valid(_joueur) else global_position)
+		print("ramasser: pas de zone"); return
+	var ref_pos: Vector2 = ( _joueur.global_position if is_instance_valid(_joueur) else global_position )
 	var loot: LootArme = zone.get_loot_le_plus_proche(ref_pos)
 	if loot == null:
-		print("ramasser: aucun loot")
-		return
-	if loot.arme_scene == null:
-		print("ramasser: arme_scene manquante sur ", loot.name)
-		return
-	var inst: Node = loot.arme_scene.instantiate()
-	if inst is ArmeBase:
-		var arme := inst as ArmeBase
+		print("ramasser: rien"); return
+	var ps: PackedScene = loot.arme_scene
+	if ps == null:
+		print("ramasser: arme_scene manquante"); return
+	var n := ps.instantiate()
+	if n is ArmeBase:
+		var arme := n as ArmeBase
+		arme.scene_source = ps
 		if arme_principale == null:
-			equiper_arme_principale(arme)
-			print("ramasser: équipée en principale")
+			equiper_arme_principale(arme); print("ramasser: principale")
 		elif arme_secondaire == null:
-			equiper_arme_secondaire(arme)
-			print("ramasser: équipée en secondaire")
+			equiper_arme_secondaire(arme); print("ramasser: secondaire")
 		else:
-			print("ramasser: mains pleines")
-			inst.queue_free()
-			return
-		loot.queue_free()
-		print("ramasser: loot supprimé ", loot.name)
+			print("ramasser: mains pleines"); arme.queue_free(); return
+		loot.queue_free(); print("ramasser: ok")
 	else:
-		print("ramasser: type d'arme invalide ", inst)
-		inst.queue_free()
+		print("ramasser: type invalide"); n.queue_free()
 
 func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var a := wrapf(angle, -PI, PI)
@@ -296,3 +288,59 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	a.rotation = _socket_secondaire.rotation
 	_angle_secondaire_affiche = _socket_secondaire.rotation
 	_offset_secondaire_affiche = PI
+
+func _lacher(main_droite: bool) -> void:
+	_liberer(main_droite, 110.0, (8.0 if main_droite else -8.0))
+
+func _jeter(main_droite: bool) -> void:
+	_liberer(main_droite, 700.0, (20.0 if main_droite else -20.0))
+
+func _drop(a: ArmeBase, s: Node2D, force: float, ang_vel: float) -> void:
+	if a.scene_source == null:
+		print("drop: scene_source manquante"); return
+	var loot := _spawn_loot(s, a.scene_source, force, ang_vel)
+	if loot == null: return
+	if a == arme_principale: arme_principale = null 
+	else: arme_secondaire = null
+	a.queue_free()
+	print("drop ok:", loot.name)
+
+func _handle_inputs() -> void:
+	if Input.is_action_just_pressed("ramasser"):
+		_essayer_ramasser()
+	elif Input.is_action_just_pressed("lacher_main_droite"):
+		_lacher(true)
+	elif Input.is_action_just_pressed("lacher_main_gauche"):
+		_lacher(false)
+	elif Input.is_action_just_pressed("jeter_main_droite"):
+		_jeter(true)
+	elif Input.is_action_just_pressed("jeter_main_gauche"):
+		_jeter(false)
+
+func _liberer(main_droite: bool, force: float, ang_vel: float) -> void:
+	var a: ArmeBase = (arme_principale if main_droite else arme_secondaire)
+	var s: Node2D = (_socket_principale if main_droite else _socket_secondaire)
+	if a == null or s == null:
+		print("liberer: rien en main"); return
+	_drop(a, s, force, ang_vel)
+
+func _spawn_loot(s: Node2D, scene_src: PackedScene, force: float, ang_vel: float) -> LootArme:
+	if scene_src == null:
+		print("spawn_loot: scene_src null"); return null
+	var loot := LOOT_SCENE.instantiate() as LootArme
+	loot.arme_scene = scene_src
+
+	var dir := (get_global_mouse_position() - s.global_position).normalized()
+	if dir == Vector2.ZERO:
+		dir = Vector2.RIGHT.rotated(s.global_rotation)
+	var jitter := dir.orthogonal() * randf_range(-25.0, 25.0)
+
+	loot.global_position = s.global_position
+	loot.linear_velocity = dir * force + jitter
+	loot.angular_velocity = ang_vel
+
+	loot.z = 0.8
+	loot.vz = (100.0 if force <= 150.0 else 280.0)
+
+	get_tree().current_scene.add_child(loot)
+	return loot

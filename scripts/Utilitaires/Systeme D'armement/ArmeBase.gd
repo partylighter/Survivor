@@ -8,6 +8,7 @@ class_name ArmeBase
 @export var cooldown_s: float = 0.3
 @export var recul_force: float = 200.0
 @export var ref_scene_equipee: PackedScene
+@export var scene_source: PackedScene
 @export var debug_enabled: bool = true
 
 var porteur: Node2D = null

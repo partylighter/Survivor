@@ -7,7 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
-[ext_resource type="PackedScene" uid="uid://b3lskg1obdv18" path="res://scenes/Armes/Armes de contact/loot_arme_1.tscn" id="8_4yle2"]
+[ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot_arme.tscn" id="9_075h3"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/Armes/Armes de contact/arme_contact_1.tscn" id="9_kb48r"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="10_075h3"]
 
@@ -38,13 +38,16 @@ chemin_stats = NodePath("../StatsVagues")
 visibility = true
 margin = Vector2(8, 50)
 
-[node name="LootArme 1" parent="." instance=ExtResource("8_4yle2")]
-position = Vector2(-26, 518)
-arme_scene = ExtResource("9_kb48r")
-
 [node name="Icon" type="Sprite2D" parent="."]
 modulate = Color(0.34902, 0.34902, 0.34902, 0.698039)
 z_index = -760
 position = Vector2(-47, 608)
 scale = Vector2(100, 100)
 texture = ExtResource("10_075h3")
+
+[node name="LootArme" parent="." instance=ExtResource("9_075h3")]
+arme_scene = ExtResource("9_kb48r")
+
+[node name="LootArme2" parent="." instance=ExtResource("9_075h3")]
+position = Vector2(-137, 282)
+arme_scene = ExtResource("9_kb48r")
