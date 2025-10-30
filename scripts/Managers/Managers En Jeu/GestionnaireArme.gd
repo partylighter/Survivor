@@ -3,6 +3,8 @@ class_name GestionnaireArme
 
 @export_node_path("Node2D") var chemin_socket_principale: NodePath
 @export_node_path("Node2D") var chemin_socket_secondaire: NodePath
+@export_node_path("ZoneRamassage") var chemin_zone: NodePath
+var zone: ZoneRamassage
 
 # Portée des bras (distance radiale mini / maxi)
 @export_range(0.0, 1000.0, 0.1) var distance_min: float = 300.0
@@ -34,6 +36,7 @@ class_name GestionnaireArme
 @export_range(0.1, 1.0, 0.01) var portee_main_principale: float = 1.0
 @export_range(0.1, 1.0, 0.01) var portee_main_secondaire: float = 0.7
 
+@export var auto_flip_visuel: bool = true
 
 var arme_principale: ArmeBase = null
 var arme_secondaire: ArmeBase = null
@@ -63,6 +66,7 @@ var _offset_secondaire_affiche: float = PI
 func _ready() -> void:
 	_socket_principale = get_node(chemin_socket_principale) as Node2D
 	_socket_secondaire = get_node(chemin_socket_secondaire) as Node2D
+	zone = get_node(chemin_zone) as ZoneRamassage
 	_joueur = get_parent() as Player
 
 	_dist_principale = distance_max
@@ -76,6 +80,9 @@ func _ready() -> void:
 
 
 func _process(_dt: float) -> void:
+	if Input.is_action_just_pressed("ramasser"):
+		_essayer_ramasser()
+
 	_mettre_a_jour_sockets()
 	_gestion_attaques()
 
@@ -177,7 +184,48 @@ func _mettre_a_jour_sockets() -> void:
 		arme_principale.rotation = _angle_main_affiche
 	if arme_secondaire:
 		arme_secondaire.rotation = _angle_secondaire_affiche
+	if auto_flip_visuel:
+		_appliquer_flip_visuel(_socket_principale, _angle_main_affiche)
+		_appliquer_flip_visuel(_socket_secondaire, _angle_secondaire_affiche)
 
+
+func _essayer_ramasser() -> void:
+	if not is_instance_valid(zone):
+		print("ramasser: zone absente")
+		return
+	var ref_pos: Vector2 = (_joueur.global_position if is_instance_valid(_joueur) else global_position)
+	var loot: LootArme = zone.get_loot_le_plus_proche(ref_pos)
+	if loot == null:
+		print("ramasser: aucun loot")
+		return
+	if loot.arme_scene == null:
+		print("ramasser: arme_scene manquante sur ", loot.name)
+		return
+	var inst: Node = loot.arme_scene.instantiate()
+	if inst is ArmeBase:
+		var arme := inst as ArmeBase
+		if arme_principale == null:
+			equiper_arme_principale(arme)
+			print("ramasser: équipée en principale")
+		elif arme_secondaire == null:
+			equiper_arme_secondaire(arme)
+			print("ramasser: équipée en secondaire")
+		else:
+			print("ramasser: mains pleines")
+			inst.queue_free()
+			return
+		loot.queue_free()
+		print("ramasser: loot supprimé ", loot.name)
+	else:
+		print("ramasser: type d'arme invalide ", inst)
+		inst.queue_free()
+
+func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
+	var a := wrapf(angle, -PI, PI)
+	var doit_flip := (a > PI * 0.5) or (a < -PI * 0.5)  # à l'envers ?
+	var s := n.scale
+	s.y = -1.0 if doit_flip else 1.0
+	n.scale = s
 
 func _calculer_fusion_depuis_distance(dist: float) -> float:
 	# but:
