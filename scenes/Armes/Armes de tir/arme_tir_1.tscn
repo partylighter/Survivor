@@ -6,4 +6,5 @@
 [node name="ArmeTir_1" type="Node"]
 script = ExtResource("1_58xvi")
 projectile_scene = ExtResource("2_sts0y")
+debug_enabled = false
 metadata/_custom_type_script = "uid://di6ajeojl73qu"

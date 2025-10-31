@@ -9,8 +9,6 @@ radius = 47.1275
 [node name="LootArme" type="Area2D"]
 script = ExtResource("1_4rq1i")
 debug_enabled = false
-seuil_stop_sol = 500.0
-seuil_rebond_z = 1000.0
 metadata/_custom_type_script = "uid://cd1oknm5db88j"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -19,5 +17,6 @@ debug_color = Color(0, 0.6, 0.701961, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 0, 0.278431)
+z_index = 370
 scale = Vector2(0.551977, 0.551977)
 texture = ExtResource("2_j50w8")

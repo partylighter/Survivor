@@ -115,6 +115,7 @@ texture = ExtResource("2_qhqgy")
 
 [node name="ZoneRamassage" type="Area2D" parent="."]
 script = ExtResource("8_dl1wr")
+debug_enabled = false
 metadata/_custom_type_script = "uid://cni7dvefjr67x"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]

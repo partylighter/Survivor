@@ -333,14 +333,18 @@ func _spawn_loot(s: Node2D, scene_src: PackedScene, force: float, ang_vel: float
 	var dir := (get_global_mouse_position() - s.global_position).normalized()
 	if dir == Vector2.ZERO:
 		dir = Vector2.RIGHT.rotated(s.global_rotation)
-	var jitter := dir.orthogonal() * randf_range(-25.0, 25.0)
+	var jitter_amp := (10.0 if force <= 150.0 else 25.0)
+	var jitter := dir.orthogonal() * randf_range(-jitter_amp, jitter_amp)
 
 	loot.global_position = s.global_position
 	loot.linear_velocity = dir * force + jitter
 	loot.angular_velocity = ang_vel
-
-	loot.z = 0.8
-	loot.vz = (100.0 if force <= 150.0 else 280.0)
+# impose les valeurs voulues (contourne les overrides de loot_arme.tscn)
+	loot.frein = 16.0
+	loot.restitution = 0.65
+	loot.seuil_bounce = 60.0
+	loot.seuil_stop = 18.0
+	loot.max_bounces = 1
 
 	get_tree().current_scene.add_child(loot)
 	return loot
