@@ -40,3 +40,9 @@ func attaquer() -> void:
 	# cooldown du tir
 	await get_tree().create_timer(cooldown_s).timeout
 	_pret = true
+
+func _maj_etat_pickup() -> void:
+	if _pickup:
+		_pickup.set_deferred("monitoring", est_au_sol)
+		_pickup.set_deferred("monitorable", est_au_sol)
+		_pickup.process_mode = (Node.PROCESS_MODE_INHERIT if not est_au_sol else Node.PROCESS_MODE_DISABLED)

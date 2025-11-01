@@ -1,14 +1,13 @@
 [gd_scene load_steps=4 format=3 uid="uid://b32j02pclbim1"]
 
-[ext_resource type="Script" uid="uid://cd1oknm5db88j" path="res://scripts/Utilitaires/Systeme D'armement/LootArme.gd" id="1_4rq1i"]
-[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_j50w8"]
+[ext_resource type="Script" uid="uid://cd1oknm5db88j" path="res://scripts/Utilitaires/Systeme D'armement/LootArme.gd" id="1_hjdlj"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_85bdx"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_na3lh"]
 radius = 47.1275
 
-[node name="LootArme" type="Area2D"]
-script = ExtResource("1_4rq1i")
-debug_enabled = false
+[node name="Loot" type="Area2D"]
+script = ExtResource("1_hjdlj")
 metadata/_custom_type_script = "uid://cd1oknm5db88j"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -19,4 +18,4 @@ debug_color = Color(0, 0.6, 0.701961, 0)
 modulate = Color(1, 1, 0, 0.278431)
 z_index = 370
 scale = Vector2(0.551977, 0.551977)
-texture = ExtResource("2_j50w8")
+texture = ExtResource("2_85bdx")

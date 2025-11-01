@@ -61,7 +61,7 @@ var _fusion_t: float = 0.0
 # milieu    -> ~0  (mêmes direction)
 # très loin -> ~-avance_max (elle passe devant)
 var _offset_secondaire_affiche: float = PI
-const LOOT_SCENE: PackedScene = preload("res://scenes/Armes/Armes de contact/loot_arme.tscn")
+const LOOT_SCENE: PackedScene = preload("res://scenes/Armes/Armes de contact/loot.tscn")
 
 
 func _ready() -> void:
@@ -190,27 +190,60 @@ func _mettre_a_jour_sockets() -> void:
 
 func _essayer_ramasser() -> void:
 	if not is_instance_valid(zone):
-		print("ramasser: pas de zone"); return
-	var ref_pos: Vector2 = ( _joueur.global_position if is_instance_valid(_joueur) else global_position )
-	var loot: LootArme = zone.get_loot_le_plus_proche(ref_pos)
-	if loot == null:
-		print("ramasser: rien"); return
-	var ps: PackedScene = loot.arme_scene
-	if ps == null:
-		print("ramasser: arme_scene manquante"); return
-	var n := ps.instantiate()
-	if n is ArmeBase:
-		var arme := n as ArmeBase
-		arme.scene_source = ps
-		if arme_principale == null:
-			equiper_arme_principale(arme); print("ramasser: principale")
-		elif arme_secondaire == null:
-			equiper_arme_secondaire(arme); print("ramasser: secondaire")
+		print("ramasser: pas de zone")
+		return
+
+	var ref_pos: Vector2 = (_joueur.global_position if is_instance_valid(_joueur) else global_position)
+	var cible: Node2D = zone.get_pickable_le_plus_proche(ref_pos)
+	if cible == null:
+		print("ramasser: rien")
+		return
+
+	if cible is Loot:
+		var loot: Loot = cible
+		var ps: PackedScene = loot.prendre_scene()
+		if ps == null:
+			print("ramasser: scene_contenu manquante")
+			return
+
+		var n: Node = ps.instantiate()
+		if n is ArmeBase:
+			var arme: ArmeBase = n
+			arme.scene_source = ps
+
+			if arme_principale == null:
+				equiper_arme_principale(arme); print("ramasser: principale")
+			elif arme_secondaire == null:
+				equiper_arme_secondaire(arme); print("ramasser: secondaire")
+			else:
+				print("ramasser: mains pleines")
+				arme.queue_free()
+				return
+
+			loot.queue_free(); print("ramasser: ok (depuis loot)")
 		else:
-			print("ramasser: mains pleines"); arme.queue_free(); return
-		loot.queue_free(); print("ramasser: ok")
+			print("ramasser: type invalide"); n.queue_free()
+
+	elif cible is ArmeBase:
+		# si mains pleines, ne détache rien
+		if arme_principale != null and arme_secondaire != null:
+			print("ramasser: mains pleines")
+			return
+
+		var arme_sol: ArmeBase = cible
+		var parent: Node = arme_sol.get_parent()
+		if parent:
+			parent.remove_child(arme_sol)
+
+		if arme_principale == null:
+			equiper_arme_principale(arme_sol); print("ramasser: principale")
+		else:
+			equiper_arme_secondaire(arme_sol); print("ramasser: secondaire")
+
+		print("ramasser: ok (arme au sol)")
+
 	else:
-		print("ramasser: type invalide"); n.queue_free()
+		print("ramasser: cible inconnue")
 
 func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var a := wrapf(angle, -PI, PI)
@@ -295,15 +328,23 @@ func _lacher(main_droite: bool) -> void:
 func _jeter(main_droite: bool) -> void:
 	_liberer(main_droite, 700.0, (20.0 if main_droite else -20.0))
 
-func _drop(a: ArmeBase, s: Node2D, force: float, ang_vel: float) -> void:
-	if a.scene_source == null:
-		print("drop: scene_source manquante"); return
-	var loot := _spawn_loot(s, a.scene_source, force, ang_vel)
-	if loot == null: return
-	if a == arme_principale: arme_principale = null 
+func _drop(a: ArmeBase, s: Node2D, _force: float, _ang_vel: float) -> void:
+	var world := get_tree().current_scene
+	var gp := s.global_position
+	var gr := s.global_rotation
+
+	# détache du socket → monde
+	if a.get_parent(): a.get_parent().remove_child(a)
+	world.add_child(a)
+	a.global_position = gp
+	a.rotation = gr
+	a.liberer_au_sol()  # réactive la zone de pickup côté arme
+
+	# vider la main
+	if a == arme_principale: arme_principale = null
 	else: arme_secondaire = null
-	a.queue_free()
-	print("drop ok:", loot.name)
+
+	print("drop ok:", a.name)
 
 func _handle_inputs() -> void:
 	if Input.is_action_just_pressed("ramasser"):
@@ -324,27 +365,12 @@ func _liberer(main_droite: bool, force: float, ang_vel: float) -> void:
 		print("liberer: rien en main"); return
 	_drop(a, s, force, ang_vel)
 
-func _spawn_loot(s: Node2D, scene_src: PackedScene, force: float, ang_vel: float) -> LootArme:
+func _spawn_item(s: Node2D, scene_src: PackedScene) -> Node2D:
 	if scene_src == null:
-		print("spawn_loot: scene_src null"); return null
-	var loot := LOOT_SCENE.instantiate() as LootArme
-	loot.arme_scene = scene_src
-
-	var dir := (get_global_mouse_position() - s.global_position).normalized()
-	if dir == Vector2.ZERO:
-		dir = Vector2.RIGHT.rotated(s.global_rotation)
-	var jitter_amp := (10.0 if force <= 150.0 else 25.0)
-	var jitter := dir.orthogonal() * randf_range(-jitter_amp, jitter_amp)
-
-	loot.global_position = s.global_position
-	loot.linear_velocity = dir * force + jitter
-	loot.angular_velocity = ang_vel
-# impose les valeurs voulues (contourne les overrides de loot_arme.tscn)
-	loot.frein = 16.0
-	loot.restitution = 0.65
-	loot.seuil_bounce = 60.0
-	loot.seuil_stop = 18.0
-	loot.max_bounces = 1
-
-	get_tree().current_scene.add_child(loot)
-	return loot
+		print("spawn_item: scene_src null"); return null
+	var item := scene_src.instantiate() as Node2D
+	if item == null:
+		print("spawn_item: la scène n'est pas un Node2D"); return null
+	item.global_position = s.global_position
+	get_tree().current_scene.add_child(item)
+	return item
