@@ -323,10 +323,44 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	_offset_secondaire_affiche = PI
 
 func _lacher(main_droite: bool) -> void:
-	_liberer(main_droite, 110.0, (8.0 if main_droite else -8.0))
+	var a: ArmeBase = (arme_principale if main_droite else arme_secondaire)
+	var s: Node2D = (_socket_principale if main_droite else _socket_secondaire)
+	if a == null or s == null:
+		return
+	_detach_to_world(a, s)
+	a.liberer_au_sol()
+	if a == arme_principale:
+		arme_principale = null
+	else:
+		arme_secondaire = null
 
 func _jeter(main_droite: bool) -> void:
-	_liberer(main_droite, 700.0, (20.0 if main_droite else -20.0))
+	var a: ArmeBase = (arme_principale if main_droite else arme_secondaire)
+	var s: Node2D = (_socket_principale if main_droite else _socket_secondaire)
+	if a == null or s == null:
+		return
+	var gp := s.global_position
+	_detach_to_world(a, s)
+	a.liberer_au_sol()
+	var dir := get_global_mouse_position() - gp
+	if a.has_method("jeter"):
+		a.jeter(dir)
+	elif a.has_method("jeter_vers_souris"):
+		a.jeter_vers_souris()
+	if a == arme_principale:
+		arme_principale = null
+	else:
+		arme_secondaire = null
+
+func _detach_to_world(a: Node2D, s: Node2D) -> void:
+	var world := get_tree().current_scene
+	var gp := s.global_position
+	var gr := s.global_rotation
+	if a.get_parent():
+		a.get_parent().remove_child(a)
+	world.add_child(a)
+	a.global_position = gp
+	a.global_rotation = gr
 
 func _drop(a: ArmeBase, s: Node2D, _force: float, _ang_vel: float) -> void:
 	var world := get_tree().current_scene

@@ -49,6 +49,10 @@ texture = ExtResource("10_075h3")
 [node name="Loot" parent="." instance=ExtResource("9_075h3")]
 scene_contenu = ExtResource("9_kb48r")
 
+[node name="Loot2" parent="." instance=ExtResource("9_075h3")]
+position = Vector2(44, 253)
+scene_contenu = ExtResource("9_kb48r")
+
 [node name="PauseManagerClass" type="Node" parent="."]
 script = ExtResource("11_uuc06")
 metadata/_custom_type_script = "uid://leky5p00ehnf"
