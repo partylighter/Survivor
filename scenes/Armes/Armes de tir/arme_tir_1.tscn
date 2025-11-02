@@ -1,14 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://bnwxpk26a02ga"]
+[gd_scene load_steps=3 format=3 uid="uid://bnwxpk26a02ga"]
 
 [ext_resource type="Script" uid="uid://di6ajeojl73qu" path="res://scripts/Utilitaires/Systeme D'armement/ArmeTir.gd" id="1_58xvi"]
-[ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/Armes/Armes de tir/projectile_1.tscn" id="2_sts0y"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_58xvi"]
 radius = 214.8
 
 [node name="ArmeTir_1" type="Node"]
 script = ExtResource("1_58xvi")
-projectile_scene = ExtResource("2_sts0y")
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://di6ajeojl73qu"
 

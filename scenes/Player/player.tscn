@@ -98,6 +98,9 @@ script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketGauche")
 chemin_socket_secondaire = NodePath("SocketDroite")
 chemin_zone = NodePath("../ZoneRamassage")
+distance_min = 91.4
+vitesse_lissage = 1.0
+raideur_hz = 30.0
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
