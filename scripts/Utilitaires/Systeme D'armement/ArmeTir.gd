@@ -134,21 +134,26 @@ func maj_idle(now: float) -> void:
 		scale = Vector2.ONE
 
 func attaquer() -> void:
-	if not peut_attaquer():
-		return
-	if scene_projectile == null:
-		return
+	if not peut_attaquer(): return
+	if scene_projectile == null: return
+
 	_pret = false
-	var p: Projectile = scene_projectile.instantiate() as Projectile
+
+	var p := scene_projectile.instantiate() as Projectile
 	if p == null:
 		_pret = true
 		return
-	var pos_depart: Vector2 = global_position
-	var pos_cible: Vector2 = get_global_mouse_position()
-	var dir: Vector2 = (pos_cible - pos_depart).normalized()
-	p.configurer(degats, dir, vitesse_projectile, recul_force, porteur)
+
+	var from: Vector2 = global_position
+	var to: Vector2 = get_global_mouse_position()
+	var dir: Vector2 = (to - from).normalized()
+
+	var src: Node2D = (porteur as Node2D) if porteur is Node2D else self
+	p.configurer(int(degats), dir, vitesse_projectile, recul_force, src)
+
 	get_tree().current_scene.add_child(p)
-	p.global_position = pos_depart
+	p.global_position = from + dir * 12.0  # petit décalage pour éviter de toucher l’arme/joueur
+
 	await get_tree().create_timer(cooldown_s).timeout
 	_pret = true
 

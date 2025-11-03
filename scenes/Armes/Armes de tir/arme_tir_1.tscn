@@ -1,12 +1,15 @@
-[gd_scene load_steps=3 format=3 uid="uid://bnwxpk26a02ga"]
+[gd_scene load_steps=5 format=3 uid="uid://bnwxpk26a02ga"]
 
 [ext_resource type="Script" uid="uid://di6ajeojl73qu" path="res://scripts/Utilitaires/Systeme D'armement/ArmeTir.gd" id="1_58xvi"]
+[ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/Armes/Armes de tir/projectile_1.tscn" id="2_58xvi"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="3_sts0y"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_58xvi"]
 radius = 214.8
 
-[node name="ArmeTir_1" type="Node"]
+[node name="ArmeTir_1" type="Node2D"]
 script = ExtResource("1_58xvi")
+scene_projectile = ExtResource("2_58xvi")
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://di6ajeojl73qu"
 
@@ -14,3 +17,33 @@ metadata/_custom_type_script = "uid://di6ajeojl73qu"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_58xvi")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+position = Vector2(100, -3)
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D6" type="Sprite2D" parent="."]
+position = Vector2(197, -4)
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D4" type="Sprite2D" parent="."]
+position = Vector2(-3, 126)
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D7" type="Sprite2D" parent="."]
+position = Vector2(-3, 126)
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D5" type="Sprite2D" parent="."]
+position = Vector2(305, -11)
+texture = ExtResource("3_sts0y")
+
+[node name="Sprite2D8" type="Sprite2D" parent="."]
+position = Vector2(386, -5)
+texture = ExtResource("3_sts0y")
