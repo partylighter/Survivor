@@ -54,7 +54,6 @@ func _ready() -> void:
 func _process(dt: float) -> void:
 	_handle_inputs()
 	_mettre_a_jour_sockets(dt)
-	_gestion_attaques()
 
 func _alpha(dt: float) -> float:
 	return 1.0 - exp(-dt * raideur_hz)
@@ -132,10 +131,10 @@ func _mettre_a_jour_sockets(dt: float) -> void:
 	_socket_secondaire.position = dir_secondaire * _dist_secondaire - offset_vec
 	_socket_principale.rotation = _angle_main_affiche
 	_socket_secondaire.rotation = _angle_secondaire_affiche
-	if is_instance_valid(arme_principale):
-		arme_principale.rotation = _angle_main_affiche
-	if is_instance_valid(arme_secondaire):
-		arme_secondaire.rotation = _angle_secondaire_affiche
+#	if is_instance_valid(arme_principale):
+#		arme_principale.rotation = _angle_main_affiche
+#	if is_instance_valid(arme_secondaire):
+#		arme_secondaire.rotation = _angle_secondaire_affiche
 	if auto_flip_visuel:
 		_appliquer_flip_visuel(_socket_principale, _angle_main_affiche)
 		_appliquer_flip_visuel(_socket_secondaire, _angle_secondaire_affiche)
@@ -188,6 +187,8 @@ func _essayer_ramasser() -> void:
 		_set_pickup_enabled(arme_sol, false)
 		return
 
+
+#pas touche ou je te defonce
 func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var ang: float = wrapf(angle, -PI, PI)
 	var deg: float = abs(rad_to_deg(ang))
@@ -221,38 +222,26 @@ func _calculer_offset_continu(dist: float) -> float:
 	var t_global: float = clamp((dist - r_start) / (r_end - r_start), 0.0, 1.0)
 	return lerp(PI, -avance_max, t_global)
 
-func _gestion_attaques() -> void:
-	if Input.is_action_just_pressed("attaque_main_droite"):
-		if is_instance_valid(arme_principale) and arme_principale.peut_attaquer():
-			arme_principale.attaquer()
-	if Input.is_action_just_pressed("attaque_main_gauche"):
-		if is_instance_valid(arme_secondaire) and arme_secondaire.peut_attaquer():
-			arme_secondaire.attaquer()
-
 func equiper_arme_principale(a: ArmeBase) -> void:
-	if a == null:
-		return
-	if a == arme_secondaire:
-		return
+	if a == null or a == arme_secondaire: return
 	arme_principale = a
 	a.equipe_par(_joueur)
 	_socket_principale.add_child(a)
+	a.top_level = false
 	a.position = Vector2.ZERO
-	a.rotation = _socket_principale.rotation
+	a.rotation = 0.0 # <<< local à 0, le socket porte la rotation
 	_angle_main_affiche = _socket_principale.rotation
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
-	if a == null:
-		return
-	if a == arme_principale:
-		return
+	if a == null or a == arme_principale: return
 	arme_secondaire = a
 	a.equipe_par(_joueur)
 	_socket_secondaire.add_child(a)
+	a.top_level = false
 	a.position = Vector2.ZERO
-	a.rotation = _socket_secondaire.rotation
+	a.rotation = 0.0 # <<< local à 0
 	_angle_secondaire_affiche = _socket_secondaire.rotation
 	_offset_secondaire_affiche = PI
 	_set_pickup_enabled(a, false)

@@ -1,12 +1,19 @@
-[gd_scene load_steps=3 format=3 uid="uid://bnwxpk26a02ga"]
+[gd_scene load_steps=6 format=3 uid="uid://bnwxpk26a02ga"]
 
 [ext_resource type="Script" uid="uid://di6ajeojl73qu" path="res://scripts/Utilitaires/Systeme D'armement/ArmeTir.gd" id="1_58xvi"]
+[ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/Armes/Armes de tir/projectile_1.tscn" id="2_58xvi"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="3_sts0y"]
+[ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/Utilitaires/Systeme D'armement/ArmeEffets2D.gd" id="4_rn7y6"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_58xvi"]
 radius = 214.8
 
-[node name="ArmeTir_1" type="Node"]
+[node name="ArmeTir_1" type="Node2D"]
 script = ExtResource("1_58xvi")
+scene_projectile = ExtResource("2_58xvi")
+chemin_effets = NodePath("ArmeEffets2D")
+chemin_socket_muzzle = NodePath("Socket")
+nb_balles = 64
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://di6ajeojl73qu"
 
@@ -14,3 +21,38 @@ metadata/_custom_type_script = "uid://di6ajeojl73qu"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_58xvi")
+
+[node name="Icon" type="Sprite2D" parent="."]
+position = Vector2(-3, 104)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon2" type="Sprite2D" parent="."]
+position = Vector2(116, -35)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon5" type="Sprite2D" parent="."]
+position = Vector2(208, -35)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon6" type="Sprite2D" parent="."]
+position = Vector2(304, -35)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon7" type="Sprite2D" parent="."]
+position = Vector2(384, -34)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon3" type="Sprite2D" parent="."]
+position = Vector2(-2, -23)
+texture = ExtResource("3_sts0y")
+
+[node name="Icon4" type="Sprite2D" parent="."]
+position = Vector2(-4, 33)
+texture = ExtResource("3_sts0y")
+
+[node name="ArmeEffets2D" type="Node" parent="."]
+script = ExtResource("4_rn7y6")
+metadata/_custom_type_script = "uid://5adwsbkqdlcw"
+
+[node name="Socket" type="Node2D" parent="."]
+position = Vector2(447, -30)

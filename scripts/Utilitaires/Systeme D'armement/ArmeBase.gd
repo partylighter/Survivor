@@ -1,4 +1,3 @@
-# ArmeBase.gd
 extends Node2D
 class_name ArmeBase
 

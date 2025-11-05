@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=19 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="6_tuyoq"]
 [ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/Managers/Managers En Jeu/GestionnaireArme.gd" id="7_a06cl"]
 [ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/Managers/Managers En Jeu/ZoneRamassage.gd" id="8_dl1wr"]
+[ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
 size = Vector2(131, 131)
@@ -91,7 +92,7 @@ offset = Vector2(-61, -100)
 toujours_visible = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.5, 0.5)
+zoom = Vector2(0.3, 0.3)
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
@@ -123,3 +124,8 @@ metadata/_custom_type_script = "uid://cni7dvefjr67x"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]
 shape = SubResource("CircleShape2D_wwtew")
 debug_color = Color(0, 0.6, 0.701961, 0)
+
+[node name="ControleAttaquesArmes" type="Node" parent="."]
+script = ExtResource("9_wwtew")
+chemin_gestionnaire = NodePath("../GestionnaireArme")
+metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"

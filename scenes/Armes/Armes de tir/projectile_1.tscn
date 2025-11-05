@@ -8,6 +8,7 @@ size = Vector2(36, 38)
 
 [node name="Projectile 1" type="Area2D"]
 script = ExtResource("1_eskv8")
+vitesse_px_s = 100.0
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
