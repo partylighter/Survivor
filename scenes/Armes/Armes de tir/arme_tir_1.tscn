@@ -13,6 +13,9 @@ script = ExtResource("1_58xvi")
 scene_projectile = ExtResource("2_58xvi")
 chemin_effets = NodePath("ArmeEffets2D")
 chemin_socket_muzzle = NodePath("Socket")
+nb_balles = 7
+dispersion_deg = 14.2
+degats = 1
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://di6ajeojl73qu"
 

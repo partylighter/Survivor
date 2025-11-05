@@ -4,14 +4,17 @@
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_d50n4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s375v"]
-size = Vector2(36, 38)
+size = Vector2(103, 95)
 
 [node name="Projectile 1" type="Area2D"]
+collision_layer = 0
+collision_mask = 96
 script = ExtResource("1_eskv8")
-vitesse_px_s = 100.0
+collision_mask = 96
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0.5, -4.5)
 shape = SubResource("RectangleShape2D_s375v")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

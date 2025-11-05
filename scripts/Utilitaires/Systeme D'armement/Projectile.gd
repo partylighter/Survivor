@@ -1,51 +1,94 @@
-extends Area2D
+extends Node2D
 class_name Projectile
 
-@onready var shape: CollisionShape2D = $CollisionShape2D
+signal expired(p: Projectile)
 
 @export var duree_vie_s: float = 1.5
 @export var vitesse_px_s: float = 1400.0
+@export var collision_mask: int = 0
 
 var _degats: int = 0
 var _dir: Vector2 = Vector2.ZERO
 var _recul_force: float = 0.0
-var _source: Node2D = null
+var _source: Node2D
+var _t: float = 0.0
+var _active: bool = false
 
-var _detruit: bool = false
-var _temps: float = 0.0
-
-func _ready() -> void:
-	area_entered.connect(_on_area_entered)
-
-# Accepte: (dmg, dir, recul, src)   OU   (dmg, dir, vitesse, recul, src)
-func configurer(dmg: int, direction: Vector2, a, b = null, c = null) -> void:
+func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) -> void:
+	visible = true
+	set_physics_process(true)
+	global_position = pos
+	_dir = dir.normalized()
 	_degats = dmg
-	_dir = direction.normalized()
-	if c != null:
-		# Ancien appel (5 args) : a=vitesse, b=recul, c=src
-		# On peut ignorer 'a' pour garder la vitesse locale, ou l'utiliser pour override:
-		# vitesse_px_s = float(a)   # <- décommente si tu veux autoriser l'override
-		_recul_force = float(b)
-		_source = c as Node2D
-	else:
-		# Nouvel appel (4 args) : a=recul, b=src
-		_recul_force = float(a)
-		_source = b as Node2D
+	_recul_force = recul
+	_source = src
+	_t = 0.0
+	_active = true
+
+func desactiver() -> void:
+	_active = false
+	visible = false
+	set_physics_process(false)
+	emit_signal("expired", self)
 
 func _physics_process(dt: float) -> void:
-	position += _dir * vitesse_px_s * dt
-	_temps += dt
-	if _temps >= duree_vie_s:
-		queue_free()
-
-func _on_area_entered(a: Area2D) -> void:
-	if _detruit:
+	if not _active:
 		return
-	if a is HurtBox:
-		(a as HurtBox).tek_it(_degats, _source if _source else self)
-		var cible: Node = a.get_parent()
-		if cible and cible.has_method("appliquer_recul_depuis"):
-			var origine: Node2D = _source if _source is Node2D else self
-			cible.appliquer_recul_depuis(origine, _recul_force)
-		_detruit = true
-		queue_free()
+
+	var from: Vector2 = global_position
+	var to: Vector2 = from + _dir * vitesse_px_s * dt
+
+	var q: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(from, to)
+	q.exclude = [self, _source]
+	q.collide_with_bodies = true
+	q.collide_with_areas = true
+	if collision_mask != 0:
+		q.collision_mask = collision_mask
+
+	var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(q)
+
+	if not hit.is_empty():
+		var collider: Object = hit.get("collider")
+		_appliquer_impact(collider)
+		desactiver()
+		return
+
+	global_position = to
+	_t += dt
+	if _t >= duree_vie_s:
+		desactiver()
+func _appliquer_impact(collider: Object) -> void:
+	var hb: HurtBox = _resolve_hurtbox(collider)
+	var src: Node2D = _source if _source != null else self
+
+	if hb != null:
+		hb.tek_it(_degats, src)
+		_appliquer_recul_sur_chaine(hb.get_parent(), src, _recul_force)
+	elif collider != null and collider.has_method("tek_it"):
+		collider.call("tek_it", _degats, src)
+		_appliquer_recul_sur_chaine(collider, src, _recul_force)
+
+func _resolve_hurtbox(o: Object) -> HurtBox:
+	var n: Node = o as Node
+	if n == null:
+		return null
+	if n is HurtBox:
+		return n as HurtBox
+	var direct: Node = n.get_node_or_null("HurtBox")
+	if direct is HurtBox:
+		return direct as HurtBox
+	for c in n.get_children():
+		if c is HurtBox:
+			return c as HurtBox
+	var p: Node = n.get_parent()
+	if p is HurtBox:
+		return p as HurtBox
+	return null
+
+func _appliquer_recul_sur_chaine(target: Object, origine: Node2D, force: float) -> void:
+	var n: Node = target as Node
+	while n != null:
+		if n.has_method("appliquer_recul_depuis"):
+			n.call("appliquer_recul_depuis", origine, force)
+			return
+		n = n.get_parent()

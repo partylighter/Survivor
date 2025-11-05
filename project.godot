@@ -21,6 +21,7 @@ config/icon="res://icon.svg"
 AutoFps="*res://scripts/autoloads/AutoloadsPerf/AutoFPS.gd"
 GestionnaireRetour="*res://scripts/autoloads/AutoloadsMenuing/GestionnaireRetour.gd"
 AutoInput="*res://scripts/autoloads/AutoloadsMenuing/AutoInput.gd"
+ProjectileHub="*res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd"
 
 [display]
 
