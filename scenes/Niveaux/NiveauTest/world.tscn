@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot.tscn" id="9_075h3"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="10_075h3"]
-[ext_resource type="PackedScene" uid="uid://bnwxpk26a02ga" path="res://scenes/Armes/Armes de tir/arme_tir_1.tscn" id="10_uuc06"]
+[ext_resource type="PackedScene" uid="uid://6gg8jbet8lhv" path="res://scenes/Armes/Armes de tir/arme_tir_cs_1.tscn" id="10_uuc06"]
 [ext_resource type="Script" uid="uid://leky5p00ehnf" path="res://scripts/autoloads/AutoloadsMenuing/GestionairPause.gd" id="11_uuc06"]
 
 [node name="World" type="Node2D"]

@@ -1,4 +1,3 @@
-# res://Scripts/BtnBack.gd
 extends Button
 class_name BtnBack
 

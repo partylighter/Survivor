@@ -1,0 +1,50 @@
+[gd_scene load_steps=6 format=3 uid="uid://6gg8jbet8lhv"]
+
+[ext_resource type="Script" uid="uid://1p5010f1luyq" path="res://scripts/Utilitaires/Systeme D'armement/arme_tir_cs.gd" id="1_ylbju"]
+[ext_resource type="PackedScene" uid="uid://bjlcyafyqyub5" path="res://scenes/Armes/Armes de tir/ProjectileSystem2D_1.tscn" id="2_y1uwt"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="3_e3pud"]
+[ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/Utilitaires/Systeme D'armement/ArmeEffets2D.gd" id="4_nomgb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mp6no"]
+radius = 255.14
+
+[node name="ArmeTirCS 1" type="Node2D"]
+script = ExtResource("1_ylbju")
+chemin_effets = NodePath("ArmeEffets2D")
+chemin_socket_muzzle = NodePath("Node2D")
+chemin_systeme = NodePath("ProjectileSys")
+chemin_pickup = NodePath("Pickup")
+metadata/_custom_type_script = "uid://1p5010f1luyq"
+
+[node name="ProjectileSys" parent="." instance=ExtResource("2_y1uwt")]
+VisuPoints = false
+VisuRayon = 100.0
+Sprite = ExtResource("3_e3pud")
+
+[node name="Pickup" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pickup"]
+shape = SubResource("CircleShape2D_mp6no")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("3_e3pud")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+position = Vector2(110, -4)
+texture = ExtResource("3_e3pud")
+
+[node name="Sprite2D3" type="Sprite2D" parent="."]
+position = Vector2(-4, 103)
+texture = ExtResource("3_e3pud")
+
+[node name="Sprite2D4" type="Sprite2D" parent="."]
+position = Vector2(225, 2)
+texture = ExtResource("3_e3pud")
+
+[node name="ArmeEffets2D" type="Node" parent="."]
+script = ExtResource("4_nomgb")
+jet_distance_px = 200.0
+metadata/_custom_type_script = "uid://5adwsbkqdlcw"
+
+[node name="Node2D" type="Node2D" parent="."]
+position = Vector2(267, 0)

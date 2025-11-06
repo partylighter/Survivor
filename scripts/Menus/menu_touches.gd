@@ -157,6 +157,8 @@ func _set_ui_capture_mouse(active: bool) -> void:
 			if is_instance_valid(n):
 				var c := n as Control
 				c.mouse_filter = int(_mouse_filters_backup[n])
+				
+				
 		_mouse_filters_backup.clear()
 
 func _recursive_set_ignore(node: Node) -> void:

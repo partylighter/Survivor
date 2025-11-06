@@ -13,7 +13,7 @@ config_version=5
 config/name="Survivor"
 config/description="Survivor"
 run/main_scene="uid://0182ilsqlcwo"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -27,6 +27,10 @@ ProjectileHub="*res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd"
 
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
+
+[dotnet]
+
+project/assembly_name="Survivor"
 
 [gui]
 
