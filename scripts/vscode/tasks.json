@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Lancer Godot (projet courant)",
+      "type": "shell",
+      "command": "C:\\Users\\AERO15\\OneDrive\\Desktop\\Godot_v4.4.1-stable_win64.exe",
+      "args": ["--path", "${workspaceFolder}"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    }
+  ]
+}
