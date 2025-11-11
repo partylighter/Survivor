@@ -24,26 +24,6 @@ metadata/_custom_type_script = "uid://di6ajeojl73qu"
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
 shape = SubResource("CircleShape2D_58xvi")
 
-[node name="Icon" type="Sprite2D" parent="."]
-position = Vector2(-3, 104)
-texture = ExtResource("3_sts0y")
-
-[node name="Icon2" type="Sprite2D" parent="."]
-position = Vector2(116, -35)
-texture = ExtResource("3_sts0y")
-
-[node name="Icon5" type="Sprite2D" parent="."]
-position = Vector2(208, -35)
-texture = ExtResource("3_sts0y")
-
-[node name="Icon6" type="Sprite2D" parent="."]
-position = Vector2(304, -35)
-texture = ExtResource("3_sts0y")
-
-[node name="Icon7" type="Sprite2D" parent="."]
-position = Vector2(384, -34)
-texture = ExtResource("3_sts0y")
-
 [node name="Icon3" type="Sprite2D" parent="."]
 position = Vector2(-2, -23)
 texture = ExtResource("3_sts0y")
@@ -57,4 +37,4 @@ script = ExtResource("4_rn7y6")
 metadata/_custom_type_script = "uid://5adwsbkqdlcw"
 
 [node name="Socket" type="Node2D" parent="."]
-position = Vector2(447, -30)
+position = Vector2(-52, -10)

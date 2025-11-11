@@ -17,8 +17,8 @@ chemin_pickup = NodePath("Pickup")
 metadata/_custom_type_script = "uid://1p5010f1luyq"
 
 [node name="ProjectileSys" parent="." instance=ExtResource("2_y1uwt")]
-VisuPoints = false
 VisuRayon = 100.0
+RenderBalles = true
 Sprite = ExtResource("3_e3pud")
 
 [node name="Pickup" type="Area2D" parent="."]
