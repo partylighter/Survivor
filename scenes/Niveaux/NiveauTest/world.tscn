@@ -25,8 +25,7 @@ rayon_spawn_min = 4000.0
 rayon_spawn_max = 5000.0
 rayon_simulation = 6000.0
 rayon_disparition = 6500.0
-max_spawn_par_frame = 2
-max_full_actifs = 100
+max_full_actifs = 400
 mode_vagues = false
 
 [node name="StatsVagues" parent="." instance=ExtResource("5_71j4m")]
