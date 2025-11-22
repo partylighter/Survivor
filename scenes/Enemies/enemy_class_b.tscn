@@ -42,6 +42,7 @@ valeur_score = 20
 speed = 500.0
 chemin_sante = NodePath("Sante")
 recul_amorti = 9.0
+recul_max = 1000.0
 secousse_force_px = 20.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 

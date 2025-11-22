@@ -6,7 +6,7 @@
 [ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/Utilitaires/Systeme D'armement/ArmeEffets2D.gd" id="4_cphlq"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_l60q6"]
-size = Vector2(64, 201)
+size = Vector2(986, 785)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_56oaw"]
 radius = 162.05
@@ -14,15 +14,19 @@ radius = 162.05
 [node name="ArmeContact 1" type="Node2D"]
 script = ExtResource("1_56oaw")
 chemin_effets = NodePath("ArmeEffets2D")
+degats = 1
+recul_force = 100.0
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://cet65ljfweymf"
 
 [node name="HitBoxContact" type="Area2D" parent="."]
+collision_layer = 8
+collision_mask = 96
 script = ExtResource("2_cphlq")
 metadata/_custom_type_script = "uid://fetlg4snxf4u"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBoxContact"]
-position = Vector2(1, -57.5)
+position = Vector2(-3, -252.5)
 shape = SubResource("RectangleShape2D_l60q6")
 debug_color = Color(0.721569, 0, 0, 0.12549)
 

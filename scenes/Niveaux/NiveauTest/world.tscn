@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=13 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
+[ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/Armes/Armes de contact/arme_contact_1.tscn" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot.tscn" id="9_075h3"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="10_075h3"]
 [ext_resource type="PackedScene" uid="uid://bnwxpk26a02ga" path="res://scenes/Armes/Armes de tir/arme_tir_1.tscn" id="10_uuc06"]
@@ -13,9 +14,6 @@
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
 
 [node name="World" type="Node2D"]
-
-[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
-position = Vector2(606, 294)
 
 [node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
@@ -26,12 +24,6 @@ rayon_spawn_max = 5000.0
 rayon_simulation = 6000.0
 rayon_disparition = 6500.0
 lod_update_interval_frames = 10
-max_spawn_par_frame = 2
-max_full_actifs = 200
-max_buffer_actifs = 250
-rayon_engage = 200.0
-mode_vagues = false
-total_max_vagues = [50]
 
 [node name="StatsVagues" parent="." instance=ExtResource("5_71j4m")]
 chemin_manager = NodePath("../Gestionnaire Enemies")
@@ -51,7 +43,7 @@ scale = Vector2(100, 100)
 texture = ExtResource("10_075h3")
 
 [node name="Loot" parent="." instance=ExtResource("9_075h3")]
-scene_contenu = ExtResource("10_uuc06")
+scene_contenu = ExtResource("9_30tab")
 
 [node name="Loot2" parent="." instance=ExtResource("9_075h3")]
 position = Vector2(44, 253)
@@ -64,3 +56,5 @@ metadata/_custom_type_script = "uid://leky5p00ehnf"
 [node name="ProjectileHub" type="Node2D" parent="."]
 script = ExtResource("12_30tab")
 metadata/_custom_type_script = "uid://ctjko77ppqoqd"
+
+[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
