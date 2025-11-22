@@ -1,6 +1,8 @@
 extends CanvasLayer
 class_name MenuOptions
 
+signal closed
+
 @export var fps_possibles: Array[int] = [30, 60, 120, 144, 240]
 @export var ticks_physique_possibles: Array[int] = [30, 60, 120]
 
@@ -100,3 +102,7 @@ func _texte_vsync(mode: int) -> String:
 			return "VSync : Adaptatif"
 		_:
 			return "VSync : " + str(mode)
+
+func _on_close_button_pressed() -> void:
+	emit_signal("closed")
+	queue_free()

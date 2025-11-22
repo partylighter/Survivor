@@ -59,9 +59,18 @@ func _on_reprendre() -> void:
 
 func _on_parametres() -> void:
 	_d("SIGNAL options")
+	hide()
 	var s := preload("res://scenes/Menus/options_menu.tscn").instantiate()
 	add_child(s)
-	if "open" in s: s.call("open")
+	if s.has_signal("closed"):
+		s.closed.connect(_on_settings_closed)
+	if "open" in s:
+		s.call("open")
+
+func _on_settings_closed() -> void:
+	show()
+	if is_instance_valid(btn_reprendre):
+		btn_reprendre.grab_focus()
 
 func _on_redemarrer() -> void:
 	_d("SIGNAL restart"); request_restart.emit()

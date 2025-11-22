@@ -2,7 +2,7 @@ extends Node
 
 @export_group("Affichage multi-écran")
 @export var activer_multi_ecran: bool = true
-@export_range(0, 7, 1) var ecran_cible: int = 1
+@export_range(0, 7, 1) var ecran_cible: int = 0
 @export var plein_ecran: bool = true
 @export var debug_multi_ecran: bool = false
 
