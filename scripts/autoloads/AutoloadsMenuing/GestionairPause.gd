@@ -41,7 +41,7 @@ func _instancier_menu() -> void:
 		menu = menus[0] as PauseMenu
 		_d("INSTANCIER reuse " + str(menu.get_path()))
 		if not menu.is_inside_tree():
-			get_tree().root.add_child(menu)
+			get_tree().root.call_deferred("add_child", menu)
 		_dedupe_menus()
 		_connect_menu_signals()
 		return
@@ -57,7 +57,7 @@ func _instancier_menu() -> void:
 	menu.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	menu.hide()
 	_connect_menu_signals()
-	get_tree().root.add_child(menu)
+	get_tree().root.call_deferred("add_child", menu)
 
 func _connect_menu_signals() -> void:
 	if menu == null or not is_instance_valid(menu):
@@ -116,6 +116,16 @@ func reprendre() -> void:
 	_d("RESUME clear paused")
 	get_tree().paused = false
 
+	# Fermer tous les menus d'options ouverts (MenuOptions)
+	var opts := get_tree().get_nodes_in_group("g_options_menu")
+	for o in opts:
+		if is_instance_valid(o):
+			if o.has_method("close_from_pause"):
+				o.close_from_pause()
+			else:
+				o.queue_free()
+
+	# Fermer le menu pause
 	if menu and is_instance_valid(menu):
 		menu.fermer()
 

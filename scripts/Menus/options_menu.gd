@@ -29,6 +29,18 @@ func _ready() -> void:
 	bouton_ticks.pressed.connect(_quand_bouton_ticks)
 	bouton_appliquer.pressed.connect(_quand_bouton_appliquer)
 
+func _enter_tree() -> void:
+	add_to_group("g_options_menu")
+
+
+func _on_close_button_pressed() -> void:
+	emit_signal("closed")
+	queue_free()
+
+func close_from_pause() -> void:
+	emit_signal("closed")
+	queue_free()
+
 func _initialiser_depuis_parametres() -> void:
 	index_fps = fps_possibles.find(AutoFps.fps_cible)
 	if index_fps == -1:
@@ -102,7 +114,3 @@ func _texte_vsync(mode: int) -> String:
 			return "VSync : Adaptatif"
 		_:
 			return "VSync : " + str(mode)
-
-func _on_close_button_pressed() -> void:
-	emit_signal("closed")
-	queue_free()
