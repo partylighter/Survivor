@@ -13,7 +13,7 @@ config_version=5
 config/name="Survivor"
 config/description="Survivor"
 run/main_scene="uid://0182ilsqlcwo"
-config/features=PackedStringArray("4.4", "C#", "Forward Plus")
+config/features=PackedStringArray("4.5", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
@@ -21,7 +21,7 @@ config/icon="res://icon.svg"
 AutoFps="*res://scripts/autoloads/AutoloadsPerf/AutoFPS.gd"
 GestionnaireRetour="*res://scripts/autoloads/AutoloadsMenuing/GestionnaireRetour.gd"
 AutoInput="*res://scripts/autoloads/AutoloadsMenuing/AutoInput.gd"
-ProjectileHub="*res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd"
+GestionnaireMultiecran="*res://scripts/autoloads/Autres/gestionnaire_multiecran.gd"
 
 [display]
 

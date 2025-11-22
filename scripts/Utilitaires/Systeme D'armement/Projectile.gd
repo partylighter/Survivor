@@ -29,17 +29,26 @@ func desactiver() -> void:
 	_active = false
 	visible = false
 	set_physics_process(false)
+	_source = null
 	emit_signal("expired", self)
+
 
 func _physics_process(dt: float) -> void:
 	if not _active:
 		return
 
+	if _source != null and not is_instance_valid(_source):
+		_source = null
+
 	var from: Vector2 = global_position
 	var to: Vector2 = from + _dir * vitesse_px_s * dt
 
+	var exclude: Array = [self]
+	if _source != null:
+		exclude.append(_source)
+
 	var q: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(from, to)
-	q.exclude = [self, _source]
+	q.exclude = exclude
 	q.collide_with_bodies = true
 	q.collide_with_areas = true
 	if collision_mask != 0:
@@ -57,9 +66,10 @@ func _physics_process(dt: float) -> void:
 	_t += dt
 	if _t >= duree_vie_s:
 		desactiver()
+
 func _appliquer_impact(collider: Object) -> void:
 	var hb: HurtBox = _resolve_hurtbox(collider)
-	var src: Node2D = _source if _source != null else self
+	var src: Node2D = _source if is_instance_valid(_source) else self
 
 	if hb != null:
 		hb.tek_it(_degats, src)

@@ -9,20 +9,22 @@ class_name BarPV
 @export_range(10.0, 1000.0, 1.0) var vitesse_px_s: float = 450.0
 @export_range(0.0, 1.0, 0.01) var valeur_smooth: float = 0.08
 @export var toujours_visible: bool = false
-@export_range(0.0, 500.0, 1.0) var distance_max_px: float = 60.0 # distance max autorisée entre la barre et l'hôte
+@export_range(0.0, 500.0, 1.0) var distance_max_px: float = 60.0
+@export var frames_activation: int = 3
 
 var _hote: Node2D
 var _bar: HScrollBar
-var _sante: Node
+var _sante: Sante
 var _pv_affiche: float = 0.0
 
 var _mort: bool = false
 var _actif_ui: bool = false
 var _dead_lock: bool = false
+var _frame_activation: int = 0
 
 func _ready() -> void:
 	_hote = get_node_or_null(chemin_hote) as Node2D
-	_sante = get_node_or_null(chemin_sante)
+	_sante = get_node_or_null(chemin_sante) as Sante
 
 	var bar_node := get_node_or_null(chemin_bar)
 	if bar_node is HScrollBar:
@@ -38,8 +40,8 @@ func _ready() -> void:
 		_bar.step = 0.0
 
 	if _sante and _bar:
-		var max_pv_init: float = float(_sante.get("max_pv"))
-		var pv_init: float = float(_sante.get("pv"))
+		var max_pv_init: float = _sante.max_pv
+		var pv_init: float = _sante.pv
 		_pv_affiche = pv_init
 		_bar.min_value = 0.0
 		_bar.max_value = max(1.0, max_pv_init)
@@ -49,47 +51,49 @@ func _ready() -> void:
 	if _hote and _bar:
 		_bar.global_position = _hote.global_position + offset
 
-	if _hote and _hote.has_signal("mort"):
-		_hote.connect("mort", Callable(self, "_on_hote_mort"))
-	if _hote and _hote.has_signal("reapparu"):
-		_hote.connect("reapparu", Callable(self, "_on_hote_reapparu"))
+	if _hote:
+		if _hote.has_signal("mort"):
+			_hote.connect("mort", Callable(self, "_on_hote_mort"))
+		if _hote.has_signal("reapparu"):
+			_hote.connect("reapparu", Callable(self, "_on_hote_reapparu"))
 
-	_refresh_activation(true)
+	if _sante and _bar and _hote:
+		_refresh_activation(true, _sante.pv, _sante.max_pv)
+	else:
+		_actif_ui = false
 
 func _process(delta: float) -> void:
-	_refresh_activation()
-
-	if not _actif_ui:
+	if _hote == null or _bar == null or _sante == null:
 		return
 
-	if _dead_lock:
+	var pv_reel: float = _sante.pv
+	var max_pv: float = _sante.max_pv
+
+	if _frame_activation == 0:
+		_refresh_activation(false, pv_reel, max_pv)
+	_frame_activation = (_frame_activation + 1) % max(frames_activation, 1)
+
+	if not _actif_ui or _dead_lock:
 		return
 
-	if _hote and _bar:
-		var cible: Vector2 = _hote.global_position + offset
+	var cible: Vector2 = _hote.global_position + offset
+	var tentative: Vector2 = _bar.global_position.move_toward(cible, vitesse_px_s * delta)
+	var ecart: Vector2 = tentative - cible
+	var dist: float = ecart.length()
+	if dist > distance_max_px and dist > 0.0:
+		var ratio := distance_max_px / dist
+		ecart *= ratio
+		tentative = cible + ecart
 
-		# position vers laquelle la barre essaye d'aller ce frame
-		var tentative: Vector2 = _bar.global_position.move_toward(cible, vitesse_px_s * delta)
+	_bar.global_position = tentative
 
-		# on limite la distance max entre la barre et l'hôte
-		var ecart: Vector2 = tentative - cible
-		var dist: float = ecart.length()
-		if dist > distance_max_px:
-			ecart = ecart * (distance_max_px / dist)
-			tentative = cible + ecart
+	var a: float = 1.0 - pow(1.0 - valeur_smooth, 60.0 * delta)
+	_pv_affiche = lerp(_pv_affiche, pv_reel, a)
+	_bar.max_value = max(1.0, max_pv)
+	_bar.page = clampf(_pv_affiche, 0.0, _bar.max_value)
+	_bar.value = 0.0
 
-		_bar.global_position = tentative
-
-	if _sante and _bar:
-		var pv_reel: float = float(_sante.get("pv"))
-		var max_pv: float = float(_sante.get("max_pv"))
-		var a: float = 1.0 - pow(1.0 - valeur_smooth, 60.0 * delta)
-		_pv_affiche = lerp(_pv_affiche, pv_reel, a)
-		_bar.max_value = max(1.0, max_pv)
-		_bar.page = clampf(_pv_affiche, 0.0, _bar.max_value)
-		_bar.value = 0.0
-
-func _refresh_activation(force_show: bool = false) -> void:
+func _refresh_activation(force_show: bool, pv_reel: float, max_pv: float) -> void:
 	if _bar == null or _hote == null or _sante == null:
 		_actif_ui = false
 		return
@@ -99,12 +103,7 @@ func _refresh_activation(force_show: bool = false) -> void:
 		_bar.hide()
 		return
 
-	var pv_reel: float = float(_sante.get("pv"))
-	var max_pv: float = float(_sante.get("max_pv"))
-
-	var ennemi_actif: bool = true
-	if _hote.has_method("is_physics_processing"):
-		ennemi_actif = _hote.is_physics_processing()
+	var ennemi_actif: bool = _hote.is_physics_processing()
 
 	var doit_montrer: bool
 	if toujours_visible:
@@ -120,9 +119,7 @@ func _refresh_activation(force_show: bool = false) -> void:
 			_bar.value = 0.0
 			_bar.global_position = _hote.global_position + offset
 			_bar.show()
-			_actif_ui = true
-		else:
-			_actif_ui = true
+		_actif_ui = true
 	else:
 		if _actif_ui:
 			_bar.hide()
@@ -143,8 +140,8 @@ func _on_hote_reapparu() -> void:
 	_mort = false
 
 	if _sante:
-		var pv_reel: float = float(_sante.get("pv"))
-		var max_pv_now: float = float(_sante.get("max_pv"))
+		var pv_reel: float = _sante.pv
+		var max_pv_now: float = _sante.max_pv
 		_pv_affiche = pv_reel
 
 		if _bar:
@@ -157,4 +154,5 @@ func _on_hote_reapparu() -> void:
 	if _bar and _hote:
 		_bar.global_position = _hote.global_position + offset
 
-	_refresh_activation(toujours_visible)
+	if _sante and _bar and _hote:
+		_refresh_activation(toujours_visible, _sante.pv, _sante.max_pv)

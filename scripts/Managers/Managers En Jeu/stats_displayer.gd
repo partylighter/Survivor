@@ -72,7 +72,7 @@ func _process(_dt: float) -> void:
 
 func _format_secs(t: float) -> String:
 	var total_sec: int = int(t)
-	var minutes: int = int(total_sec / 60)
+	var minutes: int = int(total_sec / 60.0)
 	var secondes: int = total_sec % 60
 	return str(minutes) + "m " + str(secondes) + "s"
 

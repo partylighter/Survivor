@@ -1,6 +1,5 @@
 class_name PerfDisplayer 
-extends  CanvasLayer
-
+extends CanvasLayer
 
 @export var visibility: bool:
 	set(value):
@@ -50,10 +49,15 @@ func _build_text() -> String:
 	var mem_max: float = Performance.get_monitor(Performance.MEMORY_STATIC_MAX) / 1048576.0
 	var objs: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
 	var draws: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+
+	var phys_tps: int = Engine.physics_ticks_per_second
+	var phys_step_ms: float = 1000.0 / float(max(1, phys_tps))
+
 	if debug_enabled and OS.is_debug_build():
 		_debug_check(fps, t_proc, t_phys, draws, mem)
-	return "FPS %d (%.2f ms)\nProcess %.3f ms\nPhysics %.3f ms\nMem %.1f / %.1f MiB\nObjects %d\nDraw calls %d" % \
-		[fps, ms, t_proc, t_phys, mem, mem_max, objs, draws]
+
+	return "FPS %d (%.2f ms)\nProcess %.3f ms\nPhysics %.3f ms\nPhys tick %d Hz (%.3f ms)\nMem %.1f / %.1f MiB\nObjects %d\nDraw calls %d" % \
+		[fps, ms, t_proc, t_phys, phys_tps, phys_step_ms, mem, mem_max, objs, draws]
 
 func _debug_check(fps: int, t_proc: float, t_phys: float, draws: int, mem_mb: float) -> void:
 	var now_s: float = float(Time.get_ticks_msec()) / 1000.0
@@ -69,8 +73,6 @@ func _debug_check(fps: int, t_proc: float, t_phys: float, draws: int, mem_mb: fl
 	elif can_log and (t_proc > proc_warn_ms or t_phys > phys_warn_ms or draws > draws_warn):
 		_last_log_s = now_s
 		print("[PERF] spike proc_ms=", "%.3f" % t_proc, " phys_ms=", "%.3f" % t_phys, " draws=", draws)
-
-
 
 func displayer() -> void:
 	visible = visibility

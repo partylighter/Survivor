@@ -19,6 +19,7 @@ signal limite_atteinte()
 @export var rayon_spawn_max: float = 900.0
 @export var rayon_simulation: float = 1400.0
 @export var rayon_disparition: float = 2000.0
+@export var lod_update_interval_frames: int = 3
 
 @export var budget_par_frame: int = 200
 @export var max_spawn_par_frame: int = 15
@@ -64,6 +65,7 @@ var total_spawn_vague: int = 0
 var tues_vague: int = 0
 
 var tour_budget: int = 0
+var _lod_frame: int = 0
 
 func _ready() -> void:
 	hasard.seed = graine
@@ -80,6 +82,8 @@ func _ready() -> void:
 
 	if mode_vagues and _nb_vagues() > 0:
 		_demarrer_vague(0)
+
+
 
 func _process(dt: float) -> void:
 	if mode_vagues and _nb_vagues() > 0:
@@ -98,7 +102,11 @@ func _process(dt: float) -> void:
 				break
 			_creer_ennemi()
 
-	_appliquer_lod()
+	# LOD pas à chaque frame
+	if _lod_frame == 0:
+		_appliquer_lod()
+	_lod_frame = (_lod_frame + 1) % lod_update_interval_frames
+
 	_maj_budget()
 
 func _tick_vague(dt: float) -> void:

@@ -92,7 +92,7 @@ offset = Vector2(-61, -100)
 toujours_visible = true
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.1, 0.1)
+zoom = Vector2(0.17, 0.17)
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
