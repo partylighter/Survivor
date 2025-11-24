@@ -22,6 +22,7 @@ AutoFps="*res://scripts/autoloads/AutoloadsPerf/AutoFPS.gd"
 GestionnaireRetour="*res://scripts/autoloads/AutoloadsMenuing/GestionnaireRetour.gd"
 AutoInput="*res://scripts/autoloads/AutoloadsMenuing/AutoInput.gd"
 GestionnaireMultiecran="*res://scripts/autoloads/Autres/gestionnaire_multiecran.gd"
+EtatJeu="*res://scripts/Managers/Managers En Jeu/EtatJeu.gd"
 
 [display]
 
@@ -106,9 +107,11 @@ jeter_main_droite={
 
 [layer_names]
 
+2d_physics/layer_2="PlayerCollision"
 2d_physics/layer_4="Player Hitbox"
 2d_physics/layer_6="B"
 2d_physics/layer_7="C"
+2d_physics/layer_9="Portail"
 
 [physics]
 

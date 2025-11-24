@@ -38,6 +38,8 @@ bg_color = Color(0.768627, 0, 0, 1)
 radius = 473.482
 
 [node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 256
 script = ExtResource("1_g2els")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
