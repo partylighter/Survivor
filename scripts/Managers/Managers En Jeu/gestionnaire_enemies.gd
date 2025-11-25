@@ -48,6 +48,9 @@ signal limite_atteinte()
 @export var cibles_tues_vagues: PackedInt32Array = []
 @export var poids_par_vague: Array[PackedFloat32Array] = []
 
+@export var scene_loot: PackedScene
+@export var debug_loot: bool = false
+
 var ennemis: Array[Node2D] = []
 var pools: Array = []
 
@@ -255,6 +258,8 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 	return e
 
 func _sur_mort(e: Node2D) -> void:
+	call_deferred("_generer_loot_pour_ennemi", e)
+
 	ennemis.erase(e)
 
 	if e.has_meta("vague_id"):
@@ -526,3 +531,236 @@ func _cible_tues_courante() -> int:
 	if i_vague < cibles_tues_vagues.size():
 		return cibles_tues_vagues[i_vague]
 	return -1
+
+func _generer_loot_pour_ennemi(e: Node2D) -> void:
+	if scene_loot == null:
+		return
+	if not (e is Enemy):
+		return
+
+	var ennemi := e as Enemy
+	var type_ennemi: int = ennemi.type_ennemi
+
+	# TODO : quand tu auras un niveau sur l'ennemi, tu remplaces 1 par ennemi.niveau
+	var niveau: int = 1
+	var luck: float = _get_player_luck()
+
+	var nb_rolls: int = _tirer_nombre_rolls(type_ennemi, niveau)
+	if nb_rolls <= 0:
+		return
+
+	for i in range(nb_rolls):
+		var rarete: int = _tirer_rarete(type_ennemi, niveau, luck)
+		var type_item: int = _tirer_type_item(rarete)
+		var item_id: StringName = _tirer_item_id(type_item, rarete)
+
+		if String(item_id) == "":
+			continue
+
+		var loot: Loot = scene_loot.instantiate() as Loot
+		if loot == null:
+			continue
+
+		loot.type_loot = rarete
+		loot.type_item = type_item
+		loot.item_id = item_id
+		loot.quantite = 1
+
+		var offset := Vector2(
+			hasard.randf_range(-16.0, 16.0),
+			hasard.randf_range(-16.0, 16.0)
+		)
+		loot.global_position = ennemi.global_position + offset
+
+		get_tree().current_scene.add_child(loot)
+
+
+func _tirer_nombre_rolls(type_ennemi: int, niveau: int) -> int:
+	var min_r := 0
+	var max_r := 0
+
+	match type_ennemi:
+		Enemy.TypeEnnemi.C:
+			min_r = 0
+			max_r = 2
+		Enemy.TypeEnnemi.B:
+			min_r = 1
+			max_r = 3
+		Enemy.TypeEnnemi.A:
+			min_r = 2
+			max_r = 4
+		Enemy.TypeEnnemi.S:
+			min_r = 3
+			max_r = 5
+		Enemy.TypeEnnemi.BOSS:
+			min_r = 5
+			max_r = 8
+		_:
+			min_r = 0
+			max_r = 1
+
+	# petit bonus de rolls tous les 10 niveaux
+	var bonus := int(max(niveau - 1, 0) / 10)
+	max_r += bonus
+
+	if max_r < min_r:
+		max_r = min_r
+
+	if max_r <= min_r:
+		return min_r
+
+	return hasard.randi_range(min_r, max_r)
+
+
+func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
+	match type_ennemi:
+		Enemy.TypeEnnemi.C:
+			return PackedFloat32Array([0.85, 0.13, 0.02, 0.0])
+		Enemy.TypeEnnemi.B:
+			return PackedFloat32Array([0.70, 0.25, 0.04, 0.01])
+		Enemy.TypeEnnemi.A:
+			return PackedFloat32Array([0.50, 0.35, 0.12, 0.03])
+		Enemy.TypeEnnemi.S:
+			return PackedFloat32Array([0.30, 0.40, 0.22, 0.08])
+		Enemy.TypeEnnemi.BOSS:
+			return PackedFloat32Array([0.0, 0.40, 0.40, 0.20])
+		_:
+			return PackedFloat32Array([1.0, 0.0, 0.0, 0.0])
+
+
+func _get_player_luck() -> float:
+	if joueur != null and is_instance_valid(joueur) and joueur.has_method("get_luck"):
+		return float(joueur.get_luck())
+	return 0.0
+
+
+func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
+	var p: PackedFloat32Array = _proba_rarete_base(type_ennemi)
+	if p.size() < 4:
+		return Loot.TypeLoot.C
+
+	var pC: float = p[0]
+	var pB: float = p[1]
+	var pA: float = p[2]
+	var pS: float = p[3]
+
+	# 1) bonus de niveau : on déplace un peu de C vers B/A/S
+	var steps: int = int(max(niveau - 1, 0) / 5)
+	var bonus: float = float(steps) * 0.05
+	var shift: float = min(bonus, pC - 0.1)
+	if shift > 0.0:
+		pC -= shift
+		pB += shift * 0.5
+		pA += shift * 0.3
+		pS += shift * 0.2
+
+	# 2) chance joueur : buff léger A/S
+	if luck > 0.0:
+		var luck_factor = clamp(luck, 0.0, 100.0) / 100.0
+		var bonusA: float = 0.05 * luck_factor
+		var bonusS: float = 0.02 * luck_factor
+		var total_bonus: float = bonusA + bonusS
+
+		var max_deplacable: float = pC * 0.7 + pB * 0.3
+		var reduc: float = min(total_bonus, max_deplacable)
+
+		var fromC: float = min(pC, reduc * 0.7)
+		var fromB: float = min(pB, reduc * 0.3)
+		pC -= fromC
+		pB -= fromB
+		pA += bonusA
+		pS += bonusS
+
+	# normalisation
+	var sum: float = pC + pB + pA + pS
+	if sum <= 0.0:
+		return Loot.TypeLoot.C
+
+	pC /= sum
+	pB /= sum
+	pA /= sum
+	pS /= sum
+
+	var x: float = hasard.randf()
+	if x < pC:
+		return Loot.TypeLoot.C
+	x -= pC
+	if x < pB:
+		return Loot.TypeLoot.B
+	x -= pB
+	if x < pA:
+		return Loot.TypeLoot.A
+	return Loot.TypeLoot.S
+
+
+func _tirer_type_item(rarete: int) -> int:
+	var x: float = hasard.randf()
+	match rarete:
+		Loot.TypeLoot.C:
+			if x < 0.7:
+				return Loot.TypeItem.CONSO
+			elif x < 0.9:
+				return Loot.TypeItem.UPGRADE
+			else:
+				return Loot.TypeItem.ARME
+		Loot.TypeLoot.B:
+			if x < 0.4:
+				return Loot.TypeItem.CONSO
+			elif x < 0.8:
+				return Loot.TypeItem.UPGRADE
+			else:
+				return Loot.TypeItem.ARME
+		Loot.TypeLoot.A:
+			if x < 0.3:
+				return Loot.TypeItem.CONSO
+			elif x < 0.7:
+				return Loot.TypeItem.UPGRADE
+			else:
+				return Loot.TypeItem.ARME
+		Loot.TypeLoot.S:
+			if x < 0.1:
+				return Loot.TypeItem.CONSO
+			elif x < 0.5:
+				return Loot.TypeItem.UPGRADE
+			else:
+				return Loot.TypeItem.ARME
+	return Loot.TypeItem.CONSO
+
+
+func _d_loot(msg: String) -> void:
+	if debug_loot:
+		print(msg)
+
+func _tirer_item_id(type_item: int, rarete: int) -> StringName:
+	match type_item:
+		Loot.TypeItem.CONSO:
+			match rarete:
+				Loot.TypeLoot.C:
+					return &"conso_c"
+				Loot.TypeLoot.B:
+					return &"conso_b"
+				Loot.TypeLoot.A:
+					return &"conso_a"
+				Loot.TypeLoot.S:
+					return &"conso_s"
+		Loot.TypeItem.UPGRADE:
+			match rarete:
+				Loot.TypeLoot.C:
+					return &"upgrade_c"
+				Loot.TypeLoot.B:
+					return &"upgrade_b"
+				Loot.TypeLoot.A:
+					return &"upgrade_a"
+				Loot.TypeLoot.S:
+					return &"upgrade_s"
+		Loot.TypeItem.ARME:
+			match rarete:
+				Loot.TypeLoot.C:
+					return &"arme_c"
+				Loot.TypeLoot.B:
+					return &"arme_b"
+				Loot.TypeLoot.A:
+					return &"arme_a"
+				Loot.TypeLoot.S:
+					return &"arme_s"
+	return &""

@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3 uid="uid://vma6lsqxrc1i"]
+
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="1_q22tq"]
+[ext_resource type="Script" uid="uid://bdoxpqtf0cmtg" path="res://test de trucs/scritp/gestio_armes_test.gd" id="2_i6qg6"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_kob1s"]
+
+[node name="TestScene1" type="Node2D"]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+texture = ExtResource("1_q22tq")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("CircleShape2D_kob1s")
+
+[node name="gestio arme" type="Node2D" parent="."]
+script = ExtResource("2_i6qg6")
+chemin_socket_principale = NodePath("../Sprite2D")
+chemin_socket_secondaire = NodePath("../Sprite2D2")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.4, 0.4)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_q22tq")
+
+[node name="Sprite2D2" type="Sprite2D" parent="."]
+texture = ExtResource("1_q22tq")

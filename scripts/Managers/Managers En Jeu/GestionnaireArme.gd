@@ -12,8 +12,8 @@ var zone: ZoneRamassage
 @export_range(0.01, 1.0, 0.01) var reactivite_main_secondaire: float = 1.0
 @export_range(0.1, 30.0, 0.1) var raideur_hz: float = 10.0
 @export_range(0.0, 6.283, 0.01) var vitesse_offset_max_rad_s: float = 3.0
-@export_range(0.0, 2000.0, 0.1) var rayon_proche: float = 800.0
-@export_range(0.0, 2000.0, 0.1) var rayon_loin: float = 1500.0
+@export_range(0.0, 5000.0, 0.1) var rayon_proche: float = 800.0
+@export_range(0.0, 5000.0, 0.1) var rayon_loin: float = 1500.0
 @export_range(0.0, 3.14159, 0.01) var avance_max: float = PI * 3.14
 @export_range(0.0, 64.0, 0.1) var ecart_lateral: float = 6.0
 @export_range(0.1, 1.0, 0.01) var portee_main_principale: float = 1.0

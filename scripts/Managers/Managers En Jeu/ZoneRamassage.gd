@@ -14,11 +14,6 @@ func _ready() -> void:
 func _root_candidate(a: Area2D) -> Node2D:
 	var root := a.get_owner()
 
-	if a is Loot:
-		return a
-	if root is Loot:
-		return root
-
 	var p := a.get_parent()
 	if p is ArmeBase:
 		return p
