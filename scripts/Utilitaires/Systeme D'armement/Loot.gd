@@ -9,7 +9,7 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 
 @export var item_id: StringName = &""
 @export var quantite: int = 1
-@export var scene_contenu: PackedScene     
+@export var scene_contenu: PackedScene
 
 @export var magnet_radius: float = 220.0
 @export var magnet_speed: float = 420.0
@@ -19,11 +19,18 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 var _t: float = 0.0
 var magnet_active: bool = false
 var target_player: Node2D = null
+var _active: bool = true
 
 func _ready() -> void:
+	add_to_group("loots")
+	set_physics_process(true)
 	var root := get_tree().current_scene
 	if root and root.has_node("Player"):
 		target_player = root.get_node("Player") as Node2D
+
+func set_active(v: bool) -> void:
+	_active = v
+	set_physics_process(v)
 
 func _physics_process(delta: float) -> void:
 	if lifetime_s > 0.0:
@@ -55,7 +62,7 @@ func prendre_payload() -> Dictionary:
 		"type_item": type_item,
 		"id": item_id,
 		"quantite": quantite,
-		"scene": scene_contenu     
+		"scene": scene_contenu
 	}
 	vider()
 	return d

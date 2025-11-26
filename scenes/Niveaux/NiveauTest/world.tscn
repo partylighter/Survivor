@@ -99,15 +99,15 @@ texture = ExtResource("10_075h3")
 [node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m")])
-max_ennemis = 150
+max_ennemis = 100
 rayon_spawn_min = 4000.0
 rayon_spawn_max = 5000.0
 rayon_simulation = 6000.0
 rayon_disparition = 6500.0
 lod_update_interval_frames = 10
-max_full_actifs = 100
-max_buffer_actifs = 100
+rayon_engage = 1000.0
 scene_loot = ExtResource("9_075h3")
+debug_loot = true
 
 [node name="ProjectileHub" type="Node2D" parent="."]
 script = ExtResource("12_30tab")

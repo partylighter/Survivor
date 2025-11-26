@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=22 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -8,18 +8,10 @@
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="6_tuyoq"]
 [ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/Managers/Managers En Jeu/GestionnaireArme.gd" id="7_a06cl"]
 [ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/Managers/Managers En Jeu/ZoneRamassage.gd" id="8_dl1wr"]
+[ext_resource type="Script" uid="uid://chnxmpb8md2vh" path="res://scripts/Player/StatsJoueur.gd" id="9_7tfl1"]
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
 [ext_resource type="Script" uid="uid://d2qt2wohmdfas" path="res://scripts/Utilitaires/GestionnaireLoot.gd" id="10_uxo23"]
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/Managers/Managers En Jeu/LootDisplayer.gd" id="11_n7rn1"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
-size = Vector2(131, 131)
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_tuyoq"]
-radius = 62.0081
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_fjrip"]
-radius = 287.028
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tuyoq"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -36,6 +28,15 @@ bg_color = Color(0.768627, 0, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4r1p"]
 bg_color = Color(0.768627, 0, 0, 1)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
+size = Vector2(131, 131)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_tuyoq"]
+radius = 62.0081
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fjrip"]
+radius = 287.028
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_wwtew"]
 radius = 473.482
 
@@ -43,17 +44,32 @@ radius = 473.482
 collision_layer = 2
 collision_mask = 256
 script = ExtResource("1_g2els")
+chemin_stats = NodePath("StatsJoueur")
+chemin_sante = NodePath("Santé")
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_qhqgy")
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(0.17, 0.17)
+
+[node name="HScrollBarPV" type="HScrollBar" parent="."]
+unique_name_in_owner = true
+offset_left = -61.0
+offset_top = -104.0
+offset_right = 69.0
+offset_bottom = -73.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_tuyoq")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_fjrip")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_smehm")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_ur7pv")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_y4r1p")
+page = 100.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(1.5, -0.5)
 shape = SubResource("RectangleShape2D_dqkch")
 debug_color = Color(0.355273, 0.430568, 1, 0)
 
-[node name="Santé" type="Node" parent="."]
-script = ExtResource("3_qhqgy")
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_qhqgy")
 
 [node name="Hurtbox" type="Area2D" parent="."]
 script = ExtResource("4_dqkch")
@@ -74,18 +90,13 @@ chemin_hote = NodePath("..")
 shape = SubResource("CircleShape2D_fjrip")
 debug_color = Color(0.984314, 0.129412, 0, 0)
 
-[node name="HScrollBarPV" type="HScrollBar" parent="."]
-unique_name_in_owner = true
-offset_left = -61.0
-offset_top = -104.0
-offset_right = 69.0
-offset_bottom = -73.0
-theme_override_styles/scroll = SubResource("StyleBoxFlat_tuyoq")
-theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_fjrip")
-theme_override_styles/grabber = SubResource("StyleBoxFlat_smehm")
-theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_ur7pv")
-theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_y4r1p")
-page = 100.0
+[node name="ZoneRamassage" type="Area2D" parent="."]
+script = ExtResource("8_dl1wr")
+metadata/_custom_type_script = "uid://cni7dvefjr67x"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]
+shape = SubResource("CircleShape2D_wwtew")
+debug_color = Color(0, 0.6, 0.701961, 0)
 
 [node name="BarPV" type="Node2D" parent="."]
 script = ExtResource("6_tuyoq")
@@ -95,9 +106,6 @@ chemin_sante = NodePath("../Santé")
 offset = Vector2(-61, -100)
 toujours_visible = true
 
-[node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.17, 0.17)
-
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketGauche")
@@ -105,9 +113,11 @@ chemin_socket_secondaire = NodePath("SocketDroite")
 chemin_zone = NodePath("../ZoneRamassage")
 distance_min = 80.0
 distance_max = 450.0
-vitesse_lissage = 0.67
-rayon_proche = 700.0
-rayon_loin = 5000.0
+vitesse_lissage = 5.0
+reactivite_main_secondaire = 10.0
+raideur_hz = 7.5
+vitesse_offset_max_rad_s = 4.19
+rayon_loin = 3704.9
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
@@ -123,13 +133,14 @@ position = Vector2(148, 0)
 position = Vector2(-1, 0)
 texture = ExtResource("2_qhqgy")
 
-[node name="ZoneRamassage" type="Area2D" parent="."]
-script = ExtResource("8_dl1wr")
-metadata/_custom_type_script = "uid://cni7dvefjr67x"
+[node name="Santé" type="Node" parent="."]
+script = ExtResource("3_qhqgy")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]
-shape = SubResource("CircleShape2D_wwtew")
-debug_color = Color(0, 0.6, 0.701961, 0)
+[node name="StatsJoueur" type="Node" parent="."]
+script = ExtResource("9_7tfl1")
+chance_base = 100.0
+dash_max_base = 2
+metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="ControleAttaquesArmes" type="Node" parent="."]
 script = ExtResource("9_wwtew")

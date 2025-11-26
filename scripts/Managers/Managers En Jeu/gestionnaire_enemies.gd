@@ -21,6 +21,11 @@ signal limite_atteinte()
 @export var rayon_disparition: float = 2000.0
 @export var lod_update_interval_frames: int = 3
 
+@export var loot_activation_radius: float = 900.0
+@export var loot_budget_par_frame: int = 80
+var _loot_index: int = 0
+
+
 @export var budget_par_frame: int = 200
 @export var max_spawn_par_frame: int = 15
 
@@ -111,6 +116,7 @@ func _process(dt: float) -> void:
 	_lod_frame = (_lod_frame + 1) % lod_update_interval_frames
 
 	_maj_budget()
+	_maj_loots()
 
 func _tick_vague(dt: float) -> void:
 	t_vague += dt
@@ -364,6 +370,7 @@ func _appliquer_lod() -> void:
 		idx += 1
 
 func _maj_budget() -> void:
+	
 	if ennemis.is_empty():
 		return
 
@@ -385,6 +392,39 @@ func _maj_budget() -> void:
 		fait += 1
 
 	tour_budget += 1
+
+
+func _maj_loots() -> void:
+	if not is_instance_valid(joueur):
+		return
+
+	var loots := get_tree().get_nodes_in_group("loots")
+	if loots.is_empty():
+		return
+
+	var quota = min(loot_budget_par_frame, loots.size())
+	if quota <= 0:
+		return
+
+	var r2 := loot_activation_radius * loot_activation_radius
+	var start := _loot_index % loots.size()
+	var i := start
+	var done := 0
+
+	while done < quota:
+		var loot := loots[i] as Loot
+		if is_instance_valid(loot):
+			var d2 := joueur.global_position.distance_squared_to(loot.global_position)
+			var actif := d2 <= r2
+			loot.set_active(actif)
+
+		i += 1
+		if i >= loots.size():
+			i = 0
+
+		done += 1
+
+	_loot_index = i
 
 func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	if i < 0 or i >= ennemis.size():
@@ -732,35 +772,79 @@ func _d_loot(msg: String) -> void:
 		print(msg)
 
 func _tirer_item_id(type_item: int, rarete: int) -> StringName:
-	match type_item:
-		Loot.TypeItem.CONSO:
-			match rarete:
-				Loot.TypeLoot.C:
-					return &"conso_c"
-				Loot.TypeLoot.B:
-					return &"conso_b"
-				Loot.TypeLoot.A:
-					return &"conso_a"
-				Loot.TypeLoot.S:
-					return &"conso_s"
-		Loot.TypeItem.UPGRADE:
-			match rarete:
-				Loot.TypeLoot.C:
-					return &"upgrade_c"
-				Loot.TypeLoot.B:
-					return &"upgrade_b"
-				Loot.TypeLoot.A:
-					return &"upgrade_a"
-				Loot.TypeLoot.S:
-					return &"upgrade_s"
-		Loot.TypeItem.ARME:
-			match rarete:
-				Loot.TypeLoot.C:
-					return &"arme_c"
-				Loot.TypeLoot.B:
-					return &"arme_b"
-				Loot.TypeLoot.A:
-					return &"arme_a"
-				Loot.TypeLoot.S:
-					return &"arme_s"
+	if type_item == Loot.TypeItem.CONSO:
+		var x := hasard.randf()
+		match rarete:
+			Loot.TypeLoot.C:
+				if x < 0.45:
+					return &"conso_heal_full_1"
+				elif x < 0.75:
+					return &"conso_regen_1"
+				elif x < 0.95:
+					return &"conso_overheal_1"
+				else:
+					return &"conso_invincible_1"
+
+			Loot.TypeLoot.B:
+				if x < 0.35:
+					return &"conso_heal_full_2"
+				elif x < 0.65:
+					return &"conso_regen_2"
+				elif x < 0.85:
+					return &"conso_overheal_1"
+				elif x < 0.95:
+					return &"conso_invincible_1"
+				else:
+					return &"conso_rage_1"
+
+			Loot.TypeLoot.A:
+				if x < 0.30:
+					return &"conso_heal_full_3"
+				elif x < 0.55:
+					return &"conso_regen_3"
+				elif x < 0.75:
+					return &"conso_overheal_2"
+				elif x < 0.90:
+					return &"conso_invincible_2"
+				else:
+					return &"conso_rage_2"
+
+			Loot.TypeLoot.S:
+				if x < 0.25:
+					return &"conso_overheal_3"
+				elif x < 0.50:
+					return &"conso_invincible_3"
+				elif x < 0.75:
+					return &"conso_rage_3"
+				elif x < 0.90:
+					return &"conso_heal_full_3"
+				else:
+					return &"conso_regen_3"
+
+		return &"conso_heal_full_1"
+
+	elif type_item == Loot.TypeItem.UPGRADE:
+		match rarete:
+			Loot.TypeLoot.C:
+				return &"upgrade_c"
+			Loot.TypeLoot.B:
+				return &"upgrade_b"
+			Loot.TypeLoot.A:
+				return &"upgrade_a"
+			Loot.TypeLoot.S:
+				return &"upgrade_s"
+		return &"upgrade_c"
+
+	elif type_item == Loot.TypeItem.ARME:
+		match rarete:
+			Loot.TypeLoot.C:
+				return &"arme_c"
+			Loot.TypeLoot.B:
+				return &"arme_b"
+			Loot.TypeLoot.A:
+				return &"arme_a"
+			Loot.TypeLoot.S:
+				return &"arme_s"
+		return &"arme_c"
+
 	return &""

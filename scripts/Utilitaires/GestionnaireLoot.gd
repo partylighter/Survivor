@@ -3,11 +3,114 @@ class_name GestionnaireLoot
 
 @export var debug_loot: bool = false
 
+@export_group("Conso: Heal simple")
+@export_range(0, 200, 5) var conso_heal_amount: int = 100
+
+@export_group("Conso: Regen")
+@export var conso_regen_1_duree: float = 4.0
+@export var conso_regen_1_total: float = 30.0
+@export var conso_regen_2_duree: float = 5.0
+@export var conso_regen_2_total: float = 60.0
+@export var conso_regen_3_duree: float = 6.0
+@export var conso_regen_3_total: float = 100.0
+
+@export_group("Conso: Overheal")
+@export var conso_overheal_1_amount: float = 20.0
+@export var conso_overheal_2_amount: float = 40.0
+@export var conso_overheal_3_amount: float = 80.0
+
+@export_group("Conso: Invincibilité")
+@export var conso_invincible_1_duree: float = 2.0
+@export var conso_invincible_2_duree: float = 3.5
+@export var conso_invincible_3_duree: float = 5.0
+
+@export_group("Conso: Rage 1")
+@export var conso_rage_1_duree: float = 10.0
+@export var conso_rage_1_speed_bonus: float = 1100.0
+@export var conso_rage_1_chance_bonus: float = 0.0
+@export var conso_rage_1_dash_bonus: int = 1
+@export var conso_rage_1_dash_infini: bool = false
+
+@export_group("Conso: Rage 2")
+@export var conso_rage_2_duree: float = 16.0
+@export var conso_rage_2_speed_bonus: float = 1180.0
+@export var conso_rage_2_chance_bonus: float = 0.0
+@export var conso_rage_2_dash_bonus: int = 2
+@export var conso_rage_2_dash_infini: bool = false
+
+@export_group("Conso: Rage 3")
+@export var conso_rage_3_duree: float = 18.0
+@export var conso_rage_3_speed_bonus: float = 1260.0
+@export var conso_rage_3_chance_bonus: float = 0.0
+@export var conso_rage_3_dash_bonus: int = 3
+@export var conso_rage_3_dash_infini: bool = true
+
 var joueur: Player
+var stats: StatsJoueur
+var sante: Sante
 var stats_loot: Dictionary = {}
+
+var regen_time_left: float = 0.0
+var regen_heal_per_sec: float = 0.0
+var regen_accum: float = 0.0
+
+var overheal_pool: float = 0.0
+var invincible_time_left: float = 0.0
+
+var rage_time_left: float = 0.0
+var rage_speed_bonus_add: float = 0.0
+var rage_chance_bonus_add: float = 0.0
+var rage_dash_bonus_add: int = 0
+var rage_dash_infini: bool = false
+
 
 func _ready() -> void:
 	joueur = get_parent() as Player
+	if joueur:
+		stats = joueur.stats
+		sante = joueur.sante
+		if sante:
+			sante.damaged.connect(_on_player_damaged)
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	if regen_time_left > 0.0 and sante and not sante.is_dead():
+		regen_time_left -= delta
+		if regen_time_left < 0.0:
+			regen_time_left = 0.0
+		var to_heal: float = regen_heal_per_sec * delta
+		regen_accum += to_heal
+		var heal_int: int = int(regen_accum)
+		if heal_int > 0 and joueur and joueur.has_method("soigner"):
+			joueur.soigner(heal_int)
+			regen_accum -= float(heal_int)
+
+	if invincible_time_left > 0.0:
+		invincible_time_left -= delta
+		if invincible_time_left < 0.0:
+			invincible_time_left = 0.0
+
+	if rage_time_left > 0.0:
+		rage_time_left -= delta
+		if rage_time_left <= 0.0:
+			_fin_rage()
+
+
+func _on_player_damaged(amount: int, _source: Node) -> void:
+	if sante == null:
+		return
+
+	if invincible_time_left > 0.0:
+		if amount > 0:
+			sante.heal(amount)
+		return
+
+	if overheal_pool > 0.0 and amount > 0:
+		var use_amount: float = min(overheal_pool, float(amount))
+		if use_amount > 0.0:
+			sante.heal(int(use_amount))
+			overheal_pool -= use_amount
 
 
 func _d_loot(msg: String) -> void:
@@ -44,7 +147,7 @@ func on_loot_collecte(payload: Dictionary) -> void:
 		Loot.TypeItem.UPGRADE:
 			_appliquer_amelioration(identifiant, quantite)
 		Loot.TypeItem.ARME:
-			if scene_contenu != null:
+			if scene_contenu:
 				_generer_arme_au_sol(scene_contenu)
 			else:
 				_debloquer_arme_par_id(identifiant, rarete, quantite)
@@ -59,19 +162,153 @@ func _generer_arme_au_sol(scene_src: PackedScene) -> void:
 
 
 func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
-	match String(identifiant):
-		"heal_petit":
-			if joueur.has_method("soigner"):
-				joueur.soigner(10 * quantite)
-		"heal_gros":
-			if joueur.has_method("soigner"):
-				joueur.soigner(40 * quantite)
+	var id := String(identifiant)
+	_d_loot("[Loot] consommable ramassé : %s x%d" % [id, quantite])
+
+	match id:
+		"conso_heal":
+			if sante == null or joueur == null or not joueur.has_method("soigner"):
+				return
+			var heal_par_item := int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
+			var total_heal := heal_par_item * quantite
+			_d_loot("[Loot] conso_heal : heal %d PV (%d%% de max_pv x%d)" % [total_heal, conso_heal_amount, quantite])
+			joueur.soigner(total_heal)
+
+		"conso_overheal_1":
+			_conso_overheal(quantite, conso_overheal_1_amount)
+
+		"conso_overheal_2":
+			_conso_overheal(quantite, conso_overheal_2_amount)
+
+		"conso_overheal_3":
+			_conso_overheal(quantite, conso_overheal_3_amount)
+
+		"conso_regen_1":
+			_conso_regen(quantite, conso_regen_1_duree, conso_regen_1_total)
+		"conso_regen_2":
+			_conso_regen(quantite, conso_regen_2_duree, conso_regen_2_total)
+		"conso_regen_3":
+			_conso_regen(quantite, conso_regen_3_duree, conso_regen_3_total)
+
+		"conso_invincible_1":
+			_conso_invincibilite(quantite, conso_invincible_1_duree)
+		"conso_invincible_2":
+			_conso_invincibilite(quantite, conso_invincible_2_duree)
+		"conso_invincible_3":
+			_conso_invincibilite(quantite, conso_invincible_3_duree)
+
+		"conso_rage_1":
+			_conso_rage(quantite, conso_rage_1_duree, conso_rage_1_speed_bonus, conso_rage_1_chance_bonus, conso_rage_1_dash_bonus, conso_rage_1_dash_infini)
+		"conso_rage_2":
+			_conso_rage(quantite, conso_rage_2_duree, conso_rage_2_speed_bonus, conso_rage_2_chance_bonus, conso_rage_2_dash_bonus, conso_rage_2_dash_infini)
+		"conso_rage_3":
+			_conso_rage(quantite, conso_rage_3_duree, conso_rage_3_speed_bonus, conso_rage_3_chance_bonus, conso_rage_3_dash_bonus, conso_rage_3_dash_infini)
+
 		_:
-			_d_loot("[Loot] consommable inconnu : %s x%d" % [str(identifiant), quantite])
+			_d_loot("[Loot] consommable inconnu : %s x%d" % [id, quantite])
+
+
+func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
+	if sante == null or duree <= 0.0 or total_heal <= 0.0:
+		return
+	var heal_total := total_heal * float(quantite)
+	regen_time_left = duree
+	regen_heal_per_sec = heal_total / duree
+	regen_accum = 0.0
+
+
+func _conso_overheal(quantite: int, amount: float) -> void:
+	if sante == null or amount <= 0.0 or joueur == null or not joueur.has_method("soigner"):
+		return
+	joueur.soigner(sante.max_pv)
+	overheal_pool += amount * float(quantite)
+	_d_loot("[Loot] overheal : full heal + surplus total=%f (pool=%f)" % [amount * float(quantite), overheal_pool])
+
+
+func _conso_invincibilite(quantite: int, duree: float) -> void:
+	if duree <= 0.0:
+		return
+	var total := duree * float(quantite)
+	if invincible_time_left < total:
+		invincible_time_left = total
+
+
+func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: float, dash_bonus: int, dash_infini: bool) -> void:
+	if stats == null or duree <= 0.0:
+		return
+
+	var d := duree * float(quantite)
+	var s_bonus := speed_bonus * float(quantite)
+	var c_bonus := chance_bonus * float(quantite)
+	var dash_b := dash_bonus * quantite
+
+	if rage_time_left <= 0.0:
+		rage_time_left = d
+		rage_speed_bonus_add = s_bonus
+		rage_chance_bonus_add = c_bonus
+		rage_dash_bonus_add = dash_b
+		rage_dash_infini = dash_infini
+
+		if rage_speed_bonus_add != 0.0:
+			stats.ajouter_vitesse_add(rage_speed_bonus_add)
+		if rage_chance_bonus_add != 0.0:
+			stats.ajouter_chance(rage_chance_bonus_add)
+		if rage_dash_bonus_add != 0:
+			stats.ajouter_dash_max_add(rage_dash_bonus_add)
+		if dash_infini and joueur and joueur.has_method("set_dash_infini"):
+			joueur.set_dash_infini(true)
+
+		if joueur and stats:
+			joueur.dash_charges_actuelles = stats.get_dash_max_effectif()
+	else:
+		if d > rage_time_left:
+			rage_time_left = d
+
+		if s_bonus > rage_speed_bonus_add:
+			var diff_s := s_bonus - rage_speed_bonus_add
+			rage_speed_bonus_add = s_bonus
+			stats.ajouter_vitesse_add(diff_s)
+
+		if c_bonus > rage_chance_bonus_add:
+			var diff_c := c_bonus - rage_chance_bonus_add
+			rage_chance_bonus_add = c_bonus
+			stats.ajouter_chance(diff_c)
+
+		if dash_b > rage_dash_bonus_add:
+			var diff_dash := dash_b - rage_dash_bonus_add
+			rage_dash_bonus_add = dash_b
+			stats.ajouter_dash_max_add(diff_dash)
+
+		if dash_infini and not rage_dash_infini:
+			rage_dash_infini = true
+			if joueur and joueur.has_method("set_dash_infini"):
+				joueur.set_dash_infini(true)
+
+	if debug_loot and stats:
+		_d_loot("[RAGE] vitesse_effective=%f dash_max=%d infini=%s" % [stats.get_vitesse_effective(), stats.get_dash_max_effectif(), str(rage_dash_infini)])
+
+
+func _fin_rage() -> void:
+	if stats:
+		if rage_speed_bonus_add != 0.0:
+			stats.ajouter_vitesse_add(-rage_speed_bonus_add)
+		if rage_chance_bonus_add != 0.0:
+			stats.ajouter_chance(-rage_chance_bonus_add)
+		if rage_dash_bonus_add != 0:
+			stats.ajouter_dash_max_add(-rage_dash_bonus_add)
+
+	if joueur and joueur.has_method("set_dash_infini") and rage_dash_infini:
+		joueur.set_dash_infini(false)
+
+	rage_speed_bonus_add = 0.0
+	rage_chance_bonus_add = 0.0
+	rage_dash_bonus_add = 0
+	rage_dash_infini = false
+	rage_time_left = 0.0
 
 
 func _appliquer_amelioration(identifiant: StringName, quantite: int) -> void:
-	_d_loot("[Loot] amélioration : %s x%d" % [str(identifiant), quantite])
+	_d_loot("[Loot] upgrade SANS EFFET : %s x%d" % [str(identifiant), quantite])
 
 
 func _debloquer_arme_par_id(identifiant: StringName, rarete: int, quantite: int) -> void:

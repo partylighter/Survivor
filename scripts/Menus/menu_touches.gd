@@ -6,6 +6,7 @@ class_name MenuTouches
 	{"action": "gauche", "label": "Aller à gauche"},
 	{"action": "haut", "label": "Haut / Saut / Monter"},
 	{"action": "bas", "label": "Bas / Descendre"},
+	{"action": "dash", "label": "Dash / Esquive"},
 	{"action": "attaque", "label": "Attaque"},
 	{"action": "pause", "label": "Pause / Menu"},
 	{"action": "attaque_main_droite", "label": "Attaque main droite"},
@@ -37,7 +38,6 @@ func _ready() -> void:
 	_set_modifie(false)
 	set_process_unhandled_input(true)
 
-# Récupère le texte affiché pour une action actuelle
 func _get_action_text(nom_action: StringName) -> String:
 	if not InputMap.has_action(nom_action):
 		return "Non assignée"
@@ -125,10 +125,8 @@ func _valider_rebind(nom_action: StringName, nouvelle_entree: InputEvent) -> voi
 	_set_modifie(true)
 
 func _reinitialiser_touches() -> void:
-	# remet les vraies touches par défaut définies dans AutoInput.DEFAULT_BINDS
 	AutoInput.retablir_touches_defaut()
 
-	# rafraîchit l'affichage des boutons
 	for entree in actions_configurables:
 		var nom_action: StringName = StringName(entree.get("action", ""))
 		_get_bouton(nom_action).text = _get_action_text(nom_action)
@@ -156,8 +154,7 @@ func _set_ui_capture_mouse(active: bool) -> void:
 		for n in _mouse_filters_backup.keys():
 			if is_instance_valid(n):
 				var c := n as Control
-				c.mouse_filter = int(_mouse_filters_backup[n])
-				
+				c.mouse_filter = _mouse_filters_backup[n] as Control.MouseFilter
 				
 		_mouse_filters_backup.clear()
 

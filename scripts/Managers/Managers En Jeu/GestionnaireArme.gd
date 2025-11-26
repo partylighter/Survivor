@@ -8,8 +8,8 @@ var zone: ZoneRamassage
 
 @export_range(0.0, 1000.0, 0.1) var distance_min: float = 300.0
 @export_range(0.0, 1000.0, 0.1) var distance_max: float = 500.0
-@export_range(0.0, 1.0, 0.01) var vitesse_lissage: float = 0.05
-@export_range(0.01, 1.0, 0.01) var reactivite_main_secondaire: float = 1.0
+@export_range(0.0, 5.0, 0.01) var vitesse_lissage: float = 0.05
+@export_range(0.01, 10.0, 0.01) var reactivite_main_secondaire: float = 1.0
 @export_range(0.1, 30.0, 0.1) var raideur_hz: float = 10.0
 @export_range(0.0, 6.283, 0.01) var vitesse_offset_max_rad_s: float = 3.0
 @export_range(0.0, 5000.0, 0.1) var rayon_proche: float = 800.0

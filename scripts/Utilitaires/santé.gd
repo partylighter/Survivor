@@ -11,7 +11,7 @@ func _ready() -> void:
 	pv = max_pv
 
 func apply_damage(amount: int, source: Node) -> void:
-	var a :int = max(amount, 0)
+	var a: int = max(amount, 0)
 	pv = clamp(pv - a, 0, max_pv)
 	emit_signal("damaged", a, source)
 	if pv == 0:

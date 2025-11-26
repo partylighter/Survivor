@@ -1,25 +1,14 @@
-[gd_scene load_steps=4 format=3 uid="uid://b32j02pclbim1"]
+[gd_scene load_steps=3 format=3 uid="uid://b32j02pclbim1"]
 
 [ext_resource type="Script" uid="uid://cd1oknm5db88j" path="res://scripts/Utilitaires/Systeme D'armement/Loot.gd" id="1_hjdlj"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_85bdx"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_na3lh"]
-radius = 47.1275
-
 [node name="Loot" type="Area2D"]
+collision_layer = 0
+collision_mask = 0
 script = ExtResource("1_hjdlj")
+lifetime_s = 30.0
 metadata/_custom_type_script = "uid://cd1oknm5db88j"
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_na3lh")
-debug_color = Color(0, 0.6, 0.701961, 0)
-
-[node name="Label" type="Label" parent="."]
-offset_left = -22.0
-offset_top = -56.0
-offset_right = 21.0
-offset_bottom = -33.0
-text = "LOOT"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 0, 0.278431)
