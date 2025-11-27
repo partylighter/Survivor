@@ -23,10 +23,6 @@ func _ready() -> void:
 	if stats != null and sante != null:
 		stats.set_sante_ref(sante)
 
-	if stats != null:
-		dash_charges_actuelles = stats.get_dash_max_effectif()
-		dash_cooldown_s = stats.get_dash_cooldown_effectif()
-
 
 func _physics_process(dt: float) -> void:
 	var dir := Input.get_vector("gauche","droite","haut","bas")
@@ -61,6 +57,7 @@ func _physics_process(dt: float) -> void:
 			dash_charges_actuelles += 1
 			if dash_charges_actuelles > dash_max:
 				dash_charges_actuelles = dash_max
+
 	if Input.is_action_just_pressed("dash") and dir.length() > 0.0 and dash_t_restant_s <= 0.0:
 		if dash_infini_actif or dash_charges_actuelles > 0:
 			print("DASH -> charges=%d / max=%d  infini=%s" % [

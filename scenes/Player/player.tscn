@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=27 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -12,6 +12,21 @@
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
 [ext_resource type="Script" uid="uid://d2qt2wohmdfas" path="res://scripts/Utilitaires/GestionnaireLoot.gd" id="10_uxo23"]
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/Managers/Managers En Jeu/LootDisplayer.gd" id="11_n7rn1"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
+bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jxtnq"]
+bg_color = Color(0.76862746, 0, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t6q27"]
+bg_color = Color(0.76862746, 0, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_wyey8"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bwnf"]
+bg_color = Color(0.768627, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tuyoq"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -48,7 +63,20 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.17, 0.17)
+zoom = Vector2(0.735, 0.735)
+
+[node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
+unique_name_in_owner = true
+offset_left = 69.0
+offset_top = -104.0
+offset_right = 199.0
+offset_bottom = -73.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_7tfl1")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_jxtnq")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_t6q27")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_wyey8")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_1bwnf")
+page = 100.0
 
 [node name="HScrollBarPV" type="HScrollBar" parent="."]
 unique_name_in_owner = true
@@ -102,9 +130,12 @@ debug_color = Color(0, 0.6, 0.701961, 0)
 script = ExtResource("6_tuyoq")
 chemin_hote = NodePath("../Sprite2D")
 chemin_bar = NodePath("../HScrollBarPV")
+chemin_bar_overheal = NodePath("../HScrollBarHoverHeal")
 chemin_sante = NodePath("../Santé")
+chemin_loot = NodePath("../GestionnaireLoot")
 offset = Vector2(-61, -100)
 toujours_visible = true
+debug_bar_pv = true
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")

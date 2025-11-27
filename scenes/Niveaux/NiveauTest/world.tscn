@@ -107,7 +107,8 @@ rayon_disparition = 6500.0
 lod_update_interval_frames = 10
 rayon_engage = 1000.0
 scene_loot = ExtResource("9_075h3")
-debug_loot = true
+mult_type_upgrade = 0.0
+mult_type_arme = 0.0
 
 [node name="ProjectileHub" type="Node2D" parent="."]
 script = ExtResource("12_30tab")

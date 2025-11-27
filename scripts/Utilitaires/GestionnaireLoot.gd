@@ -54,7 +54,6 @@ var regen_time_left: float = 0.0
 var regen_heal_per_sec: float = 0.0
 var regen_accum: float = 0.0
 
-var overheal_pool: float = 0.0
 var invincible_time_left: float = 0.0
 
 var rage_time_left: float = 0.0
@@ -66,15 +65,23 @@ var rage_dash_infini: bool = false
 
 func _ready() -> void:
 	joueur = get_parent() as Player
-	if joueur:
-		stats = joueur.stats
-		sante = joueur.sante
-		if sante:
-			sante.damaged.connect(_on_player_damaged)
 	set_process(true)
 
 
+func _ensure_refs() -> void:
+	if joueur == null:
+		joueur = get_parent() as Player
+	if joueur != null and stats == null:
+		stats = joueur.stats
+	if joueur != null and sante == null:
+		sante = joueur.sante
+		if sante != null and not sante.damaged.is_connected(_on_player_damaged):
+			sante.damaged.connect(_on_player_damaged)
+
+
 func _process(delta: float) -> void:
+	_ensure_refs()
+
 	if regen_time_left > 0.0 and sante and not sante.is_dead():
 		regen_time_left -= delta
 		if regen_time_left < 0.0:
@@ -82,7 +89,7 @@ func _process(delta: float) -> void:
 		var to_heal: float = regen_heal_per_sec * delta
 		regen_accum += to_heal
 		var heal_int: int = int(regen_accum)
-		if heal_int > 0 and joueur and joueur.has_method("soigner"):
+		if heal_int > 0 and joueur:
 			joueur.soigner(heal_int)
 			regen_accum -= float(heal_int)
 
@@ -98,19 +105,11 @@ func _process(delta: float) -> void:
 
 
 func _on_player_damaged(amount: int, _source: Node) -> void:
+	_ensure_refs()
 	if sante == null:
 		return
-
-	if invincible_time_left > 0.0:
-		if amount > 0:
-			sante.heal(amount)
-		return
-
-	if overheal_pool > 0.0 and amount > 0:
-		var use_amount: float = min(overheal_pool, float(amount))
-		if use_amount > 0.0:
-			sante.heal(int(use_amount))
-			overheal_pool -= use_amount
+	if invincible_time_left > 0.0 and amount > 0:
+		sante.heal(amount)
 
 
 func _d_loot(msg: String) -> void:
@@ -130,6 +129,7 @@ func get_stats_loot() -> Dictionary:
 
 
 func on_loot_collecte(payload: Dictionary) -> void:
+	_ensure_refs()
 	if joueur == null:
 		return
 
@@ -167,11 +167,10 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 
 	match id:
 		"conso_heal":
-			if sante == null or joueur == null or not joueur.has_method("soigner"):
+			if sante == null or joueur == null:
 				return
 			var heal_par_item := int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
 			var total_heal := heal_par_item * quantite
-			_d_loot("[Loot] conso_heal : heal %d PV (%d%% de max_pv x%d)" % [total_heal, conso_heal_amount, quantite])
 			joueur.soigner(total_heal)
 
 		"conso_overheal_1":
@@ -209,6 +208,7 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 
 
 func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
+	_ensure_refs()
 	if sante == null or duree <= 0.0 or total_heal <= 0.0:
 		return
 	var heal_total := total_heal * float(quantite)
@@ -218,11 +218,25 @@ func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
 
 
 func _conso_overheal(quantite: int, amount: float) -> void:
-	if sante == null or amount <= 0.0 or joueur == null or not joueur.has_method("soigner"):
+	_ensure_refs()
+	if sante == null or amount <= 0.0:
+		print("[Overheal] ignoré (sante=%s amount=%.1f)" % [str(sante), amount])
 		return
-	joueur.soigner(sante.max_pv)
-	overheal_pool += amount * float(quantite)
-	_d_loot("[Loot] overheal : full heal + surplus total=%f (pool=%f)" % [amount * float(quantite), overheal_pool])
+
+	var before_pv: float = sante.pv
+	var before_over: float = sante.get_overheal()
+
+	sante.set_full_pv()
+
+	var add_over: float = amount * float(quantite)
+	sante.add_overheal(add_over)
+
+	var after_pv: float = sante.pv
+	var after_over: float = sante.get_overheal()
+
+	print("[Overheal] +%.1f (pv %.1f -> %.1f, over %.1f -> %.1f)" % [
+		add_over, before_pv, after_pv, before_over, after_over
+	])
 
 
 func _conso_invincibilite(quantite: int, duree: float) -> void:
@@ -234,6 +248,7 @@ func _conso_invincibilite(quantite: int, duree: float) -> void:
 
 
 func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: float, dash_bonus: int, dash_infini: bool) -> void:
+	_ensure_refs()
 	if stats == null or duree <= 0.0:
 		return
 
@@ -285,10 +300,15 @@ func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: 
 				joueur.set_dash_infini(true)
 
 	if debug_loot and stats:
-		_d_loot("[RAGE] vitesse_effective=%f dash_max=%d infini=%s" % [stats.get_vitesse_effective(), stats.get_dash_max_effectif(), str(rage_dash_infini)])
+		_d_loot("[RAGE] vitesse_effective=%f dash_max=%d infini=%s" % [
+			stats.get_vitesse_effective(),
+			stats.get_dash_max_effectif(),
+			str(rage_dash_infini)
+		])
 
 
 func _fin_rage() -> void:
+	_ensure_refs()
 	if stats:
 		if rage_speed_bonus_add != 0.0:
 			stats.ajouter_vitesse_add(-rage_speed_bonus_add)

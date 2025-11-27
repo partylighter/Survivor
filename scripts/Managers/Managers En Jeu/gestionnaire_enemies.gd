@@ -25,15 +25,11 @@ signal limite_atteinte()
 @export var loot_budget_par_frame: int = 80
 var _loot_index: int = 0
 
-
 @export var budget_par_frame: int = 200
 @export var max_spawn_par_frame: int = 15
 
-# anneau intérieur (IA active + move_and_slide + push) 
 @export var max_full_actifs: int = 30
-# anneau tampon (visible, collisions gardées, mais IA coupée)
 @export var max_buffer_actifs: int = 60
-# anneau combat corps-à-corps
 @export var rayon_engage: float = 300.0  
 
 @export var vitesse_lointain: float = 40.0
@@ -55,6 +51,31 @@ var _loot_index: int = 0
 
 @export var scene_loot: PackedScene
 @export var debug_loot: bool = false
+
+@export_group("Loot: Rolls par type")
+@export var rolls_min_C: int = 0
+@export var rolls_max_C: int = 2
+@export var rolls_min_B: int = 1
+@export var rolls_max_B: int = 3
+@export var rolls_min_A: int = 2
+@export var rolls_max_A: int = 4
+@export var rolls_min_S: int = 3
+@export var rolls_max_S: int = 5
+@export var rolls_min_BOSS: int = 5
+@export var rolls_max_BOSS: int = 8
+@export var rolls_bonus_par_10_niveaux: int = 1
+@export var mult_rolls_global: float = 1.0
+
+@export_group("Loot: Multiplicateurs rareté globale")
+@export var mult_rarete_C: float = 1.0
+@export var mult_rarete_B: float = 1.0
+@export var mult_rarete_A: float = 1.0
+@export var mult_rarete_S: float = 1.0
+
+@export_group("Loot: Poids type d'item")
+@export var mult_type_conso: float = 1.0
+@export var mult_type_upgrade: float = 1.0
+@export var mult_type_arme: float = 1.0
 
 var ennemis: Array[Node2D] = []
 var pools: Array = []
@@ -91,8 +112,6 @@ func _ready() -> void:
 	if mode_vagues and _nb_vagues() > 0:
 		_demarrer_vague(0)
 
-
-
 func _process(dt: float) -> void:
 	if mode_vagues and _nb_vagues() > 0:
 		if en_interlude:
@@ -110,7 +129,6 @@ func _process(dt: float) -> void:
 				break
 			_creer_ennemi()
 
-	# LOD pas à chaque frame
 	if _lod_frame == 0:
 		_appliquer_lod()
 	_lod_frame = (_lod_frame + 1) % lod_update_interval_frames
@@ -302,10 +320,6 @@ func _tick_lointain(e: Node2D) -> void:
 func _cmp_proches(a, b) -> bool:
 	return a["d2"] < b["d2"]
 
-# applique 3 niveaux:
-# 0 = noyau (IA on, move_and_slide on)
-# 1 = tampon (IA off mais corps encore solide/visible)
-# 2 = gel (IA off + collisions coupées)
 func _set_enemy_mode(e: Node2D, mode: int) -> void:
 	if not is_instance_valid(e):
 		return
@@ -331,8 +345,8 @@ func _appliquer_lod() -> void:
 	var r2_sim: float = rayon_simulation * rayon_simulation
 	var r2_engage: float = rayon_engage * rayon_engage
 
-	var engages: Array = []   # <= rayon_engage
-	var reste: Array = []     # > rayon_engage mais encore dans rayon_simulation
+	var engages: Array = []
+	var reste: Array = []
 
 	for e in ennemis:
 		if not is_instance_valid(e):
@@ -346,31 +360,28 @@ func _appliquer_lod() -> void:
 		else:
 			reste.append({"d2": d2, "e": e})
 
-	# 1) proches collés au joueur: toujours full actif
 	for e_close in engages:
-		_set_enemy_mode(e_close, 0) # IA on, move_and_slide on
+		_set_enemy_mode(e_close, 0)
 
-	# 2) rangs derrière: triés par distance puis découpés en full / buffer / gel
 	if reste.is_empty():
 		return
 
-	reste.sort_custom(Callable(self, "_cmp_proches"))  # _cmp_proches lit ["d2"]
+	reste.sort_custom(Callable(self, "_cmp_proches"))
 
 	var idx := 0
 	for item in reste:
 		var e2: Node2D = item["e"]
 
 		if idx < max_full_actifs:
-			_set_enemy_mode(e2, 0)   # IA on
+			_set_enemy_mode(e2, 0)
 		elif idx < max_buffer_actifs:
-			_set_enemy_mode(e2, 1)   # IA off, corps solide
+			_set_enemy_mode(e2, 1)
 		else:
-			_set_enemy_mode(e2, 2)   # gel total
+			_set_enemy_mode(e2, 2)
 
 		idx += 1
 
 func _maj_budget() -> void:
-	
 	if ennemis.is_empty():
 		return
 
@@ -392,7 +403,6 @@ func _maj_budget() -> void:
 		fait += 1
 
 	tour_budget += 1
-
 
 func _maj_loots() -> void:
 	if not is_instance_valid(joueur):
@@ -439,18 +449,15 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 
 	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
 
-	# zone proche: ne touche pas à l'ennemi ici, il est géré par _appliquer_lod()
 	if d2 <= r2_sim:
 		return false
 
-	# zone moyenne: IA coupée, collisions coupées si besoin, marche lente simulée
 	if d2 <= r2_disp:
 		_activer_ennemi(e, false)
 		if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
 			_tick_lointain(e)
 		return false
 
-	# trop loin: on pool
 	var doit_decrementer := false
 	if e.has_meta("vague_id"):
 		var v: Variant = e.get_meta("vague_id")
@@ -581,7 +588,6 @@ func _generer_loot_pour_ennemi(e: Node2D) -> void:
 	var ennemi := e as Enemy
 	var type_ennemi: int = ennemi.type_ennemi
 
-	# TODO : quand tu auras un niveau sur l'ennemi, tu remplaces 1 par ennemi.niveau
 	var niveau: int = 1
 	var luck: float = _get_player_luck()
 
@@ -614,43 +620,44 @@ func _generer_loot_pour_ennemi(e: Node2D) -> void:
 
 		get_tree().current_scene.add_child(loot)
 
-
 func _tirer_nombre_rolls(type_ennemi: int, niveau: int) -> int:
 	var min_r := 0
 	var max_r := 0
 
 	match type_ennemi:
 		Enemy.TypeEnnemi.C:
-			min_r = 0
-			max_r = 2
+			min_r = rolls_min_C
+			max_r = rolls_max_C
 		Enemy.TypeEnnemi.B:
-			min_r = 1
-			max_r = 3
+			min_r = rolls_min_B
+			max_r = rolls_max_B
 		Enemy.TypeEnnemi.A:
-			min_r = 2
-			max_r = 4
+			min_r = rolls_min_A
+			max_r = rolls_max_A
 		Enemy.TypeEnnemi.S:
-			min_r = 3
-			max_r = 5
+			min_r = rolls_min_S
+			max_r = rolls_max_S
 		Enemy.TypeEnnemi.BOSS:
-			min_r = 5
-			max_r = 8
+			min_r = rolls_min_BOSS
+			max_r = rolls_max_BOSS
 		_:
 			min_r = 0
 			max_r = 1
 
-	# petit bonus de rolls tous les 10 niveaux
-	var bonus := int(max(niveau - 1, 0) / 10)
+	var bonus := int(max(niveau - 1, 0) / 10) * rolls_bonus_par_10_niveaux
 	max_r += bonus
 
 	if max_r < min_r:
 		max_r = min_r
 
 	if max_r <= min_r:
-		return min_r
+		var base_rolls := min_r
+		var nb := int(round(float(base_rolls) * mult_rolls_global))
+		return max(0, nb)
 
-	return hasard.randi_range(min_r, max_r)
-
+	var base := hasard.randi_range(min_r, max_r)
+	var nb_final := int(round(float(base) * mult_rolls_global))
+	return max(0, nb_final)
 
 func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
 	match type_ennemi:
@@ -667,12 +674,10 @@ func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
 		_:
 			return PackedFloat32Array([1.0, 0.0, 0.0, 0.0])
 
-
 func _get_player_luck() -> float:
 	if joueur != null and is_instance_valid(joueur) and joueur.has_method("get_luck"):
 		return float(joueur.get_luck())
 	return 0.0
-
 
 func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
 	var p: PackedFloat32Array = _proba_rarete_base(type_ennemi)
@@ -684,7 +689,6 @@ func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
 	var pA: float = p[2]
 	var pS: float = p[3]
 
-	# 1) bonus de niveau : on déplace un peu de C vers B/A/S
 	var steps: int = int(max(niveau - 1, 0) / 5)
 	var bonus: float = float(steps) * 0.05
 	var shift: float = min(bonus, pC - 0.1)
@@ -694,7 +698,6 @@ func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
 		pA += shift * 0.3
 		pS += shift * 0.2
 
-	# 2) chance joueur : buff léger A/S
 	if luck > 0.0:
 		var luck_factor = clamp(luck, 0.0, 100.0) / 100.0
 		var bonusA: float = 0.05 * luck_factor
@@ -711,7 +714,11 @@ func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
 		pA += bonusA
 		pS += bonusS
 
-	# normalisation
+	pC *= mult_rarete_C
+	pB *= mult_rarete_B
+	pA *= mult_rarete_A
+	pS *= mult_rarete_S
+
 	var sum: float = pC + pB + pA + pS
 	if sum <= 0.0:
 		return Loot.TypeLoot.C
@@ -732,40 +739,52 @@ func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
 		return Loot.TypeLoot.A
 	return Loot.TypeLoot.S
 
-
 func _tirer_type_item(rarete: int) -> int:
-	var x: float = hasard.randf()
+	var w_conso: float = 0.0
+	var w_upgrade: float = 0.0
+	var w_arme: float = 0.0
+
 	match rarete:
 		Loot.TypeLoot.C:
-			if x < 0.7:
-				return Loot.TypeItem.CONSO
-			elif x < 0.9:
-				return Loot.TypeItem.UPGRADE
-			else:
-				return Loot.TypeItem.ARME
+			w_conso = 0.7
+			w_upgrade = 0.2
+			w_arme = 0.1
 		Loot.TypeLoot.B:
-			if x < 0.4:
-				return Loot.TypeItem.CONSO
-			elif x < 0.8:
-				return Loot.TypeItem.UPGRADE
-			else:
-				return Loot.TypeItem.ARME
+			w_conso = 0.4
+			w_upgrade = 0.4
+			w_arme = 0.2
 		Loot.TypeLoot.A:
-			if x < 0.3:
-				return Loot.TypeItem.CONSO
-			elif x < 0.7:
-				return Loot.TypeItem.UPGRADE
-			else:
-				return Loot.TypeItem.ARME
+			w_conso = 0.3
+			w_upgrade = 0.4
+			w_arme = 0.3
 		Loot.TypeLoot.S:
-			if x < 0.1:
-				return Loot.TypeItem.CONSO
-			elif x < 0.5:
-				return Loot.TypeItem.UPGRADE
-			else:
-				return Loot.TypeItem.ARME
-	return Loot.TypeItem.CONSO
+			w_conso = 0.1
+			w_upgrade = 0.4
+			w_arme = 0.5
+		_:
+			w_conso = 1.0
+			w_upgrade = 0.0
+			w_arme = 0.0
 
+	w_conso *= mult_type_conso
+	w_upgrade *= mult_type_upgrade
+	w_arme *= mult_type_arme
+
+	var sum := w_conso + w_upgrade + w_arme
+	if sum <= 0.0:
+		return Loot.TypeItem.CONSO
+
+	w_conso /= sum
+	w_upgrade /= sum
+	w_arme /= sum
+
+	var x := hasard.randf()
+	if x < w_conso:
+		return Loot.TypeItem.CONSO
+	x -= w_conso
+	if x < w_upgrade:
+		return Loot.TypeItem.UPGRADE
+	return Loot.TypeItem.ARME
 
 func _d_loot(msg: String) -> void:
 	if debug_loot:
