@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=18 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/Armes/Armes de contact/arme_contact_1.tscn" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot.tscn" id="9_075h3"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="10_075h3"]
+[ext_resource type="Script" uid="uid://cvuge010wptp1" path="res://scripts/Managers/Managers En Jeu/GestionnaireLootDrops.gd" id="10_s05yr"]
 [ext_resource type="PackedScene" uid="uid://bnwxpk26a02ga" path="res://scenes/Armes/Armes de tir/arme_tir_1.tscn" id="10_uuc06"]
 [ext_resource type="Script" uid="uid://leky5p00ehnf" path="res://scripts/autoloads/AutoloadsMenuing/GestionairPause.gd" id="11_uuc06"]
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
@@ -96,7 +97,7 @@ debug_color = Color(0.43391323, 0.33586666, 1, 0.41960785)
 modulate = Color(2.3058233, 0, 2.3058233, 1)
 texture = ExtResource("10_075h3")
 
-[node name="Gestionnaire Enemies" parent="." instance=ExtResource("2_4wyf3")]
+[node name="Gestionnaire Enemies" parent="." node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m")])
 max_ennemis = 100
@@ -106,13 +107,16 @@ rayon_simulation = 6000.0
 rayon_disparition = 6500.0
 lod_update_interval_frames = 10
 rayon_engage = 1000.0
-scene_loot = ExtResource("9_075h3")
-mult_type_upgrade = 0.0
-mult_type_arme = 0.0
+loot_manager = NodePath("../GestionnaireLootDrops")
 
 [node name="ProjectileHub" type="Node2D" parent="."]
 script = ExtResource("12_30tab")
 metadata/_custom_type_script = "uid://ctjko77ppqoqd"
+
+[node name="GestionnaireLootDrops" type="Node" parent="."]
+script = ExtResource("10_s05yr")
+scene_loot = ExtResource("9_075h3")
+metadata/_custom_type_script = "uid://cvuge010wptp1"
 
 [node name="StatsVagues" parent="." instance=ExtResource("5_71j4m")]
 chemin_manager = NodePath("../Gestionnaire Enemies")

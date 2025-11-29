@@ -78,6 +78,16 @@ func set_cible(n: Node2D) -> void:
 	if cible:
 		base_y = cible.position.y
 
+func stop_drop() -> void:
+	if cible == null:
+		return
+	etat = ETAT_IDLE
+	flottement_actif = false
+	est_au_sol_prec = false
+	if cible:
+		cible.rotation_degrees = 0.0
+		cible.scale = Vector2.ONE
+
 func tick(now: float, est_au_sol: bool) -> void:
 	if cible == null:
 		return

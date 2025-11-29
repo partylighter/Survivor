@@ -223,25 +223,35 @@ func _calculer_offset_continu(dist: float) -> float:
 	return lerp(PI, -avance_max, t_global)
 
 func equiper_arme_principale(a: ArmeBase) -> void:
-	if a == null or a == arme_secondaire: return
+	if a == null or a == arme_secondaire:
+		return
+
+	_stopper_drop_si_effets(a)
+
 	arme_principale = a
 	a.equipe_par(_joueur)
 	_socket_principale.add_child(a)
 	a.top_level = false
 	a.position = Vector2.ZERO
-	a.rotation = 0.0 # <<< local à 0, le socket porte la rotation
+	a.rotation = 0.0
+	a.scale = Vector2.ONE
 	_angle_main_affiche = _socket_principale.rotation
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
-	if a == null or a == arme_principale: return
+	if a == null or a == arme_principale:
+		return
+
+	_stopper_drop_si_effets(a)
+
 	arme_secondaire = a
 	a.equipe_par(_joueur)
 	_socket_secondaire.add_child(a)
 	a.top_level = false
 	a.position = Vector2.ZERO
-	a.rotation = 0.0 # <<< local à 0
+	a.rotation = 0.0
+	a.scale = Vector2.ONE
 	_angle_secondaire_affiche = _socket_secondaire.rotation
 	_offset_secondaire_affiche = PI
 	_set_pickup_enabled(a, false)
@@ -290,6 +300,18 @@ func _detach_to_world(a: Node2D, s: Node2D) -> void:
 	world.add_child(a)
 	a.global_position = gp
 	a.global_rotation = gr
+
+func _stopper_drop_si_effets(a: ArmeBase) -> void:
+	if a == null:
+		return
+	if a is ArmeContact:
+		var ac := a as ArmeContact
+		if ac.effets:
+			ac.stop_drop()
+	elif a is ArmeTir:
+		var at := a as ArmeTir
+		if at.effets:
+			at.stop_drop()
 
 func _handle_inputs() -> void:
 	if Input.is_action_just_pressed("ramasser"):

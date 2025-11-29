@@ -63,7 +63,7 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.735, 0.735)
+zoom = Vector2(0.17, 0.17)
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
 unique_name_in_owner = true
@@ -135,7 +135,6 @@ chemin_sante = NodePath("../Santé")
 chemin_loot = NodePath("../GestionnaireLoot")
 offset = Vector2(-61, -100)
 toujours_visible = true
-debug_bar_pv = true
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
@@ -169,7 +168,6 @@ script = ExtResource("3_qhqgy")
 
 [node name="StatsJoueur" type="Node" parent="."]
 script = ExtResource("9_7tfl1")
-chance_base = 100.0
 dash_max_base = 2
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
@@ -180,7 +178,6 @@ metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
 [node name="GestionnaireLoot" type="Node" parent="."]
 script = ExtResource("10_uxo23")
-debug_loot = true
 metadata/_custom_type_script = "uid://d2qt2wohmdfas"
 
 [node name="LootDisplayer" type="CanvasLayer" parent="."]

@@ -43,3 +43,7 @@ func _maj_etat_pickup() -> void:
 		_pickup.set_deferred("monitoring", est_au_sol)
 		_pickup.set_deferred("monitorable", est_au_sol)
 		_pickup.process_mode = (Node.PROCESS_MODE_INHERIT if not est_au_sol else Node.PROCESS_MODE_DISABLED)
+
+func stop_drop() -> void:
+	if effets:
+		effets.stop_drop()
