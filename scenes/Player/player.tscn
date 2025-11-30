@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=28 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
 [ext_resource type="Script" uid="uid://d2qt2wohmdfas" path="res://scripts/Utilitaires/GestionnaireLoot.gd" id="10_uxo23"]
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/Managers/Managers En Jeu/LootDisplayer.gd" id="11_n7rn1"]
+[ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/Managers/Managers En Jeu/StatsJoueurDisplayer.gd" id="13_jxtnq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -185,3 +186,13 @@ script = ExtResource("11_n7rn1")
 chemin_loot = NodePath("../GestionnaireLoot")
 position_loot_ui = Vector2(950, 12)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
+
+[node name="StatsJoueurDisplayer" type="CanvasLayer" parent="."]
+script = ExtResource("13_jxtnq")
+chemin_stats = NodePath("../StatsJoueur")
+chemin_sante = NodePath("../Santé")
+chemin_player = NodePath("..")
+ui_position = Vector2(0, 200)
+ui_couleur_fond = Color(0, 0, 0, 1)
+ui_couleur_texte = Color(1, 0, 1, 1)
+metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
