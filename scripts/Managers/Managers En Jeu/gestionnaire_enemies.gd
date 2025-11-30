@@ -70,6 +70,10 @@ var tues_vague: int = 0
 var tour_budget: int = 0
 var _lod_frame: int = 0
 
+var ennemis_tues_total: int = 0
+var temps_total_s: float = 0.0
+var vagues_terminees: int = 0
+
 func _ready() -> void:
 	hasard.seed = graine
 	if not is_instance_valid(joueur):
@@ -87,6 +91,8 @@ func _ready() -> void:
 		_demarrer_vague(0)
 
 func _process(dt: float) -> void:
+	temps_total_s += dt
+
 	if mode_vagues and _nb_vagues() > 0:
 		if en_interlude:
 			timer_interlude -= dt
@@ -157,6 +163,7 @@ func _tick_vague(dt: float) -> void:
 func _finir_vague() -> void:
 	en_interlude = true
 	timer_interlude = interlude_s
+	vagues_terminees += 1
 
 func _prochaine_vague() -> void:
 	en_interlude = false
@@ -256,8 +263,11 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 	return e
 
 func _sur_mort(e: Node2D) -> void:
-	if loot_manager != null:
-		loot_manager.generer_loot_pour_ennemi(e, hasard, joueur)
+	ennemis_tues_total += 1
+
+	if loot_manager != null and is_instance_valid(joueur):
+		var prog := get_indice_progression_loot()
+		loot_manager.generer_loot_pour_ennemi(e, hasard, joueur, prog)
 
 	ennemis.erase(e)
 
@@ -553,3 +563,12 @@ func _cible_tues_courante() -> int:
 	if i_vague < cibles_tues_vagues.size():
 		return cibles_tues_vagues[i_vague]
 	return -1
+
+func get_indice_progression_loot() -> float:
+	var indice: float = 0.0
+	if mode_vagues:
+		indice += float(vagues_terminees)
+	else:
+		indice += temps_total_s / 60.0
+		indice += float(ennemis_tues_total) / 50.0
+	return max(indice, 0.0)
