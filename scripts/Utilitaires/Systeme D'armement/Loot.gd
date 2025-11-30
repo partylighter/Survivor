@@ -14,7 +14,7 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 @export var magnet_radius: float = 220.0
 @export var magnet_speed: float = 420.0
 @export var pickup_radius: float = 18.0
-@export var lifetime_s: float = 60.0
+@export var lifetime_s: float = 3.0
 
 var _t: float = 0.0
 var magnet_active: bool = false

@@ -4,32 +4,32 @@ class_name GestionnaireLootDrops
 @export var scene_loot: PackedScene
 @export var debug_loot: bool = false
 
-@export_group("Loot: Rolls par type")
-@export var rolls_min_C: int = 0
-@export var rolls_max_C: int = 2
-@export var rolls_min_B: int = 1
-@export var rolls_max_B: int = 3
-@export var rolls_min_A: int = 2
-@export var rolls_max_A: int = 4
-@export var rolls_min_S: int = 3
-@export var rolls_max_S: int = 5
-@export var rolls_min_BOSS: int = 5
-@export var rolls_max_BOSS: int = 8
-@export var rolls_bonus_par_10_niveaux: int = 1
-@export var mult_rolls_global: float = 1.0
+@export_group("Loot: Tirages par type d'ennemi")
+@export var tirages_min_type_C: int = 0
+@export var tirages_max_type_C: int = 2
+@export var tirages_min_type_B: int = 1
+@export var tirages_max_type_B: int = 3
+@export var tirages_min_type_A: int = 2
+@export var tirages_max_type_A: int = 4
+@export var tirages_min_type_S: int = 3
+@export var tirages_max_type_S: int = 5
+@export var tirages_min_type_BOSS: int = 5
+@export var tirages_max_type_BOSS: int = 8
+@export var tirages_bonus_par_10_niveaux: int = 1
+@export var multiplicateur_tirages_global: float = 1.0
 
-@export_group("Loot: Multiplicateurs rareté globale")
-@export var mult_rarete_C: float = 1.0
-@export var mult_rarete_B: float = 1.0
-@export var mult_rarete_A: float = 1.0
-@export var mult_rarete_S: float = 1.0
+@export_group("Loot: Multiplicateurs de rareté globale")
+@export var multiplicateur_rarete_C: float = 1.0
+@export var multiplicateur_rarete_B: float = 1.0
+@export var multiplicateur_rarete_A: float = 1.0
+@export var multiplicateur_rarete_S: float = 1.0
 
-@export_group("Loot: Poids type d'item")
-@export var mult_type_conso: float = 1.0
-@export var mult_type_upgrade: float = 1.0
-@export var mult_type_arme: float = 1.0
+@export_group("Loot: Poids par type d'item")
+@export var multiplicateur_type_conso: float = 1.0
+@export var multiplicateur_type_upgrade: float = 1.0
+@export var multiplicateur_type_arme: float = 1.0
 
-var _rng: RandomNumberGenerator = null
+var _generateur_aleatoire: RandomNumberGenerator
 
 func generer_loot_pour_ennemi(e: Node2D, rng: RandomNumberGenerator, joueur: Node2D) -> void:
 	if scene_loot == null:
@@ -37,20 +37,20 @@ func generer_loot_pour_ennemi(e: Node2D, rng: RandomNumberGenerator, joueur: Nod
 	if not (e is Enemy):
 		return
 
-	_rng = rng
+	_generateur_aleatoire = rng
 
 	var ennemi := e as Enemy
 	var type_ennemi: int = ennemi.type_ennemi
 
-	var niveau: int = 1
-	var luck: float = _get_player_luck(joueur)
+	var niveau_zone: int = 1
+	var chance_joueur: float = _get_player_luck(joueur)
 
-	var nb_rolls: int = _tirer_nombre_rolls(type_ennemi, niveau)
-	if nb_rolls <= 0:
+	var nb_tirages: int = _tirer_nombre_rolls(type_ennemi, niveau_zone)
+	if nb_tirages <= 0:
 		return
 
-	for i in range(nb_rolls):
-		var rarete: int = _tirer_rarete(type_ennemi, niveau, luck)
+	for i in range(nb_tirages):
+		var rarete: int = _tirer_rarete(type_ennemi, niveau_zone, chance_joueur)
 		var type_item: int = _tirer_type_item(rarete)
 		var item_id: StringName = _tirer_item_id(type_item, rarete)
 
@@ -67,51 +67,51 @@ func generer_loot_pour_ennemi(e: Node2D, rng: RandomNumberGenerator, joueur: Nod
 		loot.quantite = 1
 
 		var offset := Vector2(
-			_rng.randf_range(-16.0, 16.0),
-			_rng.randf_range(-16.0, 16.0)
+			_generateur_aleatoire.randf_range(-16.0, 16.0),
+			_generateur_aleatoire.randf_range(-16.0, 16.0)
 		)
 		loot.global_position = ennemi.global_position + offset
 
 		get_tree().current_scene.add_child(loot)
 
-func _tirer_nombre_rolls(type_ennemi: int, niveau: int) -> int:
-	var min_r := 0
-	var max_r := 0
+func _tirer_nombre_rolls(type_ennemi: int, niveau_zone: int) -> int:
+	var nb_tirages_min := 0
+	var nb_tirages_max := 0
 
 	match type_ennemi:
 		Enemy.TypeEnnemi.C:
-			min_r = rolls_min_C
-			max_r = rolls_max_C
+			nb_tirages_min = tirages_min_type_C
+			nb_tirages_max = tirages_max_type_C
 		Enemy.TypeEnnemi.B:
-			min_r = rolls_min_B
-			max_r = rolls_max_B
+			nb_tirages_min = tirages_min_type_B
+			nb_tirages_max = tirages_max_type_B
 		Enemy.TypeEnnemi.A:
-			min_r = rolls_min_A
-			max_r = rolls_max_A
+			nb_tirages_min = tirages_min_type_A
+			nb_tirages_max = tirages_max_type_A
 		Enemy.TypeEnnemi.S:
-			min_r = rolls_min_S
-			max_r = rolls_max_S
+			nb_tirages_min = tirages_min_type_S
+			nb_tirages_max = tirages_max_type_S
 		Enemy.TypeEnnemi.BOSS:
-			min_r = rolls_min_BOSS
-			max_r = rolls_max_BOSS
+			nb_tirages_min = tirages_min_type_BOSS
+			nb_tirages_max = tirages_max_type_BOSS
 		_:
-			min_r = 0
-			max_r = 1
+			nb_tirages_min = 0
+			nb_tirages_max = 1
 
-	var bonus := int(max(niveau - 1, 0) / 10) * rolls_bonus_par_10_niveaux
-	max_r += bonus
+	var bonus_niveau := int(max(niveau_zone - 1, 0) / 10) * tirages_bonus_par_10_niveaux
+	nb_tirages_max += bonus_niveau
 
-	if max_r < min_r:
-		max_r = min_r
+	if nb_tirages_max < nb_tirages_min:
+		nb_tirages_max = nb_tirages_min
 
-	if max_r <= min_r:
-		var base_rolls := min_r
-		var nb := int(round(float(base_rolls) * mult_rolls_global))
-		return max(0, nb)
+	if nb_tirages_max <= nb_tirages_min:
+		var nb_base_tirages := nb_tirages_min
+		var nb_tirages := int(round(float(nb_base_tirages) * multiplicateur_tirages_global))
+		return max(0, nb_tirages)
 
-	var base := _rng.randi_range(min_r, max_r)
-	var nb_final := int(round(float(base) * mult_rolls_global))
-	return max(0, nb_final)
+	var nb_tirages_brut := _generateur_aleatoire.randi_range(nb_tirages_min, nb_tirages_max)
+	var nb_tirages_final := int(round(float(nb_tirages_brut) * multiplicateur_tirages_global))
+	return max(0, nb_tirages_final)
 
 func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
 	match type_ennemi:
@@ -133,110 +133,110 @@ func _get_player_luck(joueur: Node2D) -> float:
 		return float(joueur.get_luck())
 	return 0.0
 
-func _tirer_rarete(type_ennemi: int, niveau: int, luck: float) -> int:
-	var p: PackedFloat32Array = _proba_rarete_base(type_ennemi)
-	if p.size() < 4:
+func _tirer_rarete(type_ennemi: int, niveau_zone: int, chance_joueur: float) -> int:
+	var proba_base: PackedFloat32Array = _proba_rarete_base(type_ennemi)
+	if proba_base.size() < 4:
 		return Loot.TypeLoot.C
 
-	var pC: float = p[0]
-	var pB: float = p[1]
-	var pA: float = p[2]
-	var pS: float = p[3]
+	var proba_C: float = proba_base[0]
+	var proba_B: float = proba_base[1]
+	var proba_A: float = proba_base[2]
+	var proba_S: float = proba_base[3]
 
-	var steps: int = int(max(niveau - 1, 0) / 5)
-	var bonus: float = float(steps) * 0.05
-	var shift: float = min(bonus, pC - 0.1)
-	if shift > 0.0:
-		pC -= shift
-		pB += shift * 0.5
-		pA += shift * 0.3
-		pS += shift * 0.2
+	var paliers_niveau: int = int(max(niveau_zone - 1, 0) / 5)
+	var bonus_repartition: float = float(paliers_niveau) * 0.05
+	var deplacement_depuis_C: float = min(bonus_repartition, proba_C - 0.1)
+	if deplacement_depuis_C > 0.0:
+		proba_C -= deplacement_depuis_C
+		proba_B += deplacement_depuis_C * 0.5
+		proba_A += deplacement_depuis_C * 0.3
+		proba_S += deplacement_depuis_C * 0.2
 
-	if luck > 0.0:
-		var luck_factor = clamp(luck, 0.0, 100.0) / 100.0
-		var bonusA: float = 0.05 * luck_factor
-		var bonusS: float = 0.02 * luck_factor
-		var total_bonus: float = bonusA + bonusS
+	if chance_joueur > 0.0:
+		var facteur_chance = clamp(chance_joueur, 0.0, 100.0) / 100.0
+		var bonus_A: float = 0.05 * facteur_chance
+		var bonus_S: float = 0.02 * facteur_chance
+		var total_bonus: float = bonus_A + bonus_S
 
-		var max_deplacable: float = pC * 0.7 + pB * 0.3
-		var reduc: float = min(total_bonus, max_deplacable)
+		var montant_max_deplacable: float = proba_C * 0.7 + proba_B * 0.3
+		var montant_deplace: float = min(total_bonus, montant_max_deplacable)
 
-		var fromC: float = min(pC, reduc * 0.7)
-		var fromB: float = min(pB, reduc * 0.3)
-		pC -= fromC
-		pB -= fromB
-		pA += bonusA
-		pS += bonusS
+		var pris_sur_C: float = min(proba_C, montant_deplace * 0.7)
+		var pris_sur_B: float = min(proba_B, montant_deplace * 0.3)
+		proba_C -= pris_sur_C
+		proba_B -= pris_sur_B
+		proba_A += bonus_A
+		proba_S += bonus_S
 
-	pC *= mult_rarete_C
-	pB *= mult_rarete_B
-	pA *= mult_rarete_A
-	pS *= mult_rarete_S
+	proba_C *= multiplicateur_rarete_C
+	proba_B *= multiplicateur_rarete_B
+	proba_A *= multiplicateur_rarete_A
+	proba_S *= multiplicateur_rarete_S
 
-	var sum: float = pC + pB + pA + pS
-	if sum <= 0.0:
+	var somme_probas: float = proba_C + proba_B + proba_A + proba_S
+	if somme_probas <= 0.0:
 		return Loot.TypeLoot.C
 
-	pC /= sum
-	pB /= sum
-	pA /= sum
-	pS /= sum
+	proba_C /= somme_probas
+	proba_B /= somme_probas
+	proba_A /= somme_probas
+	proba_S /= somme_probas
 
-	var x: float = _rng.randf()
-	if x < pC:
+	var tirage_aleatoire: float = _generateur_aleatoire.randf()
+	if tirage_aleatoire < proba_C:
 		return Loot.TypeLoot.C
-	x -= pC
-	if x < pB:
+	tirage_aleatoire -= proba_C
+	if tirage_aleatoire < proba_B:
 		return Loot.TypeLoot.B
-	x -= pB
-	if x < pA:
+	tirage_aleatoire -= proba_B
+	if tirage_aleatoire < proba_A:
 		return Loot.TypeLoot.A
 	return Loot.TypeLoot.S
 
 func _tirer_type_item(rarete: int) -> int:
-	var w_conso: float = 0.0
-	var w_upgrade: float = 0.0
-	var w_arme: float = 0.0
+	var poids_conso: float = 0.0
+	var poids_upgrade: float = 0.0
+	var poids_arme: float = 0.0
 
 	match rarete:
 		Loot.TypeLoot.C:
-			w_conso = 0.7
-			w_upgrade = 0.2
-			w_arme = 0.1
+			poids_conso = 0.7
+			poids_upgrade = 0.2
+			poids_arme = 0.1
 		Loot.TypeLoot.B:
-			w_conso = 0.4
-			w_upgrade = 0.4
-			w_arme = 0.2
+			poids_conso = 0.4
+			poids_upgrade = 0.4
+			poids_arme = 0.2
 		Loot.TypeLoot.A:
-			w_conso = 0.3
-			w_upgrade = 0.4
-			w_arme = 0.3
+			poids_conso = 0.3
+			poids_upgrade = 0.4
+			poids_arme = 0.3
 		Loot.TypeLoot.S:
-			w_conso = 0.1
-			w_upgrade = 0.4
-			w_arme = 0.5
+			poids_conso = 0.1
+			poids_upgrade = 0.4
+			poids_arme = 0.5
 		_:
-			w_conso = 1.0
-			w_upgrade = 0.0
-			w_arme = 0.0
+			poids_conso = 1.0
+			poids_upgrade = 0.0
+			poids_arme = 0.0
 
-	w_conso *= mult_type_conso
-	w_upgrade *= mult_type_upgrade
-	w_arme *= mult_type_arme
+	poids_conso *= multiplicateur_type_conso
+	poids_upgrade *= multiplicateur_type_upgrade
+	poids_arme *= multiplicateur_type_arme
 
-	var sum := w_conso + w_upgrade + w_arme
-	if sum <= 0.0:
+	var somme_poids := poids_conso + poids_upgrade + poids_arme
+	if somme_poids <= 0.0:
 		return Loot.TypeItem.CONSO
 
-	w_conso /= sum
-	w_upgrade /= sum
-	w_arme /= sum
+	poids_conso /= somme_poids
+	poids_upgrade /= somme_poids
+	poids_arme /= somme_poids
 
-	var x := _rng.randf()
-	if x < w_conso:
+	var tirage_aleatoire := _generateur_aleatoire.randf()
+	if tirage_aleatoire < poids_conso:
 		return Loot.TypeItem.CONSO
-	x -= w_conso
-	if x < w_upgrade:
+	tirage_aleatoire -= poids_conso
+	if tirage_aleatoire < poids_upgrade:
 		return Loot.TypeItem.UPGRADE
 	return Loot.TypeItem.ARME
 
@@ -246,50 +246,50 @@ func _d_loot(msg: String) -> void:
 
 func _tirer_item_id(type_item: int, rarete: int) -> StringName:
 	if type_item == Loot.TypeItem.CONSO:
-		var x := _rng.randf()
+		var tirage_aleatoire := _generateur_aleatoire.randf()
 		match rarete:
 			Loot.TypeLoot.C:
-				if x < 0.45:
+				if tirage_aleatoire < 0.45:
 					return &"conso_heal_full_1"
-				elif x < 0.75:
+				elif tirage_aleatoire < 0.75:
 					return &"conso_regen_1"
-				elif x < 0.95:
+				elif tirage_aleatoire < 0.95:
 					return &"conso_overheal_1"
 				else:
 					return &"conso_invincible_1"
 
 			Loot.TypeLoot.B:
-				if x < 0.35:
+				if tirage_aleatoire < 0.35:
 					return &"conso_heal_full_2"
-				elif x < 0.65:
+				elif tirage_aleatoire < 0.65:
 					return &"conso_regen_2"
-				elif x < 0.85:
+				elif tirage_aleatoire < 0.85:
 					return &"conso_overheal_1"
-				elif x < 0.95:
+				elif tirage_aleatoire < 0.95:
 					return &"conso_invincible_1"
 				else:
 					return &"conso_rage_1"
 
 			Loot.TypeLoot.A:
-				if x < 0.30:
+				if tirage_aleatoire < 0.30:
 					return &"conso_heal_full_3"
-				elif x < 0.55:
+				elif tirage_aleatoire < 0.55:
 					return &"conso_regen_3"
-				elif x < 0.75:
+				elif tirage_aleatoire < 0.75:
 					return &"conso_overheal_2"
-				elif x < 0.90:
+				elif tirage_aleatoire < 0.90:
 					return &"conso_invincible_2"
 				else:
 					return &"conso_rage_2"
 
 			Loot.TypeLoot.S:
-				if x < 0.25:
+				if tirage_aleatoire < 0.25:
 					return &"conso_overheal_3"
-				elif x < 0.50:
+				elif tirage_aleatoire < 0.50:
 					return &"conso_invincible_3"
-				elif x < 0.75:
+				elif tirage_aleatoire < 0.75:
 					return &"conso_rage_3"
-				elif x < 0.90:
+				elif tirage_aleatoire < 0.90:
 					return &"conso_heal_full_3"
 				else:
 					return &"conso_regen_3"
