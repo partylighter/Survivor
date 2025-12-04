@@ -1,0 +1,663 @@
+## 1. Objectif du système de loot
+
+Le système de loot gère **tout ce qui tombe quand un ennemi meurt**, puis **comment ce loot est appliqué au joueur** :
+
+1. Choisir **combien** de loots tombent (en fonction du type d’ennemi + progression).
+2. Choisir **la rareté** du loot (C / B / A / S) avec :
+
+   * tables de probas par type d’ennemi,
+   * stat de chance du joueur,
+   * système de pity.
+3. Choisir **le type d’item** (consommable / upgrade / arme).
+4. Choisir **l’ID concret** de l’item (ex : `conso_heal`, `conso_overheal_2`, etc.) via la ressource `LootTableEnemy`.
+5. Spawner un node `Loot` dans la scène qui :
+
+   * flotte au sol,
+   * est attiré par le joueur,
+   * lui envoie un **payload** quand ramassé.
+6. Le `Player` transmet ce payload à `GestionnaireLoot` qui applique l’effet réel (soins, overheal, regen, rage, invincibilité, etc.).
+
+---
+
+## 2. Vue globale des scripts
+
+### 2.1. GestionnaireEnnemis.gd
+
+* Gère le **spawn des ennemis**.
+* Sur la mort d’un ennemi, appelle :
+
+```gdscript
+func _sur_mort(e: Node2D) -> void:
+	ennemis_tues_total += 1
+
+	if loot_manager != null and is_instance_valid(joueur):
+		var prog := get_indice_progression_loot()
+		loot_manager.generer_loot_pour_ennemi(e, hasard, joueur, prog)
+
+	ennemis.erase(e)
+	...
+```
+
+* `loot_manager` est une instance de `GestionnaireLootDrops`.
+* `hasard` est un `RandomNumberGenerator` partagé.
+* `prog` = indice de progression utilisé pour faire évoluer la quantité/qualité des drops.
+
+```gdscript
+func get_indice_progression_loot() -> float:
+	var indice: float = 0.0
+	if mode_vagues:
+		indice += float(vagues_terminees)
+	else:
+		indice += temps_total_s / 60.0
+		indice += float(ennemis_tues_total) / 50.0
+	return max(indice, 0.0)
+```
+
+> En mode vagues : progression ≈ nombre de vagues terminées.
+> En mode survie : progression ≈ minutes jouées + ennemis tués.
+
+---
+
+### 2.2. GestionnaireLootDrops.gd (choix des loots)
+
+Rôle : **décider quoi faire tomber** quand un ennemi meurt.
+
+Entrées principales :
+
+```gdscript
+func generer_loot_pour_ennemi(
+	e: Node2D,
+	rng: RandomNumberGenerator,
+	joueur: Node2D,
+	progression_loot: float = 0.0
+) -> void
+```
+
+* `e` : l’ennemi mort (doit être de type `Enemy`).
+* `rng` : RNG central.
+* `joueur` : pour récupérer la stat de luck via `get_luck()`.
+* `progression_loot` : indicateur global de progression.
+
+#### a) Nombre de tirages par ennemi
+
+Paramètres exportés :
+
+```gdscript
+@export_group("Loot: Tirages par type d'ennemi")
+@export var tirages_min_type_C: int = 0
+@export var tirages_max_type_C: int = 2
+@export var tirages_min_type_B: int = 1
+@export var tirages_max_type_B: int = 3
+@export var tirages_min_type_A: int = 2
+@export var tirages_max_type_A: int = 4
+@export var tirages_min_type_S: int = 3
+@export var tirages_max_type_S: int = 5
+@export var tirages_min_type_BOSS: int = 5
+@export var tirages_max_type_BOSS: int = 8
+@export var tirages_bonus_par_10_progression: int = 1
+@export var multiplicateur_tirages_global: float = 1.0
+```
+
+Logique :
+
+```gdscript
+func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
+	# Choix min/max selon type (C/B/A/S/BOSS)
+	# + bonus lié à la progression (1 tirage de plus / 10 points de progression, par exemple)
+	# * multiplicateur global
+```
+
+> Résultat : pour chaque ennemi tué, tu obtiens `nb_loots` tirages indépendants (0, 1, 2, etc.).
+
+#### b) Rareté du loot
+
+Tables de proba de base par type d’ennemi :
+
+```gdscript
+@export_group("Loot: Tables de rareté par type d'ennemi")
+@export var table_C: LootTableEnemy
+@export var table_B: LootTableEnemy
+@export var table_A: LootTableEnemy
+@export var table_S: LootTableEnemy
+@export var table_BOSS: LootTableEnemy
+```
+
+Chaque `LootTableEnemy` contient :
+
+```gdscript
+proba_C, proba_B, proba_A, proba_S
+```
+
+Fonction :
+
+```gdscript
+func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: float) -> int
+```
+
+Ce qu’elle fait :
+
+1. **Récupère les probas de base** dans la table du type d’ennemi.
+2. **Améliore les probas** avec :
+
+   * la progression (`niveau_effectif`) → décale une partie de C vers B/A/S,
+   * la chance du joueur (`get_luck()`) → augmente A et S.
+3. Applique les multiplicateurs globaux :
+
+```gdscript
+@export var multiplicateur_rarete_C: float = 1.0
+@export var multiplicateur_rarete_B: float = 1.0
+@export var multiplicateur_rarete_A: float = 1.0
+@export var multiplicateur_rarete_S: float = 1.0
+```
+
+4. Applique le **pity system** :
+
+```gdscript
+@export var pity_seuil_A: int = 30
+@export var pity_seuil_S: int = 80
+@export var pity_boost_A: float = 1.8
+@export var pity_boost_S: float = 2.0
+
+var _depuis_dernier_A: int = 0
+var _depuis_dernier_S: int = 0
+```
+
+* À chaque tirage, si tu n’obtiens pas A, `_depuis_dernier_A += 1`.
+* Si `_depuis_dernier_A >= pity_seuil_A`, les probas de A sont multipliées par `pity_boost_A`.
+* Pareil pour S avec `pity_seuil_S` / `pity_boost_S`.
+
+5. Normalise les probas et fait un tirage pour renvoyer `Loot.TypeLoot.C / B / A / S`.
+
+#### c) Type d’item (CONSO / UPGRADE / ARME)
+
+```gdscript
+func _tirer_type_item(rarete: int) -> int
+```
+
+* Selon la rareté, on donne des poids différents :
+
+```gdscript
+# Exemple pour rareté C
+poids_conso = 0.7
+poids_upgrade = 0.2
+poids_arme = 0.1
+```
+
+* Puis on applique des multiplicateurs globaux :
+
+```gdscript
+@export var multiplicateur_type_conso: float = 1.0
+@export var multiplicateur_type_upgrade: float = 1.0
+@export var multiplicateur_type_arme: float = 1.0
+```
+
+* On normalise et on tire au hasard → renvoie `Loot.TypeItem.CONSO / UPGRADE / ARME`.
+
+#### d) Sélection de l’ID concret via LootTableEnemy
+
+```gdscript
+func _tirer_item_id(type_ennemi: int, type_item: int, rarete: int) -> StringName:
+	var table: LootTableEnemy = _get_table_enemy(type_ennemi)
+	if table == null:
+		return &""
+	return table.tirer_item_id(type_item, rarete, _generateur_aleatoire)
+```
+
+C’est **la ressource LootTableEnemy** qui décide quel ID exact (`StringName`) est choisi, en fonction :
+
+* du type d’item (CONSO / UPGRADE / ARME),
+* de la rareté (C / B / A / S),
+* éventuellement d’un pool `Array[StringName]` dans la ressource.
+
+Si `tirer_item_id` renvoie `&""` → **aucun loot n’est créé pour ce tirage**.
+
+#### e) Création du node Loot
+
+Pour chaque tirage valide :
+
+```gdscript
+var loot: Loot = scene_loot.instantiate() as Loot
+loot.type_loot = rarete
+loot.type_item = type_item
+loot.item_id = item_id
+loot.quantite = 1
+
+loot.global_position = ennemi.global_position + offset_random
+get_tree().current_scene.add_child(loot)
+```
+
+`scene_loot` = scène `Loot` unique, instanciée pour tous les drops.
+
+---
+
+### 2.3. Loot.gd (node ramassable)
+
+```gdscript
+extends Area2D
+class_name Loot
+
+enum TypeLoot { C, B, A, S }
+enum TypeItem { CONSO, UPGRADE, ARME }
+
+@export_enum("C","B","A","S") var type_loot: int = TypeLoot.C
+@export_enum("CONSO","UPGRADE","ARME") var type_item: int = TypeItem.CONSO
+
+@export var item_id: StringName = &""
+@export var quantite: int = 1
+@export var scene_contenu: PackedScene
+
+@export var magnet_radius: float = 220.0
+@export var magnet_speed: float = 420.0
+@export var pickup_radius: float = 18.0
+@export var lifetime_s: float = 3.0
+```
+
+Comportement :
+
+1. Cherche le node `Player` dans la scène.
+2. Si le joueur est dans `magnet_radius` → le loot est attiré vers lui.
+3. Si distance ≤ `pickup_radius` → le loot est ramassé.
+4. Si `lifetime_s` écoulé → `queue_free()`.
+
+Lors du ramassage :
+
+```gdscript
+func prendre_payload() -> Dictionary:
+	var d := {
+		"type_loot": type_loot,
+		"type_item": type_item,
+		"id": item_id,
+		"quantite": quantite,
+		"scene": scene_contenu
+	}
+	vider()
+	return d
+
+func _on_collected(player: Node2D) -> void:
+	var payload := prendre_payload()
+	if player != null and player.has_method("on_loot_collected"):
+		player.on_loot_collected(payload)
+	queue_free()
+```
+
+> **Important** : le lien avec le reste se fait via `player.on_loot_collected(payload)`.
+
+---
+
+### 2.4. Player + GestionnaireLoot (application des effets)
+
+Dans `Player.gd` :
+
+```gdscript
+@onready var gestionnaire_loot: GestionnaireLoot = $GestionnaireLoot
+
+func on_loot_collected(payload: Dictionary) -> void:
+	if gestionnaire_loot:
+		gestionnaire_loot.on_loot_collecte(payload)
+```
+
+Dans `GestionnaireLoot.gd` :
+
+```gdscript
+func on_loot_collecte(payload: Dictionary) -> void:
+	_ensure_refs()
+	if joueur == null:
+		return
+
+	var type_item: int = payload.get("type_item", Loot.TypeItem.CONSO)
+	var rarete: int = payload.get("type_loot", Loot.TypeLoot.C)
+	var identifiant: StringName = payload.get("id", &"")
+	var quantite: int = payload.get("quantite", 1)
+	var scene_contenu: PackedScene = payload.get("scene", null)
+
+	_enregistrer_loot(identifiant, quantite)
+
+	match type_item:
+		Loot.TypeItem.CONSO:
+			_appliquer_consommable(identifiant, quantite)
+		Loot.TypeItem.UPGRADE:
+			_appliquer_amelioration(identifiant, quantite)
+		Loot.TypeItem.ARME:
+			if scene_contenu:
+				_generer_arme_au_sol(scene_contenu)
+			else:
+				_debloquer_arme_par_id(identifiant, rarete, quantite)
+```
+
+---
+
+## 3. Référence des IDs d’items (implémentés aujourd’hui)
+
+### 3.1. Consommables (TypeItem.CONSO)
+
+Tous ces IDs sont manipulés dans :
+
+```gdscript
+func _appliquer_consommable(identifiant: StringName, quantite: int) -> void
+```
+
+#### 3.1.1. `conso_heal`
+
+* ID : `"conso_heal"`
+* Type : **Heal simple**
+* Paramètre : `conso_heal_amount` (0 à 200, par pas de 5)
+
+Effet :
+
+```gdscript
+var heal_par_item := int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
+var total_heal := heal_par_item * quantite
+joueur.soigner(total_heal)
+```
+
+> Si `conso_heal_amount = 100` → chaque item soigne 100% des PV max.
+> Si `50` → soigne 50% des PV max par item, etc.
+
+---
+
+#### 3.1.2. Overheal
+
+* IDs :
+
+  * `"conso_overheal_1"`
+  * `"conso_overheal_2"`
+  * `"conso_overheal_3"`
+
+* Paramètres :
+
+```gdscript
+@export var conso_overheal_1_amount: float = 20.0
+@export var conso_overheal_2_amount: float = 40.0
+@export var conso_overheal_3_amount: float = 80.0
+```
+
+Effet :
+
+```gdscript
+func _conso_overheal(quantite: int, amount: float) -> void:
+	sante.set_full_pv()             # remet les PV à max
+	sante.add_overheal(amount * quantite)
+```
+
+> `overheal_pv` = PV en surplus affichés sur la barre d’overheal.
+
+---
+
+#### 3.1.3. Regen
+
+* IDs :
+
+  * `"conso_regen_1"`
+  * `"conso_regen_2"`
+  * `"conso_regen_3"`
+
+* Paramètres :
+
+```gdscript
+conso_regen_1_duree, conso_regen_1_total
+conso_regen_2_duree, conso_regen_2_total
+conso_regen_3_duree, conso_regen_3_total
+```
+
+Effet général :
+
+```gdscript
+func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
+	var heal_total := total_heal * float(quantite)
+	regen_time_left = duree
+	regen_heal_per_sec = heal_total / duree
+	regen_accum = 0.0
+```
+
+Puis dans `_process()` :
+
+```gdscript
+if regen_time_left > 0.0:
+	regen_time_left -= delta
+	regen_accum += regen_heal_per_sec * delta
+	var heal_int: int = int(regen_accum)
+	if heal_int > 0:
+		joueur.soigner(heal_int)
+		regen_accum -= float(heal_int)
+```
+
+> Soins progressifs sur une durée donnée.
+
+---
+
+#### 3.1.4. Invincibilité
+
+* IDs :
+
+  * `"conso_invincible_1"`
+  * `"conso_invincible_2"`
+  * `"conso_invincible_3"`
+
+* Paramètres :
+
+```gdscript
+conso_invincible_1_duree
+conso_invincible_2_duree
+conso_invincible_3_duree
+```
+
+Effet :
+
+```gdscript
+func _conso_invincibilite(quantite: int, duree: float) -> void:
+	var total := duree * float(quantite)
+	if invincible_time_left < total:
+		invincible_time_left = total
+```
+
+Et côté dégâts :
+
+```gdscript
+func _on_player_damaged(amount: int, _source: Node) -> void:
+	if invincible_time_left > 0.0 and amount > 0:
+		sante.heal(amount)     # annule les dégâts
+```
+
+> Tant que `invincible_time_left > 0`, tout dégât subi est immédiatement effacé.
+
+---
+
+#### 3.1.5. Rage
+
+* IDs :
+
+  * `"conso_rage_1"`
+  * `"conso_rage_2"`
+  * `"conso_rage_3"`
+
+* Paramètres :
+
+```gdscript
+# Rage 1
+conso_rage_1_duree
+conso_rage_1_speed_bonus
+conso_rage_1_chance_bonus
+conso_rage_1_dash_bonus
+conso_rage_1_dash_infini
+
+# Rage 2
+...
+
+# Rage 3
+...
+```
+
+Effet :
+
+```gdscript
+func _conso_rage(
+	quantite: int,
+	duree: float,
+	speed_bonus: float,
+	chance_bonus: float,
+	dash_bonus: int,
+	dash_infini: bool
+) -> void:
+	# applique des bonus additifs sur StatsJoueur et le dash du Player
+```
+
+Concrètement :
+
+* Ajoute `rage_speed_bonus_add` à la vitesse (`StatsJoueur.ajouter_vitesse_add`).
+* Ajoute `rage_chance_bonus_add` à la chance (`StatsJoueur.ajouter_chance`).
+* Ajoute `rage_dash_bonus_add` au nombre de dash max (`StatsJoueur.ajouter_dash_max_add`).
+* Active/désactive le dash infini via `Player.set_dash_infini(true/false)`.
+* Gère la durée et le stacking pour **prendre le meilleur buff** si plusieurs consommés.
+
+À la fin :
+
+```gdscript
+func _fin_rage() -> void:
+	# enlève tous les bonus appliqués
+	# remet dash_infini à false si besoin
+```
+
+---
+
+### 3.2. Upgrades (TypeItem.UPGRADE)
+
+Pour l’instant :
+
+```gdscript
+func _appliquer_amelioration(identifiant: StringName, quantite: int) -> void:
+	_d_loot("[Loot] upgrade SANS EFFET : %s x%d" % [str(identifiant), quantite])
+```
+
+* Tous les IDs sont acceptés.
+* **Aucun effet gameplay n’est encore implémenté**, seulement du debug.
+
+Tu peux choisir une convention d’IDs, par exemple :
+
+* `upgrade_atk_1`, `upgrade_atk_2`, …
+* `upgrade_vit_1`, etc.
+
+Et plus tard ajouter du vrai code dans `_appliquer_amelioration`.
+
+---
+
+### 3.3. Armes (TypeItem.ARME)
+
+Deux cas :
+
+1. **`scene_contenu` non nul**
+   → `_generer_arme_au_sol(scene_contenu)` instancie une `ArmeBase` au sol près du joueur.
+
+2. **`scene_contenu` nul**
+   → `_debloquer_arme_par_id(identifiant, rarete, quantite)` est appelé, mais pour l’instant ne fait que logguer.
+
+```gdscript
+func _debloquer_arme_par_id(identifiant: StringName, rarete: int, quantite: int) -> void:
+	_d_loot("[Loot] arme logique : %s rarete : %d x%d" % [str(identifiant), rarete, quantite])
+```
+
+* Là aussi, tu es libre sur les IDs (ex : `arme_pistolet_c`, `arme_uzi_a`).
+* Le comportement réel de déblocage est à coder plus tard.
+
+---
+
+## 4. LootTableEnemy : ce qu’elle doit contenir
+
+Même si tu peux organiser la ressource comme tu veux, l’idée de base :
+
+* **Probas de rareté** pour ce type d’ennemi :
+
+```gdscript
+@export_range(0.0,1.0) var proba_C: float = 1.0
+@export_range(0.0,1.0) var proba_B: float = 0.0
+@export_range(0.0,1.0) var proba_A: float = 0.0
+@export_range(0.0,1.0) var proba_S: float = 0.0
+```
+
+* **Pools d’IDs par type et par rareté**, par ex. :
+
+```gdscript
+@export_group("CONSO")
+@export var conso_C: Array[StringName]
+@export var conso_B: Array[StringName]
+@export var conso_A: Array[StringName]
+@export var conso_S: Array[StringName]
+
+@export_group("UPGRADE")
+@export var upgrade_C: Array[StringName]
+...
+
+@export_group("ARME")
+@export var arme_C: Array[StringName]
+...
+```
+
+Et une fonction du style :
+
+```gdscript
+func tirer_item_id(type_item: int, rarete: int, rng: RandomNumberGenerator) -> StringName:
+	var pool: Array[StringName] = []
+	match type_item:
+		Loot.TypeItem.CONSO:
+			match rarete:
+				Loot.TypeLoot.C: pool = conso_C
+				Loot.TypeLoot.B: pool = conso_B
+				Loot.TypeLoot.A: pool = conso_A
+				Loot.TypeLoot.S: pool = conso_S
+		Loot.TypeItem.UPGRADE:
+			...
+		Loot.TypeItem.ARME:
+			...
+
+	if pool.is_empty():
+		return &""
+	return pool[rng.randi_range(0, pool.size() - 1)]
+```
+
+> Si le pool est vide → aucun drop pour ce tirage (la fonction renvoie `&""`).
+
+---
+
+## 5. Comment configurer concrètement
+
+1. **Dans GestionnaireEnnemis** :
+
+   * Assigner `loot_manager` à un node `GestionnaireLootDrops` dans la scène.
+
+2. **Dans GestionnaireLootDrops** :
+
+   * Assigner `scene_loot` à la scène `Loot.tscn`.
+   * Assigner les ressources `LootTableEnemy` :
+
+	 * `table_C` pour les trash mobs,
+	 * `table_B` pour plus forts,
+	 * `table_A`, `table_S`, `table_BOSS` pour les élites/boss.
+   * Régler les tirages min/max par type d’ennemi.
+
+3. **Dans chaque `LootTableEnemy`** :
+
+   * Régler `proba_C/B/A/S`.
+   * Remplir les arrays d’IDs selon ce que tu veux qu’ils puissent dropper :
+
+	 * Exemple : dans `table_C.conso_C` → `["conso_heal", "conso_regen_1"]`.
+
+4. **Dans GestionnaireLoot** :
+
+   * Vérifier les valeurs exportées pour :
+
+	 * `conso_heal_amount`
+	 * `conso_overheal_x_amount`
+	 * `conso_regen_x_duree/total`
+	 * `conso_invincible_x_duree`
+	 * `conso_rage_x_*`
+
+5. **Assurer que Player a** :
+
+   * un enfant `GestionnaireLoot` (ou un lien),
+   * la méthode `on_loot_collected(payload)`,
+   * la méthode `set_dash_infini(bool)`.
+
+---
+
+## 6. Résumé brut en une phrase
+
+* **GestionnaireEnnemis** détecte la mort → **GestionnaireLootDrops** choisit combien / quelle rareté / quel type / quel ID via `LootTableEnemy` → instancie `Loot` → **Player** ramasse → envoie un payload → **GestionnaireLoot** applique l’effet réel via l’ID (`conso_heal`, `conso_overheal_2`, etc.).
