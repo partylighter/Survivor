@@ -6,6 +6,9 @@ signal expired(p: Projectile)
 @export var duree_vie_s: float = 1.5
 @export var vitesse_px_s: float = 1400.0
 @export var collision_mask: int = 0
+@export var marge_raycast_px: float = 1.0
+@export var largeur_zone_scane: float = 0.0
+@export_range(1, 9, 1) var nombre_de_rayon_dans_zone_scane: int = 2
 
 var _degats: int = 0
 var _dir: Vector2 = Vector2.ZERO
@@ -32,7 +35,6 @@ func desactiver() -> void:
 	_source = null
 	emit_signal("expired", self)
 
-
 func _physics_process(dt: float) -> void:
 	if not _active:
 		return
@@ -40,32 +42,68 @@ func _physics_process(dt: float) -> void:
 	if _source != null and not is_instance_valid(_source):
 		_source = null
 
-	var from: Vector2 = global_position
-	var to: Vector2 = from + _dir * vitesse_px_s * dt
+	var from := global_position
+	var step := _dir * vitesse_px_s * dt
+	var move_to := from + step
+	var ray_to := move_to + _dir * marge_raycast_px
 
 	var exclude: Array = [self]
 	if _source != null:
 		exclude.append(_source)
 
-	var q: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(from, to)
-	q.exclude = exclude
-	q.collide_with_bodies = true
-	q.collide_with_areas = true
-	if collision_mask != 0:
-		q.collision_mask = collision_mask
-
-	var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(q)
-
+	var hit := _intersect_large(from, ray_to, exclude)
 	if not hit.is_empty():
-		var collider: Object = hit.get("collider")
-		_appliquer_impact(collider)
+		_appliquer_impact(hit.get("collider"))
 		desactiver()
 		return
 
-	global_position = to
+	global_position = move_to
 	_t += dt
 	if _t >= duree_vie_s:
 		desactiver()
+
+func _intersect_large(from: Vector2, to: Vector2, exclude: Array) -> Dictionary:
+	var space := get_world_2d().direct_space_state
+
+	var best: Dictionary = {}
+	var best_d2: float = 1e20
+
+	var w: float = max(largeur_zone_scane, 0.0)
+	var samples: int = max(nombre_de_rayon_dans_zone_scane, 1)
+	if w <= 0.0:
+		samples = 1
+
+	var perp := Vector2(-_dir.y, _dir.x)
+	if perp.length_squared() < 0.000001:
+		perp = Vector2(0.0, 1.0)
+
+	var half: float = w * 0.5
+
+	for i in range(samples):
+		var offset: float = 0.0
+		if samples > 1:
+			var t := float(i) / float(samples - 1)
+			offset = lerp(-half, half, t)
+
+		var f := from + perp * offset
+		var tt := to + perp * offset
+
+		var q := PhysicsRayQueryParameters2D.create(f, tt)
+		q.exclude = exclude
+		q.collide_with_bodies = true
+		q.collide_with_areas = true
+		if collision_mask != 0:
+			q.collision_mask = collision_mask
+
+		var h := space.intersect_ray(q)
+		if not h.is_empty():
+			var p: Vector2 = h.get("position", f)
+			var d2 := f.distance_squared_to(p)
+			if d2 < best_d2:
+				best = h
+				best_d2 = d2
+
+	return best
 
 func _appliquer_impact(collider: Object) -> void:
 	var hb: HurtBox = _resolve_hurtbox(collider)
