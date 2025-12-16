@@ -9,6 +9,7 @@ collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_hjdlj")
 magnet_radius = 1000.0
+magnet_speed = 200.0
 lifetime_s = 8.0
 anim_path = NodePath("LootAnim")
 metadata/_custom_type_script = "uid://cd1oknm5db88j"
