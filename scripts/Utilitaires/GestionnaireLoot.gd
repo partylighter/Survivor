@@ -169,9 +169,12 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 		"conso_heal":
 			if sante == null or joueur == null:
 				return
-			var heal_par_item := int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
-			var total_heal := heal_par_item * quantite
-			joueur.soigner(total_heal)
+			var heal_par_item: int = int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
+			var total_heal: int = heal_par_item * quantite
+			var manque: int = maxi(0, int(ceil(float(sante.max_pv) - sante.pv)))
+			var heal_reel: int = mini(total_heal, manque)
+			if heal_reel > 0:
+				joueur.soigner(heal_reel)
 
 		"conso_overheal_1":
 			_conso_overheal(quantite, conso_overheal_1_amount)
@@ -205,7 +208,6 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 
 		_:
 			_d_loot("[Loot] consommable inconnu : %s x%d" % [id, quantite])
-
 
 func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
 	_ensure_refs()

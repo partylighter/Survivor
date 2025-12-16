@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=29 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
 [ext_resource type="Script" uid="uid://d2qt2wohmdfas" path="res://scripts/Utilitaires/GestionnaireLoot.gd" id="10_uxo23"]
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/Managers/Managers En Jeu/LootDisplayer.gd" id="11_n7rn1"]
+[ext_resource type="Script" uid="uid://dqvkgiskf54md" path="res://scripts/Player/DeplacementJoueur.gd" id="12_t6q27"]
 [ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/Managers/Managers En Jeu/StatsJoueurDisplayer.gd" id="13_jxtnq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
@@ -62,9 +63,11 @@ collision_mask = 256
 script = ExtResource("1_g2els")
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
+chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
+chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.17, 0.17)
+zoom = Vector2(0.32, 0.32)
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
 unique_name_in_owner = true
@@ -169,8 +172,17 @@ script = ExtResource("3_qhqgy")
 
 [node name="StatsJoueur" type="Node" parent="."]
 script = ExtResource("9_7tfl1")
-dash_max_base = 2
+vitesse_base = 1200.0
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
+
+[node name="GestionDeplacementJoueur" type="Node" parent="."]
+script = ExtResource("12_t6q27")
+acceleration_px_s2 = 3100.0
+deceleration_px_s2 = 1000.0
+elan_depart_impulsion_px_s = 300.0
+dash_multiplicateur_vitesse = 2.0
+dash_duree_s = 0.05
+metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
 [node name="ControleAttaquesArmes" type="Node" parent="."]
 script = ExtResource("9_wwtew")

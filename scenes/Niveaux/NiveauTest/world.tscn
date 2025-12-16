@@ -28,8 +28,7 @@ radius = 185.9
 
 [sub_resource type="Resource" id="Resource_op4qr"]
 script = ExtResource("11_op4qr")
-item_id = &"conso_heal"
-poids = 100.0
+item_id = &"conso_overheal_3"
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_05p27"]
@@ -153,6 +152,8 @@ metadata/_custom_type_script = "uid://ctjko77ppqoqd"
 script = ExtResource("10_s05yr")
 scene_loot = ExtResource("9_075h3")
 debug_loot = true
+tirages_min_type_C = 5
+tirages_max_type_C = 5
 multiplicateur_rarete_C = 5.0
 multiplicateur_rarete_B = 5.0
 table_C = SubResource("Resource_05p27")

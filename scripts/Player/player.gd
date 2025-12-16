@@ -3,10 +3,14 @@ class_name Player
 
 @export_node_path("StatsJoueur") var chemin_stats: NodePath
 @export_node_path("Sante") var chemin_sante: NodePath
+@export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
+@export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 
 @onready var stats: StatsJoueur = get_node_or_null(chemin_stats) as StatsJoueur
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
-@onready var gestionnaire_loot: GestionnaireLoot = $GestionnaireLoot
+@onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
+@onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
+
 
 var dash_charges_actuelles: int = 0
 var dash_cooldown_s: float = 1.0
@@ -25,48 +29,8 @@ func _ready() -> void:
 
 
 func _physics_process(dt: float) -> void:
-	var dir := Input.get_vector("gauche","droite","haut","bas")
-
-	if Input.is_action_just_pressed("dash") and dir.length() > 0.0 and dash_t_restant_s <= 0.0:
-		if dash_infini_actif or dash_charges_actuelles > 0:
-			if not dash_infini_actif:
-				dash_charges_actuelles -= 1
-			dash_t_restant_s = dash_duree_s
-			dash_direction = dir.normalized()
-			dash_timer_recup_s = 0.0
-
-	if dash_t_restant_s > 0.0:
-		dash_t_restant_s -= dt
-		var v_dash: float = (stats.get_vitesse_effective() if stats != null else 500.0) * dash_multi_vitesse
-		velocity = dash_direction * v_dash
-	else:
-		var v_normale: float = (stats.get_vitesse_effective() if stats != null else 500.0)
-		velocity = dir.normalized() * v_normale
-
-	if stats != null:
-		dash_cooldown_s = stats.get_dash_cooldown_effectif()
-	var dash_max: int = (stats.get_dash_max_effectif() if stats != null else 1)
-
-	if dash_charges_actuelles > dash_max:
-		dash_charges_actuelles = dash_max
-
-	if not dash_infini_actif and dash_charges_actuelles < dash_max:
-		dash_timer_recup_s += dt
-		if dash_timer_recup_s >= dash_cooldown_s:
-			dash_timer_recup_s -= dash_cooldown_s
-			dash_charges_actuelles += 1
-			if dash_charges_actuelles > dash_max:
-				dash_charges_actuelles = dash_max
-
-	if Input.is_action_just_pressed("dash") and dir.length() > 0.0 and dash_t_restant_s <= 0.0:
-		if dash_infini_actif or dash_charges_actuelles > 0:
-			print("DASH -> charges=%d / max=%d  infini=%s" % [
-				dash_charges_actuelles,
-				(stats.get_dash_max_effectif() if stats != null else -1),
-				str(dash_infini_actif)
-			])
-
-	move_and_slide()
+	if gestion_deplacement:
+		gestion_deplacement.traiter(self, stats, dt)
 
 
 func set_dash_infini(actif: bool) -> void:
