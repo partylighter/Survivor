@@ -15,7 +15,7 @@ radius = 162.05
 script = ExtResource("1_56oaw")
 chemin_effets = NodePath("ArmeEffets2D")
 degats = 1
-recul_force = 100.0
+recul_force = 1000.0
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://cet65ljfweymf"
 

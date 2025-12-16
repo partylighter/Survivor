@@ -22,17 +22,17 @@ script = ExtResource("1_4oad4")
 valeur_score = 20
 speed = 500.0
 chemin_sante = NodePath("Sante")
-recul_amorti = 9.0
-recul_max = 1000.0
+recul_amorti = 5.0
+recul_max = 2500.0
 secousse_force_px = 20.0
+distance_arret_joueur_px = 150.0
+distance_ralentir_joueur_px = 700.0
+offset_cible_max_px = 100.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(1, 0, 1, 1)
 texture = ExtResource("2_flehi")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_p6dij")
 
 [node name="Sante" type="Node" parent="."]
 script = ExtResource("3_t4t15")
