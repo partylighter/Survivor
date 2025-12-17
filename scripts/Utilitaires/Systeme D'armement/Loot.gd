@@ -1,6 +1,10 @@
 extends Area2D
 class_name Loot
 
+const ACT_RIEN: int = 0
+const ACT_VERS_AIMANT: int = 1
+const ACT_SUPPRIMER: int = 2
+
 enum TypeLoot { C, B, A, S }
 enum TypeItem { CONSO, UPGRADE, ARME }
 
@@ -24,114 +28,149 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 
 @export var anim_path: NodePath
 
-var _life_t: float = 0.0
-var _magnet_t: float = 0.0
+var joueur_cible: Node2D = null
+
+var _collecte: bool = false
+var _t_aimant: float = 0.0
 var _vel: Vector2 = Vector2.ZERO
 var _seed: float = 0.0
+var _die_ms: int = -1
 
-var magnet_active: bool = false
-var target_player: Node2D = null
-var _active: bool = true
-var _collecting: bool = false
+var _r2_aimant: float = 0.0
+var _r2_pickup: float = 0.0
+
+var _lm: LootManager = null
+@warning_ignore("unused_private_class_variable")
+var _lm_liste: int = -1
+@warning_ignore("unused_private_class_variable")
+var _lm_index: int = -1
 
 @onready var anim: LootAnim = get_node_or_null(anim_path) as LootAnim
 
-func _ready() -> void:
+func _enter_tree() -> void:
 	add_to_group("loots")
-	set_physics_process(true)
-	_seed = randf() * TAU
 
-	var root := get_tree().current_scene
-	if root and root.has_node("Player"):
-		target_player = root.get_node("Player") as Node2D
-
-func set_active(v: bool) -> void:
-	_active = v
-	set_physics_process(v)
-
-func _physics_process(delta: float) -> void:
-	if not _active or _collecting:
-		return
-
-	if lifetime_s > 0.0:
-		_life_t += delta
-		if _life_t >= lifetime_s:
-			queue_free()
-			return
-
-	if target_player == null or not is_instance_valid(target_player):
-		return
-
-	var pos_pickup: Vector2 = _get_pickup_pos()
-	var vers_joueur: Vector2 = pos_pickup - global_position
-	var d2: float = vers_joueur.length_squared()
-
-	var r_magnet2: float = magnet_radius * magnet_radius
-	var r_pickup2: float = pickup_radius * pickup_radius
-
-	if not magnet_active:
-		if anim != null:
-			anim.maj_idle(delta)
-		if d2 <= r_magnet2:
-			magnet_active = true
-			if anim != null:
-				anim.on_debut_aimant()
-	else:
-		_magnet_t += delta
-
-		var dist: float = sqrt(maxf(d2, 0.000001))
-		var dir: Vector2 = vers_joueur / dist
-		var dist01: float = float(clamp(dist / maxf(magnet_radius, 0.0001), 0.0, 1.0))
-
-		var speed: float = magnet_speed * (1.0 + (1.0 - dist01) * (magnet_speed_close_mult - 1.0))
-
-		var perp: Vector2 = Vector2(-dir.y, dir.x)
-		var bell: float = dist01 * (1.0 - dist01) * 4.0
-
-		var swirl: Vector2 = perp * sin((_magnet_t * magnet_swirl_freq) + _seed) * speed * magnet_swirl_strength * bell
-
-		var desired_vel: Vector2 = (dir * speed) + swirl
-		_vel = _vel.move_toward(desired_vel, magnet_accel * delta)
-
-		global_position += _vel * delta
-
-		if anim != null:
-			anim.maj_aimant(_vel, delta)
-
-		pos_pickup = _get_pickup_pos()
-		d2 = global_position.distance_squared_to(pos_pickup)
-
-	if d2 <= r_pickup2:
-		_start_collect()
-
-func _get_pickup_pos() -> Vector2:
-	if target_player != null and is_instance_valid(target_player) and target_player.has_node("LootTarget"):
-		var n: Node = target_player.get_node("LootTarget")
-		if n is Node2D:
-			return (n as Node2D).global_position
-	return target_player.global_position
-
-func _start_collect() -> void:
-	if _collecting:
-		return
-	_collecting = true
-
-	set_deferred("monitoring", false)
-	set_deferred("monitorable", false)
+func _ready() -> void:
 	set_physics_process(false)
 
-	var joueur: Node2D = target_player
-	var payload: Dictionary = prendre_payload()
-	var pos_fin: Vector2 = _get_pickup_pos()
+	_seed = randf() * TAU
+	_r2_aimant = magnet_radius * magnet_radius
+	_r2_pickup = pickup_radius * pickup_radius
+
+	if lifetime_s > 0.0:
+		_die_ms = Time.get_ticks_msec() + int(lifetime_s * 1000.0)
+
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", true)
+
+	call_deferred("_essayer_s_inscrire_manager")
+
+func _essayer_s_inscrire_manager() -> void:
+	if _lm != null:
+		return
+
+	var n: Node = get_tree().get_first_node_in_group("loot_manager")
+	if n is LootManager:
+		(n as LootManager).enregistrer_loot(self)
+		return
+
+	var root := get_tree().current_scene
+	if root != null:
+		var p := root.get_node_or_null("Player")
+		if p is Node2D:
+			joueur_cible = p as Node2D
+
+func _exit_tree() -> void:
+	if _lm != null and is_instance_valid(_lm):
+		_lm.retirer_loot(self)
+
+func tick_attente(dt: float, pos_pickup: Vector2) -> int:
+	if _collecte:
+		return ACT_SUPPRIMER
+
+	if anim != null and not anim.idle_gpu:
+		anim.maj_idle(dt)
+
+	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
+		queue_free()
+		return ACT_SUPPRIMER
+
+	var vers: Vector2 = pos_pickup - global_position
+	var d2: float = vers.length_squared()
+
+	if d2 <= _r2_pickup:
+		_demarrer_collecte(pos_pickup)
+		return ACT_SUPPRIMER
+
+	if d2 <= _r2_aimant:
+		_t_aimant = 0.0
+		if anim != null:
+			anim.on_debut_aimant()
+		return ACT_VERS_AIMANT
+
+	return ACT_RIEN
+
+func tick_aimant(dt: float, pos_pickup: Vector2) -> int:
+	if _collecte:
+		return ACT_SUPPRIMER
+
+	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
+		queue_free()
+		return ACT_SUPPRIMER
+
+	var vers: Vector2 = pos_pickup - global_position
+	var d2: float = vers.length_squared()
+
+	var dist: float = sqrt(maxf(d2, 0.000001))
+	var dir: Vector2 = vers / dist
+	var dist01: float = clamp(dist / maxf(magnet_radius, 0.0001), 0.0, 1.0)
+
+	var speed: float = magnet_speed * (1.0 + (1.0 - dist01) * (magnet_speed_close_mult - 1.0))
+
+	_t_aimant += dt
+
+	var perp: Vector2 = Vector2(-dir.y, dir.x)
+	var bell: float = dist01 * (1.0 - dist01) * 4.0
+	var swirl: Vector2 = perp * sin((_t_aimant * magnet_swirl_freq) + _seed) * (speed * magnet_swirl_strength * bell)
+
+	var desired: Vector2 = (dir * speed) + swirl
+	_vel = _vel.move_toward(desired, magnet_accel * dt)
+
+	global_position += _vel * dt
 
 	if anim != null:
-		anim.jouer_collecte(self, pos_fin, collect_time_s, Callable(self, "_finish_collect").bind(joueur, payload))
-	else:
-		_finish_collect(joueur, payload)
+		anim.maj_aimant(_vel, dt)
 
-func _finish_collect(joueur: Node2D, payload: Dictionary) -> void:
-	if joueur != null and is_instance_valid(joueur) and joueur.has_method("on_loot_collected"):
-		joueur.on_loot_collected(payload)
+	if global_position.distance_squared_to(pos_pickup) <= _r2_pickup:
+		_demarrer_collecte(pos_pickup)
+		return ACT_SUPPRIMER
+
+	return ACT_RIEN
+
+func tick_lointain() -> bool:
+	if _collecte:
+		return true
+	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
+		queue_free()
+		return true
+	return false
+
+func _demarrer_collecte(pos_fin: Vector2) -> void:
+	if _collecte:
+		return
+	_collecte = true
+
+	var j: Node2D = joueur_cible
+	var payload: Dictionary = prendre_payload()
+
+	if anim != null:
+		anim.jouer_collecte(self, pos_fin, collect_time_s, Callable(self, "_finir_collecte").bind(j, payload))
+	else:
+		_finir_collecte(j, payload)
+
+func _finir_collecte(j: Node2D, payload: Dictionary) -> void:
+	if j != null and is_instance_valid(j) and j.has_method("on_loot_collected"):
+		j.on_loot_collected(payload)
 	queue_free()
 
 func prendre_payload() -> Dictionary:

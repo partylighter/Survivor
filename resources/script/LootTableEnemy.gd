@@ -96,3 +96,75 @@ func _tirer_dans_pool(pool: Array[LootItemEntry], rng: RandomNumberGenerator) ->
 	if last != null:
 		return last.item_id
 	return &""
+
+func tirer_loot(
+	rarete: int,
+	rng: RandomNumberGenerator,
+	mult_conso: float = 1.0,
+	mult_upgrade: float = 1.0,
+	mult_arme: float = 1.0
+) -> Dictionary:
+	var pool_conso := _get_pool(Loot.TypeItem.CONSO, rarete)
+	var pool_upgrade := _get_pool(Loot.TypeItem.UPGRADE, rarete)
+	var pool_arme := _get_pool(Loot.TypeItem.ARME, rarete)
+
+	var w_conso := _poids_pool(pool_conso) * maxf(mult_conso, 0.0)
+	var w_upgrade := _poids_pool(pool_upgrade) * maxf(mult_upgrade, 0.0)
+	var w_arme := _poids_pool(pool_arme) * maxf(mult_arme, 0.0)
+
+	var sum := w_conso + w_upgrade + w_arme
+	if sum <= 0.0:
+		return {"type_item": Loot.TypeItem.CONSO, "item_id": &""}
+
+	var x := rng.randf() * sum
+
+	var type_item: int
+	var pool: Array[LootItemEntry]
+
+	if x < w_conso:
+		type_item = Loot.TypeItem.CONSO
+		pool = pool_conso
+	elif x < w_conso + w_upgrade:
+		type_item = Loot.TypeItem.UPGRADE
+		pool = pool_upgrade
+	else:
+		type_item = Loot.TypeItem.ARME
+		pool = pool_arme
+
+	var item_id: StringName = _tirer_dans_pool(pool, rng)
+	return {"type_item": type_item, "item_id": item_id}
+
+
+func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
+	if type_item == Loot.TypeItem.CONSO:
+		match rarete:
+			Loot.TypeLoot.C: return conso_C
+			Loot.TypeLoot.B: return conso_B
+			Loot.TypeLoot.A: return conso_A
+			Loot.TypeLoot.S: return conso_S
+	elif type_item == Loot.TypeItem.UPGRADE:
+		match rarete:
+			Loot.TypeLoot.C: return upgrade_C
+			Loot.TypeLoot.B: return upgrade_B
+			Loot.TypeLoot.A: return upgrade_A
+			Loot.TypeLoot.S: return upgrade_S
+	elif type_item == Loot.TypeItem.ARME:
+		match rarete:
+			Loot.TypeLoot.C: return arme_C
+			Loot.TypeLoot.B: return arme_B
+			Loot.TypeLoot.A: return arme_A
+			Loot.TypeLoot.S: return arme_S
+	return []
+
+
+func _poids_pool(pool: Array[LootItemEntry]) -> float:
+	if pool.is_empty():
+		return 0.0
+	var total: float = 0.0
+	for entry: LootItemEntry in pool:
+		if entry == null:
+			continue
+		total += maxf(entry.poids, 0.0)
+	if total <= 0.0:
+		return float(pool.size())
+	return total

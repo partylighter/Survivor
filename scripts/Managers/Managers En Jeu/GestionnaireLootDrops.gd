@@ -67,7 +67,24 @@ func generer_loot_pour_ennemi(
 	var niveau_effectif: float = 1.0 + progression
 	var chance_joueur: float = _get_player_luck(joueur)
 
+	if debug_loot:
+		print("[LootDrops] enemy=", ennemi.name,
+			" type_ennemi=", type_ennemi,
+			" prog=", progression_loot,
+			" niveau_eff=", niveau_effectif,
+			" luck=", chance_joueur,
+			" tirages C=", tirages_min_type_C, "-", tirages_max_type_C,
+			" B=", tirages_min_type_B, "-", tirages_max_type_B,
+			" A=", tirages_min_type_A, "-", tirages_max_type_A,
+			" S=", tirages_min_type_S, "-", tirages_max_type_S,
+			" BOSS=", tirages_min_type_BOSS, "-", tirages_max_type_BOSS,
+			" mult=", multiplicateur_tirages_global)
+
 	var nb_loots: int = _tirer_nombre_tirages(type_ennemi, niveau_effectif)
+
+	if debug_loot:
+		print("[LootDrops] nb_loots=", nb_loots)
+
 	if nb_loots <= 0:
 		return
 
@@ -84,8 +101,23 @@ func generer_loot_pour_ennemi(
 		else:
 			_depuis_dernier_S += 1
 
-		var type_item: int = _tirer_type_item(rarete)
-		var item_id: StringName = _tirer_item_id(type_ennemi, type_item, rarete)
+		var table := _get_table_enemy(type_ennemi)
+		if table == null:
+			continue
+
+		var pick := table.tirer_loot(
+			rarete,
+			_generateur_aleatoire,
+			multiplicateur_type_conso,
+			multiplicateur_type_upgrade,
+			multiplicateur_type_arme
+		)
+
+		var type_item: int = int(pick["type_item"])
+		var item_id: StringName = pick["item_id"]
+
+		if debug_loot:
+			print("[LootDrops] i=", i, " rarete=", rarete, " type_item=", type_item, " item_id=", String(item_id))
 
 		if String(item_id) == "":
 			continue
@@ -107,6 +139,7 @@ func generer_loot_pour_ennemi(
 
 		get_tree().current_scene.add_child(loot)
 
+	
 
 func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
 	var nb_min := 0

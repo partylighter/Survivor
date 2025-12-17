@@ -1,27 +1,37 @@
-[gd_scene load_steps=4 format=3 uid="uid://b32j02pclbim1"]
+[gd_scene load_steps=6 format=3 uid="uid://b32j02pclbim1"]
 
 [ext_resource type="Script" uid="uid://cd1oknm5db88j" path="res://scripts/Utilitaires/Systeme D'armement/Loot.gd" id="1_hjdlj"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_85bdx"]
+[ext_resource type="Shader" uid="uid://b7be2yhc2n34l" path="res://Shaders/lootanim_shader.gdshader" id="3_06tne"]
 [ext_resource type="Script" uid="uid://c8m2in5c7pw7s" path="res://resources/script/LootAnim.gd" id="3_85bdx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_06tne"]
+shader = ExtResource("3_06tne")
+shader_parameter/bob_amp = 3.0
+shader_parameter/bob_freq = 2.0
+shader_parameter/breath_amp = 0.04
+shader_parameter/breath_freq = 1.2
 
 [node name="Loot" type="Area2D"]
 collision_layer = 0
 collision_mask = 0
 script = ExtResource("1_hjdlj")
 magnet_radius = 1000.0
-magnet_speed = 200.0
+magnet_accel = 5000.0
 lifetime_s = 8.0
 anim_path = NodePath("LootAnim")
 metadata/_custom_type_script = "uid://cd1oknm5db88j"
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(1, 1, 0, 0.278431)
-z_index = 370
-scale = Vector2(0.551977, 0.551977)
-texture = ExtResource("2_85bdx")
-
 [node name="LootAnim" type="Node2D" parent="."]
 script = ExtResource("3_85bdx")
 chemin_visuel = NodePath("../Sprite2D")
+idle_gpu = true
 punch_duree_out_s = 0.2
 metadata/_custom_type_script = "uid://c8m2in5c7pw7s"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 0, 0.278431)
+z_index = 370
+material = SubResource("ShaderMaterial_06tne")
+scale = Vector2(0.551977, 0.551977)
+texture = ExtResource("2_85bdx")

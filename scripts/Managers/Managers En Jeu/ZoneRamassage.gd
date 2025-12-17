@@ -12,9 +12,17 @@ func _ready() -> void:
 	area_exited.connect(_on_area_exited)
 
 func _root_candidate(a: Area2D) -> Node2D:
-	var root := a.get_owner()
+	if a is Loot:
+		return a as Node2D
 
 	var p := a.get_parent()
+	if p is Loot:
+		return p as Node2D
+
+	var root := a.get_owner()
+	if root is Loot:
+		return root as Node2D
+
 	if p is ArmeBase:
 		return p
 	if root is ArmeBase:

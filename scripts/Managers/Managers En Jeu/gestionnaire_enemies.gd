@@ -23,7 +23,6 @@ signal limite_atteinte()
 
 @export var loot_activation_radius: float = 900.0
 @export var loot_budget_par_frame: int = 80
-var _loot_index: int = 0
 
 @export var budget_par_frame: int = 200
 @export var max_spawn_par_frame: int = 15
@@ -157,7 +156,6 @@ func _process(dt: float) -> void:
 			horde_visuelle.set_nombre_actif(horde_faux_voulus)
 
 	_maj_budget()
-	_maj_loots()
 
 func _tick_vague(dt: float) -> void:
 	t_vague += dt
@@ -471,36 +469,6 @@ func _maj_budget() -> void:
 
 	tour_budget += 1
 
-func _maj_loots() -> void:
-	if not is_instance_valid(joueur):
-		return
-
-	var loots: Array = get_tree().get_nodes_in_group("loots")
-	if loots.is_empty():
-		return
-
-	var quota: int = min(loot_budget_par_frame, loots.size())
-	if quota <= 0:
-		return
-
-	var r2: float = loot_activation_radius * loot_activation_radius
-	var start: int = _loot_index % loots.size()
-	var i: int = start
-	var done: int = 0
-
-	while done < quota:
-		var loot: Loot = loots[i] as Loot
-		if is_instance_valid(loot):
-			var d2: float = joueur.global_position.distance_squared_to(loot.global_position)
-			loot.set_active(d2 <= r2)
-
-		i += 1
-		if i >= loots.size():
-			i = 0
-
-		done += 1
-
-	_loot_index = i
 
 func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	if i < 0 or i >= ennemis.size() or not is_instance_valid(joueur):
