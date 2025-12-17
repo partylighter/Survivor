@@ -4,6 +4,12 @@ class_name GestionnaireLootDrops
 @export var scene_loot: PackedScene
 @export var debug_loot: bool = false
 
+@export_group("Spawn anti-spike")
+@export var budget_spawn_par_frame: int = 11
+@export var offset_spawn_px: float = 16.0
+@export var pool_taille: int = 250
+@export var parent_loot_path: NodePath
+
 @export_group("Loot: Tirages par type d'ennemi")
 @export var tirages_min_type_C: int = 0
 @export var tirages_max_type_C: int = 2
@@ -42,53 +48,105 @@ class_name GestionnaireLootDrops
 @export var pity_boost_A: float = 1.8
 @export var pity_boost_S: float = 2.0
 
+var _pool: Array[Loot] = []
+var _file_spawn: Array[Dictionary] = []
+var _file_tete: int = 0
+
 var _generateur_aleatoire: RandomNumberGenerator
 var _depuis_dernier_A: int = 0
 var _depuis_dernier_S: int = 0
 
+var _parent_loots: Node = null
 
-func generer_loot_pour_ennemi(
-	e: Node2D,
+func _ready() -> void:
+	_parent_loots = _get_parent_loots()
+	_precharger_pool()
+
+func _process(_dt: float) -> void:
+	if _file_tete >= _file_spawn.size():
+		if not _file_spawn.is_empty():
+			_file_spawn.clear()
+		_file_tete = 0
+		return
+
+	if _pool.is_empty():
+		return
+
+	var restant: int = _file_spawn.size() - _file_tete
+	if restant <= 0:
+		return
+
+	var quota: int = budget_spawn_par_frame if budget_spawn_par_frame > 0 else restant
+	var n: int = mini(quota, restant)
+
+	for _i: int in range(n):
+		if _pool.is_empty():
+			return
+		var req: Dictionary = _file_spawn[_file_tete]
+		_file_tete += 1
+		var loot: Loot = _pool.pop_back()
+		loot.activer_depuis_pool(req, _parent_loots)
+
+	if _file_tete >= _file_spawn.size():
+		_file_spawn.clear()
+		_file_tete = 0
+
+func retourner_loot(l: Loot) -> void:
+	if l == null:
+		return
+	if _pool.has(l):
+		return
+	_pool.append(l)
+
+func _precharger_pool() -> void:
+	if scene_loot == null:
+		return
+	if _parent_loots == null:
+		_parent_loots = get_tree().current_scene
+
+	for i: int in range(max(pool_taille, 0)):
+		var loot: Loot = scene_loot.instantiate() as Loot
+		if loot == null:
+			continue
+		loot.preparer_pour_pool(self)
+		loot.global_position = Vector2(1000000.0 + float(i), 1000000.0)
+		_parent_loots.add_child(loot)
+		_pool.append(loot)
+
+func _get_parent_loots() -> Node:
+	if parent_loot_path != NodePath():
+		var n: Node = get_node_or_null(parent_loot_path)
+		if n != null:
+			return n
+	return get_tree().current_scene
+
+func demander_drops(
+	type_ennemi: int,
+	position_mort: Vector2,
 	rng: RandomNumberGenerator,
 	joueur: Node2D,
 	progression_loot: float = 0.0
 ) -> void:
 	if scene_loot == null:
 		return
-	if not (e is Enemy):
+	if rng == null:
 		return
 
 	_generateur_aleatoire = rng
 
-	var ennemi := e as Enemy
-	var type_ennemi: int = ennemi.type_ennemi
-
-	var progression = max(progression_loot, 0.0)
+	var progression: float = max(progression_loot, 0.0)
 	var niveau_effectif: float = 1.0 + progression
 	var chance_joueur: float = _get_player_luck(joueur)
 
-	if debug_loot:
-		print("[LootDrops] enemy=", ennemi.name,
-			" type_ennemi=", type_ennemi,
-			" prog=", progression_loot,
-			" niveau_eff=", niveau_effectif,
-			" luck=", chance_joueur,
-			" tirages C=", tirages_min_type_C, "-", tirages_max_type_C,
-			" B=", tirages_min_type_B, "-", tirages_max_type_B,
-			" A=", tirages_min_type_A, "-", tirages_max_type_A,
-			" S=", tirages_min_type_S, "-", tirages_max_type_S,
-			" BOSS=", tirages_min_type_BOSS, "-", tirages_max_type_BOSS,
-			" mult=", multiplicateur_tirages_global)
-
 	var nb_loots: int = _tirer_nombre_tirages(type_ennemi, niveau_effectif)
-
-	if debug_loot:
-		print("[LootDrops] nb_loots=", nb_loots)
-
 	if nb_loots <= 0:
 		return
 
-	for i in range(nb_loots):
+	var table: LootTableEnemy = _get_table_enemy(type_ennemi)
+	if table == null:
+		return
+
+	for _i: int in range(nb_loots):
 		var rarete: int = _tirer_rarete(type_ennemi, niveau_effectif, chance_joueur)
 
 		if rarete >= Loot.TypeLoot.A:
@@ -101,11 +159,7 @@ func generer_loot_pour_ennemi(
 		else:
 			_depuis_dernier_S += 1
 
-		var table := _get_table_enemy(type_ennemi)
-		if table == null:
-			continue
-
-		var pick := table.tirer_loot(
+		var pick: Dictionary = table.tirer_loot(
 			rarete,
 			_generateur_aleatoire,
 			multiplicateur_type_conso,
@@ -113,37 +167,27 @@ func generer_loot_pour_ennemi(
 			multiplicateur_type_arme
 		)
 
-		var type_item: int = int(pick["type_item"])
-		var item_id: StringName = pick["item_id"]
-
-		if debug_loot:
-			print("[LootDrops] i=", i, " rarete=", rarete, " type_item=", type_item, " item_id=", String(item_id))
+		var type_item: int = int(pick.get("type_item", Loot.TypeItem.CONSO))
+		var item_id: StringName = pick.get("item_id", &"")
 
 		if String(item_id) == "":
 			continue
 
-		var loot: Loot = scene_loot.instantiate() as Loot
-		if loot == null:
-			continue
+		var ox: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
+		var oy: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
 
-		loot.type_loot = rarete
-		loot.type_item = type_item
-		loot.item_id = item_id
-		loot.quantite = 1
-
-		var offset := Vector2(
-			_generateur_aleatoire.randf_range(-16.0, 16.0),
-			_generateur_aleatoire.randf_range(-16.0, 16.0)
-		)
-		loot.global_position = ennemi.global_position + offset
-
-		get_tree().current_scene.add_child(loot)
-
-	
+		_file_spawn.append({
+			"pos": position_mort + Vector2(ox, oy),
+			"rarete": rarete,
+			"type_item": type_item,
+			"item_id": item_id,
+			"quantite": 1,
+			"joueur": joueur
+		})
 
 func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
-	var nb_min := 0
-	var nb_max := 0
+	var nb_min: int = 0
+	var nb_max: int = 0
 
 	match type_ennemi:
 		Enemy.TypeEnnemi.C:
@@ -165,37 +209,23 @@ func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
 			nb_min = 0
 			nb_max = 1
 
-	var bonus_progression := int(max(niveau_effectif - 1.0, 0.0) / 10.0) * tirages_bonus_par_10_progression
+	var bonus_progression: int = int(max(niveau_effectif - 1.0, 0.0) / 10.0) * tirages_bonus_par_10_progression
 	nb_max += bonus_progression
-
 	if nb_max < nb_min:
 		nb_max = nb_min
 
-	if nb_max <= nb_min:
-		var nb_base := nb_min
-		var nb := int(round(float(nb_base) * multiplicateur_tirages_global))
-		return max(0, nb)
-
-	var nb_brut := _generateur_aleatoire.randi_range(nb_min, nb_max)
-	var nb_final := int(round(float(nb_brut) * multiplicateur_tirages_global))
+	var nb_brut: int = nb_min if nb_max <= nb_min else _generateur_aleatoire.randi_range(nb_min, nb_max)
+	var nb_final: int = int(round(float(nb_brut) * multiplicateur_tirages_global))
 	return max(0, nb_final)
-
 
 func _get_table_enemy(type_ennemi: int) -> LootTableEnemy:
 	match type_ennemi:
-		Enemy.TypeEnnemi.C:
-			return table_C
-		Enemy.TypeEnnemi.B:
-			return table_B
-		Enemy.TypeEnnemi.A:
-			return table_A
-		Enemy.TypeEnnemi.S:
-			return table_S
-		Enemy.TypeEnnemi.BOSS:
-			return table_BOSS
-		_:
-			return null
-
+		Enemy.TypeEnnemi.C: return table_C
+		Enemy.TypeEnnemi.B: return table_B
+		Enemy.TypeEnnemi.A: return table_A
+		Enemy.TypeEnnemi.S: return table_S
+		Enemy.TypeEnnemi.BOSS: return table_BOSS
+		_: return null
 
 func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
 	var t: LootTableEnemy = _get_table_enemy(type_ennemi)
@@ -203,12 +233,10 @@ func _proba_rarete_base(type_ennemi: int) -> PackedFloat32Array:
 		return PackedFloat32Array([1.0, 0.0, 0.0, 0.0])
 	return PackedFloat32Array([t.proba_C, t.proba_B, t.proba_A, t.proba_S])
 
-
 func _get_player_luck(joueur: Node2D) -> float:
 	if joueur != null and is_instance_valid(joueur) and joueur.has_method("get_luck"):
 		return float(joueur.get_luck())
 	return 0.0
-
 
 func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: float) -> int:
 	var proba_base: PackedFloat32Array = _proba_rarete_base(type_ennemi)
@@ -230,7 +258,7 @@ func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: floa
 		proba_S += deplacement_depuis_C * 0.2
 
 	if chance_joueur > 0.0:
-		var facteur_chance = clamp(chance_joueur, 0.0, 100.0) / 100.0
+		var facteur_chance: float = clamp(chance_joueur, 0.0, 100.0) / 100.0
 		var bonus_A: float = 0.05 * facteur_chance
 		var bonus_S: float = 0.02 * facteur_chance
 		var total_bonus: float = bonus_A + bonus_S
@@ -255,116 +283,19 @@ func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: floa
 	if _depuis_dernier_S >= pity_seuil_S:
 		proba_S *= pity_boost_S
 
-	var somme_probas: float = proba_C + proba_B + proba_A + proba_S
-	if somme_probas <= 0.0:
+	var somme: float = proba_C + proba_B + proba_A + proba_S
+	if somme <= 0.0:
 		return Loot.TypeLoot.C
 
-	proba_C /= somme_probas
-	proba_B /= somme_probas
-	proba_A /= somme_probas
-	proba_S /= somme_probas
+	proba_C /= somme
+	proba_B /= somme
+	proba_A /= somme
+	proba_S /= somme
 
-	var tirage_aleatoire: float = _generateur_aleatoire.randf()
-	if tirage_aleatoire < proba_C:
-		return Loot.TypeLoot.C
-	tirage_aleatoire -= proba_C
-	if tirage_aleatoire < proba_B:
-		return Loot.TypeLoot.B
-	tirage_aleatoire -= proba_B
-	if tirage_aleatoire < proba_A:
-		return Loot.TypeLoot.A
+	var r: float = _generateur_aleatoire.randf()
+	if r < proba_C: return Loot.TypeLoot.C
+	r -= proba_C
+	if r < proba_B: return Loot.TypeLoot.B
+	r -= proba_B
+	if r < proba_A: return Loot.TypeLoot.A
 	return Loot.TypeLoot.S
-
-
-func _tirer_type_item(rarete: int) -> int:
-	var poids_conso: float = 0.0
-	var poids_upgrade: float = 0.0
-	var poids_arme: float = 0.0
-
-	match rarete:
-		Loot.TypeLoot.C:
-			poids_conso = 0.7
-			poids_upgrade = 0.2
-			poids_arme = 0.1
-		Loot.TypeLoot.B:
-			poids_conso = 0.4
-			poids_upgrade = 0.4
-			poids_arme = 0.2
-		Loot.TypeLoot.A:
-			poids_conso = 0.3
-			poids_upgrade = 0.4
-			poids_arme = 0.3
-		Loot.TypeLoot.S:
-			poids_conso = 0.1
-			poids_upgrade = 0.4
-			poids_arme = 0.5
-		_:
-			poids_conso = 1.0
-			poids_upgrade = 0.0
-			poids_arme = 0.0
-
-	poids_conso *= multiplicateur_type_conso
-	poids_upgrade *= multiplicateur_type_upgrade
-	poids_arme *= multiplicateur_type_arme
-
-	var somme_poids := poids_conso + poids_upgrade + poids_arme
-	if somme_poids <= 0.0:
-		return Loot.TypeItem.CONSO
-
-	poids_conso /= somme_poids
-	poids_upgrade /= somme_poids
-	poids_arme /= somme_poids
-
-	var tirage_aleatoire := _generateur_aleatoire.randf()
-	if tirage_aleatoire < poids_conso:
-		return Loot.TypeItem.CONSO
-	tirage_aleatoire -= poids_conso
-	if tirage_aleatoire < poids_upgrade:
-		return Loot.TypeItem.UPGRADE
-	return Loot.TypeItem.ARME
-
-
-func _tirer_item_id(type_ennemi: int, type_item: int, rarete: int) -> StringName:
-	var table: LootTableEnemy = _get_table_enemy(type_ennemi)
-	if table == null:
-		return &""
-	return table.tirer_item_id(type_item, rarete, _generateur_aleatoire)
-
-
-func simuler_loot(type_ennemi: int, progression_loot: float, chance_joueur: float, essais: int = 10000) -> void:
-	var stats_rarete := {
-		Loot.TypeLoot.C: 0,
-		Loot.TypeLoot.B: 0,
-		Loot.TypeLoot.A: 0,
-		Loot.TypeLoot.S: 0,
-	}
-	var stats_type := {
-		Loot.TypeItem.CONSO: 0,
-		Loot.TypeItem.UPGRADE: 0,
-		Loot.TypeItem.ARME: 0,
-	}
-
-	_generateur_aleatoire = RandomNumberGenerator.new()
-	_generateur_aleatoire.randomize()
-
-	_depuis_dernier_A = 0
-	_depuis_dernier_S = 0
-
-	var progression = max(progression_loot, 0.0)
-	var niveau_effectif: float = 1.0 + progression
-
-	for i in range(essais):
-		var rarete := _tirer_rarete(type_ennemi, niveau_effectif, chance_joueur)
-		stats_rarete[rarete] += 1
-		var type_item := _tirer_type_item(rarete)
-		stats_type[type_item] += 1
-
-	print("--- Simulation loot ---")
-	print("Essais :", essais, " progression=", progression_loot, " niveau_eff=", niveau_effectif)
-	print("Rareté : C=", stats_rarete[Loot.TypeLoot.C],
-		" B=", stats_rarete[Loot.TypeLoot.B],
-		" A=", stats_rarete[Loot.TypeLoot.A],
-		" S=", stats_rarete[Loot.TypeLoot.S])
-	print("Types : CONSO=", stats_type[Loot.TypeItem.CONSO],
-		" UPGRADE=", stats_type[Loot.TypeItem.UPGRADE],
-		" ARME=", stats_type[Loot.TypeItem.ARME])

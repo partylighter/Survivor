@@ -39,6 +39,9 @@ var _die_ms: int = -1
 var _r2_aimant: float = 0.0
 var _r2_pickup: float = 0.0
 
+var _pool_owner: GestionnaireLootDrops = null
+var _actif: bool = true
+
 var _lm: LootManager = null
 @warning_ignore("unused_private_class_variable")
 var _lm_liste: int = -1
@@ -47,9 +50,6 @@ var _lm_index: int = -1
 
 @onready var anim: LootAnim = get_node_or_null(anim_path) as LootAnim
 
-func _enter_tree() -> void:
-	add_to_group("loots")
-
 func _ready() -> void:
 	set_physics_process(false)
 
@@ -57,34 +57,80 @@ func _ready() -> void:
 	_r2_aimant = magnet_radius * magnet_radius
 	_r2_pickup = pickup_radius * pickup_radius
 
+	if _pool_owner != null:
+		_desactiver_pour_pool()
+	else:
+		_activer_collision(true)
+		call_deferred("_essayer_s_inscrire_manager")
+
+func preparer_pour_pool(pool_owner: GestionnaireLootDrops) -> void:
+	_pool_owner = pool_owner
+	_desactiver_pour_pool()
+
+func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
+	_actif = true
+	_collecte = false
+	_t_aimant = 0.0
+	_vel = Vector2.ZERO
+
+	type_loot = int(req.get("rarete", TypeLoot.C))
+	type_item = int(req.get("type_item", TypeItem.CONSO))
+	item_id = req.get("item_id", &"")
+	quantite = int(req.get("quantite", 1))
+	joueur_cible = req.get("joueur", joueur_cible)
+
+	global_position = req.get("pos", global_position)
+
+	if parent_loots != null and get_parent() != parent_loots:
+		reparent(parent_loots)
+
 	if lifetime_s > 0.0:
 		_die_ms = Time.get_ticks_msec() + int(lifetime_s * 1000.0)
+	else:
+		_die_ms = -1
 
-	set_deferred("monitoring", false)
-	set_deferred("monitorable", true)
+	if anim != null and anim.has_method("reset_etat"):
+		anim.reset_etat()
+
+	show()
+	_activer_collision(true)
 
 	call_deferred("_essayer_s_inscrire_manager")
 
-func _essayer_s_inscrire_manager() -> void:
-	if _lm != null:
-		return
+func _desactiver_pour_pool() -> void:
+	_actif = false
+	_collecte = false
+	_t_aimant = 0.0
+	_vel = Vector2.ZERO
+	_die_ms = -1
 
-	var n: Node = get_tree().get_first_node_in_group("loot_manager")
-	if n is LootManager:
-		(n as LootManager).enregistrer_loot(self)
-		return
-
-	var root := get_tree().current_scene
-	if root != null:
-		var p := root.get_node_or_null("Player")
-		if p is Node2D:
-			joueur_cible = p as Node2D
-
-func _exit_tree() -> void:
 	if _lm != null and is_instance_valid(_lm):
 		_lm.retirer_loot(self)
 
+	_activer_collision(false)
+
+	if anim != null and anim.has_method("reset_etat"):
+		anim.reset_etat()
+
+	hide()
+	global_position = Vector2(1000000.0, 1000000.0)
+
+func _activer_collision(actif: bool) -> void:
+	set_deferred("monitoring", false)
+	set_deferred("monitorable", actif)
+
+func _essayer_s_inscrire_manager() -> void:
+	if not _actif:
+		return
+	if _lm != null:
+		return
+	var n: Node = get_tree().get_first_node_in_group("loot_manager")
+	if n is LootManager:
+		(n as LootManager).enregistrer_loot(self)
+
 func tick_attente(dt: float, pos_pickup: Vector2) -> int:
+	if not _actif:
+		return ACT_RIEN
 	if _collecte:
 		return ACT_SUPPRIMER
 
@@ -92,7 +138,7 @@ func tick_attente(dt: float, pos_pickup: Vector2) -> int:
 		anim.maj_idle(dt)
 
 	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
-		queue_free()
+		_retour_pool()
 		return ACT_SUPPRIMER
 
 	var vers: Vector2 = pos_pickup - global_position
@@ -111,11 +157,13 @@ func tick_attente(dt: float, pos_pickup: Vector2) -> int:
 	return ACT_RIEN
 
 func tick_aimant(dt: float, pos_pickup: Vector2) -> int:
+	if not _actif:
+		return ACT_RIEN
 	if _collecte:
 		return ACT_SUPPRIMER
 
 	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
-		queue_free()
+		_retour_pool()
 		return ACT_SUPPRIMER
 
 	var vers: Vector2 = pos_pickup - global_position
@@ -148,10 +196,12 @@ func tick_aimant(dt: float, pos_pickup: Vector2) -> int:
 	return ACT_RIEN
 
 func tick_lointain() -> bool:
+	if not _actif:
+		return false
 	if _collecte:
 		return true
 	if _die_ms != -1 and Time.get_ticks_msec() >= _die_ms:
-		queue_free()
+		_retour_pool()
 		return true
 	return false
 
@@ -171,7 +221,17 @@ func _demarrer_collecte(pos_fin: Vector2) -> void:
 func _finir_collecte(j: Node2D, payload: Dictionary) -> void:
 	if j != null and is_instance_valid(j) and j.has_method("on_loot_collected"):
 		j.on_loot_collected(payload)
-	queue_free()
+	_retour_pool()
+
+func _retour_pool() -> void:
+	if _lm != null and is_instance_valid(_lm):
+		_lm.retirer_loot(self)
+
+	if _pool_owner != null and is_instance_valid(_pool_owner):
+		_desactiver_pour_pool()
+		_pool_owner.retourner_loot(self)
+	else:
+		queue_free()
 
 func prendre_payload() -> Dictionary:
 	var d: Dictionary = {

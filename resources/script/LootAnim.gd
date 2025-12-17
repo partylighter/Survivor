@@ -30,6 +30,7 @@ var _pos_base: Vector2 = Vector2.ZERO
 var _modulate_base: Color = Color(1, 1, 1, 1)
 
 var _tw_punch: Tween = null
+var _tw_collect: Tween = null
 
 @onready var visuel: Node2D = get_node_or_null(chemin_visuel) as Node2D
 @onready var particules_aimant: Node = get_node_or_null(chemin_particules_aimant)
@@ -42,12 +43,34 @@ func _ready() -> void:
 	if visuel == null:
 		visuel = self
 
+	var ci := visuel as CanvasItem
+	if ci != null:
+		_modulate_base = ci.modulate
+		if ci.material is ShaderMaterial:
+			ci.set_instance_shader_parameter(&"seed", _graine)
+
 	_scale_base = visuel.scale
 	_pos_base = visuel.position
 
+	reset_etat()
+
+func reset_etat() -> void:
+	_t_idle = 0.0
+
+	if _tw_punch != null and is_instance_valid(_tw_punch):
+		_tw_punch.kill()
+		_tw_punch = null
+
+	if visuel == null:
+		return
+
+	visuel.position = _pos_base
+	visuel.scale = _scale_base
+	visuel.rotation = 0.0
+
 	var ci := visuel as CanvasItem
-	if ci != null and ci.material is ShaderMaterial:
-		ci.set_instance_shader_parameter(&"seed", _graine)
+	if ci != null:
+		ci.modulate = _modulate_base
 
 func maj_idle(delta: float) -> void:
 	if idle_gpu:
@@ -105,20 +128,23 @@ func jouer_collecte(noeud_loot: Node2D, pos_fin: Vector2, duree_s: float, fin: C
 	if son_collecte != null and son_collecte.has_method("play"):
 		son_collecte.call("play")
 
-	var tw: Tween = create_tween()
-	tw.set_parallel(true)
-	tw.set_trans(Tween.TRANS_EXPO)
-	tw.set_ease(Tween.EASE_OUT)
+	if _tw_collect != null and is_instance_valid(_tw_collect):
+		_tw_collect.kill()
 
-	tw.tween_property(noeud_loot, "global_position", pos_fin, duree_s)
+	_tw_collect = create_tween()
+	_tw_collect.set_parallel(true)
+	_tw_collect.set_trans(Tween.TRANS_EXPO)
+	_tw_collect.set_ease(Tween.EASE_OUT)
+
+	_tw_collect.tween_property(noeud_loot, "global_position", pos_fin, duree_s)
 
 	var ci := visuel as CanvasItem
 	if ci != null:
 		var c: Color = _modulate_base
 		c.a = 0.0
-		tw.tween_property(ci, "modulate", c, duree_s)
+		_tw_collect.tween_property(ci, "modulate", c, duree_s)
 
-	tw.tween_property(visuel, "scale", Vector2.ZERO, duree_s)
+	_tw_collect.tween_property(visuel, "scale", Vector2.ZERO, duree_s)
 
 	if fin.is_valid():
-		tw.finished.connect(fin)
+		_tw_collect.finished.connect(fin)

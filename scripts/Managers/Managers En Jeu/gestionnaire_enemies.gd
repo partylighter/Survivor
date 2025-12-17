@@ -309,9 +309,14 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 func _sur_mort(e: Node2D) -> void:
 	ennemis_tues_total += 1
 
-	if loot_manager != null and is_instance_valid(joueur):
+	var pos_mort: Vector2 = e.global_position
+	var type_ennemi: int = -1
+	if e is Enemy:
+		type_ennemi = (e as Enemy).type_ennemi
+
+	if loot_manager != null and is_instance_valid(loot_manager) and type_ennemi != -1:
 		var prog: float = get_indice_progression_loot()
-		loot_manager.generer_loot_pour_ennemi(e, hasard, joueur, prog)
+		loot_manager.demander_drops(type_ennemi, pos_mort, hasard, joueur, prog)
 
 	ennemis.erase(e)
 

@@ -152,10 +152,16 @@ foule_taille_cellule_px = 100.0
 script = ExtResource("12_30tab")
 metadata/_custom_type_script = "uid://ctjko77ppqoqd"
 
+[node name="ParentLootPath" type="Node2D" parent="."]
+
 [node name="GestionnaireLootDrops" type="Node" parent="."]
 script = ExtResource("10_s05yr")
 scene_loot = ExtResource("9_075h3")
-debug_loot = null
+offset_spawn_px = 35.0
+pool_taille = 3000
+parent_loot_path = NodePath("../ParentLootPath")
+tirages_min_type_B = 10
+tirages_max_type_B = 10
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")
