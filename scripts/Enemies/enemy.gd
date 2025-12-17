@@ -8,34 +8,40 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 
 @export_group("Type")
 @export_enum("C","B","A","S","BOSS") var type_ennemi: int = TypeEnnemi.C
-
 @export var valeur_score: int = 10
-@export var speed: float = 120.0
+
+@export_group("Refs")
 @export_node_path("Node") var chemin_sante: NodePath
 
-@export var recul_amorti: float = 18.0
-@export var recul_max: float = 500.0
-@export var recul_bloque_chase_duree_s: float = 0.12
+@export_group("Collision math")
+@export var rayon_collision_px: float = 14.0
+@export var poids_collision: float = 1.0
 
-@export_group("Base vehicule (anti-entree)")
-@export var base_actif: bool = true
-@export var base_rayon_px: float = 220.0
-@export var base_marge_px: float = 8.0
-
-@export_group("Mouvement")
+@export_group("Déplacement")
+@export var speed: float = 120.0
 @export var acceleration_px_s2: float = 1400.0
 @export var deceleration_px_s2: float = 1800.0
 @export var vitesse_rotation_rad_s: float = 10.0
 @export var wobble_angle_rad: float = 0.12
 @export var wobble_freq_hz: float = 1.3
 
-@export_group("Recul - priorité")
+@export_group("Recul (hit)")
+@export var recul_amorti: float = 18.0
+@export var recul_max: float = 500.0
 @export var recul_bloque_chase: bool = true
+@export var recul_bloque_chase_duree_s: float = 0.12
 @export var recul_seuil_blocage_px: float = 8.0
 @export var recul_reset_vitesse_mouvement: bool = true
 @export var recul_deceleration_mult: float = 4.0
 
-@export_group("Secousse")
+@export_group("Bousculade (foule / collisions)")
+@export var pousse_amorti: float = 26.0
+@export var pousse_max: float = 260.0
+@export var pousse_bloque_chase_duree_s: float = 0.07
+@export var pousse_seuil_blocage_px: float = 14.0
+@export var pousse_deceleration_mult: float = 2.2
+
+@export_group("Secousse visuelle")
 @export var secousse_force_px: float = 4.0
 @export var secousse_duree_s: float = 0.12
 
@@ -49,27 +55,42 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var offset_cible_refresh_s: float = 0.35
 @export var offset_cible_lissage: float = 12.0
 
+@export_group("Base véhicule (anti-entrée)")
+@export var base_actif: bool = true
+@export var base_rayon_px: float = 220.0
+@export var base_marge_px: float = 8.0
+
 static var _base_cache: Node2D = null
 
 var base_refuge: Node2D = null
 var _base_ref_prev: Node2D = null
+var _base_prev_pos: Vector2 = Vector2.ZERO
+var _base_vel: Vector2 = Vector2.ZERO
+var _base_init: bool = false
 
 var _recul_lock_t: float = 0.0
+var recul: Vector2 = Vector2.ZERO
+
+var _pousse_lock_t: float = 0.0
+var pousse: Vector2 = Vector2.ZERO
+
 var _dir_to_player_last: Vector2 = Vector2.RIGHT
+var _dir_mouvement_last: Vector2 = Vector2.RIGHT
+var _vel_mouvement: Vector2 = Vector2.ZERO
+
 var _offset_cible: Vector2 = Vector2.ZERO
 var _offset_cible_voulu: Vector2 = Vector2.ZERO
 var _t_offset: float = 0.0
-
-var _vel_mouvement: Vector2 = Vector2.ZERO
-var _dir_mouvement_last: Vector2 = Vector2.RIGHT
 
 var _wobble_t: float = 0.0
 var _wobble_phase: float = 0.0
 var _wobble_sign: float = 1.0
 
-var _recul_actif_prev: bool = false
+var _bloc_actif_prev: bool = false
 
-var recul: Vector2 = Vector2.ZERO
+var _secousse_t: float = 0.0
+var _sprite_pos_neutre: Vector2 = Vector2.ZERO
+
 var deja_mort: bool = false
 var _doit_emit_reapparu_next_frame: bool = false
 
@@ -78,20 +99,12 @@ var _mask_orig: int = -1
 
 var _ai_enabled: bool = true
 
-var _secousse_t: float = 0.0
-var _sprite_pos_neutre: Vector2 = Vector2.ZERO
-
-var poussee_foule: Vector2 = Vector2.ZERO
-
-var _base_prev_pos: Vector2 = Vector2.ZERO
-var _base_vel: Vector2 = Vector2.ZERO
-var _base_init: bool = false
-
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
 @onready var sprite: Sprite2D = $Sprite2D
 
 func _ready() -> void:
+	add_to_group("enemy")
 	_sprite_pos_neutre = sprite.position
 
 	if sante:
@@ -107,6 +120,47 @@ func _ready() -> void:
 	_wobble_phase = randf() * TAU
 	_wobble_sign = -1.0 if randf() < 0.5 else 1.0
 	_wobble_t = randf() * 10.0
+
+func get_type_id() -> int:
+	return type_ennemi
+
+func get_type_nom() -> StringName:
+	return StringName(TypeEnnemi.find_key(type_ennemi))
+
+func get_score() -> int:
+	return valeur_score
+
+func set_poussee_foule(v: Vector2) -> void:
+	appliquer_pousse(v, 0.0)
+
+func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
+	pousse += v
+	var m: float = pousse.length()
+	if m > pousse_max:
+		pousse = pousse * (pousse_max / m)
+
+	var ls: float = lock_s if lock_s >= 0.0 else pousse_bloque_chase_duree_s
+	_pousse_lock_t = max(_pousse_lock_t, max(ls, 0.0))
+
+func appliquer_recul(direction: Vector2, force: float) -> void:
+	recul += direction.normalized() * max(force, 0.0)
+	var m: float = recul.length()
+	if m > recul_max:
+		recul = recul * (recul_max / m)
+
+	_recul_lock_t = max(_recul_lock_t, max(recul_bloque_chase_duree_s, 0.0))
+
+	if recul_reset_vitesse_mouvement:
+		_vel_mouvement = Vector2.ZERO
+
+	_prendre_coup_visuel()
+
+func appliquer_recul_depuis(source: Node2D, force: float) -> void:
+	var dir: Vector2 = global_position - source.global_position
+	appliquer_recul(dir, force)
+
+func _prendre_coup_visuel() -> void:
+	_secousse_t = secousse_duree_s
 
 func _regen_offset(dir_to_player: Vector2) -> void:
 	var s: float = max(offset_cible_max_px, 0.0)
@@ -124,38 +178,6 @@ func _regen_offset(dir_to_player: Vector2) -> void:
 	tangent = tangent.normalized()
 
 	_offset_cible_voulu = tangent * randf_range(-s, s)
-
-func set_poussee_foule(v: Vector2) -> void:
-	poussee_foule = v
-
-func get_type_id() -> int:
-	return type_ennemi
-
-func get_type_nom() -> StringName:
-	return StringName(TypeEnnemi.find_key(type_ennemi))
-
-func get_score() -> int:
-	return valeur_score
-
-func appliquer_recul(direction: Vector2, force: float) -> void:
-	recul += direction.normalized() * max(force, 0.0)
-	var m: float = recul.length()
-	if m > recul_max:
-		recul = recul * (recul_max / m)
-
-	_recul_lock_t = max(_recul_lock_t, max(recul_bloque_chase_duree_s, 0.0))
-
-	if recul_reset_vitesse_mouvement:
-		_vel_mouvement = Vector2.ZERO
-
-	_prendre_coup_visuel()
-
-func _prendre_coup_visuel() -> void:
-	_secousse_t = secousse_duree_s
-
-func appliquer_recul_depuis(source: Node2D, force: float) -> void:
-	var dir: Vector2 = global_position - source.global_position
-	appliquer_recul(dir, force)
 
 func _physics_process(dt: float) -> void:
 	if _doit_emit_reapparu_next_frame:
@@ -176,21 +198,27 @@ func _physics_process(dt: float) -> void:
 			_dir_to_player_last = dir_to_player
 
 	_recul_lock_t = max(_recul_lock_t - dt, 0.0)
+	_pousse_lock_t = max(_pousse_lock_t - dt, 0.0)
 
 	var dist_arret: float = max(distance_arret_joueur_px, 0.0)
 	var dist_ralenti: float = max(distance_ralentir_joueur_px, dist_arret + 1.0)
 
-	var seuil_px: float = max(recul_seuil_blocage_px, 0.0)
-	var recul_actif: bool = recul_bloque_chase and (_recul_lock_t > 0.0 or recul.length_squared() >= (seuil_px * seuil_px))
+	var seuil_r: float = max(recul_seuil_blocage_px, 0.0)
+	var recul_actif: bool = recul_bloque_chase and (_recul_lock_t > 0.0 or recul.length_squared() >= (seuil_r * seuil_r))
 
-	if recul_actif and not _recul_actif_prev and recul_reset_vitesse_mouvement:
+	var seuil_p: float = max(pousse_seuil_blocage_px, 0.0)
+	var pousse_actif: bool = (_pousse_lock_t > 0.0 or pousse.length_squared() >= (seuil_p * seuil_p))
+
+	var bloc_actif: bool = recul_actif or pousse_actif
+
+	if bloc_actif and not _bloc_actif_prev and recul_reset_vitesse_mouvement:
 		_vel_mouvement = Vector2.ZERO
-	_recul_actif_prev = recul_actif
+	_bloc_actif_prev = bloc_actif
 
 	var desired_speed: float = 0.0
 	var desired_dir: Vector2 = _dir_mouvement_last
 
-	if target != null and not recul_actif:
+	if target != null and not bloc_actif:
 		_t_offset -= dt
 		if _t_offset <= 0.0:
 			_t_offset = max(offset_cible_refresh_s, 0.001)
@@ -251,21 +279,28 @@ func _physics_process(dt: float) -> void:
 	var max_delta: float = acc * dt
 	if desired_vel.length_squared() < _vel_mouvement.length_squared():
 		max_delta = dec * dt
+
+	var decel_mult: float = 1.0
 	if recul_actif:
-		max_delta *= max(recul_deceleration_mult, 1.0)
+		decel_mult = max(decel_mult, max(recul_deceleration_mult, 1.0))
+	if pousse_actif:
+		decel_mult = max(decel_mult, max(pousse_deceleration_mult, 1.0))
+	max_delta *= decel_mult
 
 	_vel_mouvement = _vel_mouvement.move_toward(desired_vel, max_delta)
 	velocity = _vel_mouvement
 
 	velocity += recul
-	var alpha: float = clamp(recul_amorti * dt, 0.0, 0.95)
-	recul = recul.lerp(Vector2.ZERO, alpha)
+	var alpha_r: float = clamp(recul_amorti * dt, 0.0, 0.95)
+	recul = recul.lerp(Vector2.ZERO, alpha_r)
 	if recul.length_squared() < 1.0:
 		recul = Vector2.ZERO
 
-	if poussee_foule != Vector2.ZERO:
-		velocity += poussee_foule
-		poussee_foule = Vector2.ZERO
+	velocity += pousse
+	var alpha_p: float = clamp(pousse_amorti * dt, 0.0, 0.95)
+	pousse = pousse.lerp(Vector2.ZERO, alpha_p)
+	if pousse.length_squared() < 1.0:
+		pousse = Vector2.ZERO
 
 	if target != null and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
@@ -326,7 +361,7 @@ func _on_mort() -> void:
 	velocity = Vector2.ZERO
 	_vel_mouvement = Vector2.ZERO
 	recul = Vector2.ZERO
-	poussee_foule = Vector2.ZERO
+	pousse = Vector2.ZERO
 
 	set_physics_process(false)
 	set_process(false)
@@ -346,7 +381,7 @@ func reactiver_apres_pool() -> void:
 	velocity = Vector2.ZERO
 	_vel_mouvement = Vector2.ZERO
 	recul = Vector2.ZERO
-	poussee_foule = Vector2.ZERO
+	pousse = Vector2.ZERO
 
 	set_physics_process(true)
 	set_process(true)
@@ -365,7 +400,7 @@ func reactiver_apres_pool() -> void:
 	_wobble_sign = -1.0 if randf() < 0.5 else 1.0
 	_wobble_t = randf() * 10.0
 
-	_recul_actif_prev = false
+	_bloc_actif_prev = false
 
 	_base_init = false
 	_base_vel = Vector2.ZERO
@@ -425,8 +460,7 @@ func _bloquer_entree_base(dt: float) -> void:
 		return
 
 	var c: Vector2 = base_refuge.global_position
-	var p: Vector2 = global_position
-	var from_center: Vector2 = p - c
+	var from_center: Vector2 = global_position - c
 
 	var r: float = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
 	if r <= 0.0:

@@ -329,6 +329,8 @@ func _sur_mort(e: Node2D) -> void:
 	_rendre_a_pool(e)
 	emit_signal("ennemi_tue", e)
 
+
+
 func _activer_ennemi(e: Node2D, actif: bool) -> void:
 	e.set_physics_process(actif)
 	e.set_process(actif)

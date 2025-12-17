@@ -108,4 +108,10 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 			if joueur.dash_charges_actuelles > dash_max:
 				joueur.dash_charges_actuelles = dash_max
 
+	if joueur is Player:
+		(joueur as Player).collision_ennemis_pre(dt)
+
 	joueur.move_and_slide()
+
+	if joueur is Player:
+		(joueur as Player).collision_ennemis_post(dt)
