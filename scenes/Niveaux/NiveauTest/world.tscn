@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=28 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="Script" uid="uid://dm0le8x15x64n" path="res://scripts/Player/PlayerBase/PortailBaseMonde.gd" id="6_4k6s1"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
+[ext_resource type="Script" uid="uid://b1j7xhc3yrkbv" path="res://scripts/Player/PlayerBase/base.gd" id="6_rsdp2"]
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/Armes/Armes de contact/arme_contact_1.tscn" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot.tscn" id="9_075h3"]
@@ -81,6 +82,7 @@ z_index = -1
 position = Vector2(2578.0002, -107)
 scale = Vector2(13.419699, 14.027665)
 texture = ExtResource("10_075h3")
+script = ExtResource("6_rsdp2")
 
 [node name="A" type="Marker2D" parent="Base"]
 position = Vector2(-87.63239, 7.342633)
@@ -160,8 +162,6 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
-tirages_min_type_B = 10
-tirages_max_type_B = 10
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")

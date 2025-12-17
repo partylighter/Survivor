@@ -17,6 +17,11 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var recul_max: float = 500.0
 @export var recul_bloque_chase_duree_s: float = 0.12
 
+@export_group("Base vehicule (anti-entree)")
+@export var base_actif: bool = true
+@export var base_rayon_px: float = 220.0
+@export var base_marge_px: float = 8.0
+
 @export_group("Mouvement")
 @export var acceleration_px_s2: float = 1400.0
 @export var deceleration_px_s2: float = 1800.0
@@ -43,6 +48,11 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var offset_cible_max_px: float = 45.0
 @export var offset_cible_refresh_s: float = 0.35
 @export var offset_cible_lissage: float = 12.0
+
+static var _base_cache: Node2D = null
+
+var base_refuge: Node2D = null
+var _base_ref_prev: Node2D = null
 
 var _recul_lock_t: float = 0.0
 var _dir_to_player_last: Vector2 = Vector2.RIGHT
@@ -73,6 +83,10 @@ var _sprite_pos_neutre: Vector2 = Vector2.ZERO
 
 var poussee_foule: Vector2 = Vector2.ZERO
 
+var _base_prev_pos: Vector2 = Vector2.ZERO
+var _base_vel: Vector2 = Vector2.ZERO
+var _base_init: bool = false
+
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
 @onready var sprite: Sprite2D = $Sprite2D
@@ -100,11 +114,11 @@ func _regen_offset(dir_to_player: Vector2) -> void:
 		_offset_cible_voulu = Vector2.ZERO
 		return
 
-	var d: Vector2 = dir_to_player
-	if d.length_squared() < 0.0001:
-		d = Vector2.RIGHT
+	var d0: Vector2 = dir_to_player
+	if d0.length_squared() < 0.0001:
+		d0 = Vector2.RIGHT
 
-	var tangent: Vector2 = Vector2(-d.y, d.x)
+	var tangent: Vector2 = Vector2(-d0.y, d0.x)
 	if tangent.length_squared() < 0.0001:
 		tangent = Vector2.RIGHT
 	tangent = tangent.normalized()
@@ -232,11 +246,11 @@ func _physics_process(dt: float) -> void:
 
 	var desired_vel: Vector2 = _dir_mouvement_last * desired_speed
 
-	var a: float = max(acceleration_px_s2, 0.0)
-	var d: float = max(deceleration_px_s2, 0.0)
-	var max_delta: float = a * dt
+	var acc: float = max(acceleration_px_s2, 0.0)
+	var dec: float = max(deceleration_px_s2, 0.0)
+	var max_delta: float = acc * dt
 	if desired_vel.length_squared() < _vel_mouvement.length_squared():
-		max_delta = d * dt
+		max_delta = dec * dt
 	if recul_actif:
 		max_delta *= max(recul_deceleration_mult, 1.0)
 
@@ -271,13 +285,13 @@ func _physics_process(dt: float) -> void:
 		var ratio: float = _secousse_t / secousse_duree_s
 		if ratio < 0.0:
 			ratio = 0.0
-		var offset: Vector2 = Vector2(
-			randf_range(-1.0, 1.0),
-			randf_range(-1.0, 1.0)
-		) * secousse_force_px * ratio
+		var offset: Vector2 = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
 		sprite.position = _sprite_pos_neutre + offset
 	else:
 		sprite.position = _sprite_pos_neutre
+
+	_maj_base_vel(dt)
+	_bloquer_entree_base(dt)
 
 	move_and_slide()
 
@@ -353,6 +367,9 @@ func reactiver_apres_pool() -> void:
 
 	_recul_actif_prev = false
 
+	_base_init = false
+	_base_vel = Vector2.ZERO
+
 func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 	if deja_mort:
 		return
@@ -372,3 +389,69 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 			collision_mask = int(get_meta("sm"))
 		elif _mask_orig >= 0:
 			collision_mask = _mask_orig
+
+func _get_base_refuge() -> Node2D:
+	if is_instance_valid(_base_cache):
+		return _base_cache
+	var n := get_tree().get_first_node_in_group("base_vehicle")
+	_base_cache = n as Node2D
+	return _base_cache
+
+func _maj_base_vel(dt: float) -> void:
+	base_refuge = _get_base_refuge()
+
+	if base_refuge != _base_ref_prev:
+		_base_ref_prev = base_refuge
+		_base_init = false
+		_base_vel = Vector2.ZERO
+
+	if not base_actif or base_refuge == null:
+		_base_vel = Vector2.ZERO
+		return
+
+	var pos: Vector2 = base_refuge.global_position
+	if not _base_init:
+		_base_init = true
+		_base_prev_pos = pos
+		_base_vel = Vector2.ZERO
+		return
+
+	if dt > 0.0:
+		_base_vel = (pos - _base_prev_pos) / dt
+	_base_prev_pos = pos
+
+func _bloquer_entree_base(dt: float) -> void:
+	if not base_actif or base_refuge == null:
+		return
+
+	var c: Vector2 = base_refuge.global_position
+	var p: Vector2 = global_position
+	var from_center: Vector2 = p - c
+
+	var r: float = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
+	if r <= 0.0:
+		return
+
+	var r2: float = r * r
+	var d2: float = from_center.length_squared()
+	var dist: float = sqrt(max(d2, 0.0001))
+
+	var v_rel: Vector2 = velocity - _base_vel
+
+	if d2 < r2:
+		var n_out: Vector2 = from_center / dist
+		global_position = c + n_out * r
+
+		var toward_center: float = v_rel.dot(-n_out)
+		if toward_center > 0.0:
+			v_rel += n_out * toward_center
+
+		velocity = v_rel + _base_vel
+		return
+
+	var n_in: Vector2 = (-from_center) / dist
+	var inward: float = v_rel.dot(n_in)
+	if inward > 0.0 and (dist - inward * dt) < r:
+		v_rel -= n_in * inward
+
+	velocity = v_rel + _base_vel
