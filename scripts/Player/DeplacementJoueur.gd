@@ -52,8 +52,12 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if joueur.dash_charges_actuelles > dash_max:
 		joueur.dash_charges_actuelles = dash_max
 
-	var dash_appuye: bool = Input.is_action_just_pressed("dash")
-	var dash_possible: bool = joueur.dash_t_restant_s <= 0.0 and (joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0)
+	var dash_ok: bool = true
+	if joueur is Player:
+		dash_ok = (joueur as Player).dash_autorise
+
+	var dash_appuye: bool = dash_ok and Input.is_action_just_pressed("dash")
+	var dash_possible: bool = dash_ok and joueur.dash_t_restant_s <= 0.0 and (joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0)
 
 	if dash_appuye and dash_possible:
 		var direction_dash: Vector2 = Vector2.ZERO

@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=26 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/Managers/Manager En Jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="Script" uid="uid://dm0le8x15x64n" path="res://scripts/Player/PlayerBase/PortailBaseMonde.gd" id="6_4k6s1"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/Managers/Manager En Jeu/stats_displayer.tscn" id="6_qfnet"]
-[ext_resource type="Script" uid="uid://b1j7xhc3yrkbv" path="res://scripts/Player/PlayerBase/base.gd" id="6_rsdp2"]
+[ext_resource type="PackedScene" uid="uid://nh3cinsmoq47" path="res://scenes/Player/PlayerBase/base.tscn" id="6_rsdp2"]
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/Performances/perf_displayer.tscn" id="7_i7xtm"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/Armes/Armes de contact/arme_contact_1.tscn" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/Armes/Armes de contact/loot.tscn" id="9_075h3"]
@@ -18,12 +18,6 @@
 [ext_resource type="Script" uid="uid://leky5p00ehnf" path="res://scripts/autoloads/AutoloadsMenuing/GestionairPause.gd" id="11_uuc06"]
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/Managers/Managers En Jeu/LootManager.gd" id="15_05p27"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_4k6s1"]
-size = Vector2(5.111786, 121.04651)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_s05yr"]
-size = Vector2(5.111786, 121.04651)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_s05yr"]
 radius = 185.9
@@ -77,56 +71,23 @@ scene_contenu = ExtResource("9_30tab")
 
 [node name="Player" parent="." instance=ExtResource("1_nnsk1")]
 
-[node name="Base" type="Sprite2D" parent="."]
-z_index = -1
+[node name="Base" parent="." instance=ExtResource("6_rsdp2")]
 position = Vector2(2578.0002, -107)
-scale = Vector2(13.419699, 14.027665)
-texture = ExtResource("10_075h3")
-script = ExtResource("6_rsdp2")
 
-[node name="A" type="Marker2D" parent="Base"]
-position = Vector2(-87.63239, 7.342633)
-scale = Vector2(0.074517325, 0.0712877)
-
-[node name="B" type="Marker2D" parent="Base"]
-position = Vector2(-20.93938, 8.198086)
-scale = Vector2(0.074517325, 0.0712877)
-
-[node name="StaticBody2D" type="StaticBody2D" parent="Base"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Base/StaticBody2D"]
-position = Vector2(-61.305496, 1.9247699)
-shape = SubResource("RectangleShape2D_4k6s1")
-
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="Base/StaticBody2D"]
-position = Vector2(-1.5648842, -60.879692)
-rotation = -1.5683849
-shape = SubResource("RectangleShape2D_s05yr")
-
-[node name="CollisionShape2D4" type="CollisionShape2D" parent="Base/StaticBody2D"]
-position = Vector2(-2.682644, 60.95099)
-rotation = -1.5683849
-shape = SubResource("RectangleShape2D_s05yr")
-
-[node name="CollisionShape2D3" type="CollisionShape2D" parent="Base/StaticBody2D"]
-position = Vector2(57.676384, 0.499012)
-rotation = -0.006760001
-shape = SubResource("RectangleShape2D_s05yr")
-
-[node name="PortailBaseMonde" type="Area2D" parent="."]
-position = Vector2(1740, -3)
+[node name="PortailBaseMonde" type="Area2D" parent="Base"]
+position = Vector2(-838.00024, 104)
 collision_layer = 256
 collision_mask = 2
 script = ExtResource("6_4k6s1")
-chemin_spawn_monde = NodePath("../Base/A")
-chemin_spawn_base = NodePath("../Base/B")
+chemin_spawn_monde = NodePath("../A")
+chemin_spawn_base = NodePath("../B")
 metadata/_custom_type_script = "uid://dm0le8x15x64n"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PortailBaseMonde"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Base/PortailBaseMonde"]
 shape = SubResource("CircleShape2D_s05yr")
 debug_color = Color(0.43391323, 0.33586666, 1, 0.41960785)
 
-[node name="Sprite2D" type="Sprite2D" parent="PortailBaseMonde"]
+[node name="Sprite2D" type="Sprite2D" parent="Base/PortailBaseMonde"]
 modulate = Color(2.3058233, 0, 2.3058233, 1)
 texture = ExtResource("10_075h3")
 
@@ -147,7 +108,7 @@ rayon_engage = 1000.0
 vitesse_lointain = 0.0
 freq_lointain_frames = 0
 loot_manager = NodePath("../GestionnaireLootDrops")
-foule_rayon_px = 90.0
+foule_rayon_px = 50.0
 foule_taille_cellule_px = 100.0
 
 [node name="ProjectileHub" type="Node2D" parent="."]
@@ -162,6 +123,8 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
+tirages_min_type_B = 5
+tirages_max_type_B = 10
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")
@@ -188,4 +151,4 @@ chemin_stats = NodePath("../StatsVagues")
 visibility = true
 margin = Vector2(8, 50)
 
-[connection signal="body_entered" from="PortailBaseMonde" to="PortailBaseMonde" method="_on_body_entered"]
+[connection signal="body_entered" from="Base/PortailBaseMonde" to="Base/PortailBaseMonde" method="_on_body_entered"]

@@ -15,30 +15,22 @@ func _ready() -> void:
 func _appliquer_multi_ecran() -> void:
 	var fenetre: Window = get_window()
 	var nb: int = DisplayServer.get_screen_count()
-
 	if nb <= 1:
-		if debug_multi_ecran:
-			print("[MultiÉcran] Un seul écran détecté, annulation.")
 		return
 
-	if ecran_cible < 0 or ecran_cible >= nb:
-		if debug_multi_ecran:
-			print("[MultiÉcran] Index cible", ecran_cible, "hors limites [0..", nb - 1, "].")
-		return
+	var cible: int = clampi(ecran_cible, 0, nb - 1)
 
-	if debug_multi_ecran:
-		print("\n[MultiÉcran] Nombre d'écrans :", nb)
-		print("[MultiÉcran] Fenêtre AVANT → écran", fenetre.current_screen, "| mode", fenetre.mode)
-
-	
 	fenetre.mode = Window.MODE_WINDOWED
-	fenetre.current_screen = ecran_cible
+	await get_tree().process_frame
+
+	fenetre.current_screen = cible
+	await get_tree().process_frame
+
 	fenetre.move_to_center()
+	await get_tree().process_frame
 
-	
 	if plein_ecran:
-		fenetre.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
-		
-
-	if debug_multi_ecran:
-		print("[MultiÉcran] Fenêtre APRÈS → écran", fenetre.current_screen, "| mode", fenetre.mode)
+		if OS.has_feature("editor"):
+			fenetre.mode = Window.MODE_FULLSCREEN
+		else:
+			fenetre.mode = Window.MODE_EXCLUSIVE_FULLSCREEN

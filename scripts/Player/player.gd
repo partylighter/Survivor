@@ -25,6 +25,7 @@ var dash_duree_s: float = 0.15
 var dash_t_restant_s: float = 0.0
 var dash_direction: Vector2 = Vector2.ZERO
 var dash_infini_actif: bool = false
+var dash_autorise: bool = true
 
 @onready var stats: StatsJoueur = get_node_or_null(chemin_stats) as StatsJoueur
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
@@ -46,6 +47,12 @@ func set_dash_infini(actif: bool) -> void:
 	dash_infini_actif = actif
 	if actif and stats != null:
 		dash_charges_actuelles = stats.get_dash_max_effectif()
+
+func set_dash_autorise(actif: bool) -> void:
+	dash_autorise = actif
+	if not actif:
+		dash_t_restant_s = 0.0
+		dash_direction = Vector2.ZERO
 
 func on_loot_collected(payload: Dictionary) -> void:
 	if gestionnaire_loot:

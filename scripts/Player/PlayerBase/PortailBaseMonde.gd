@@ -20,12 +20,16 @@ func _on_body_entered(body: Node) -> void:
 	if EtatJeu.zone_actuelle == EtatJeu.Zone.MONDE:
 		EtatJeu.derniere_position_monde = joueur.global_position
 		EtatJeu.zone_actuelle = EtatJeu.Zone.BASE
+		joueur.set_dash_autorise(false)
+		joueur.velocity = Vector2.ZERO
 		if spawn_base:
 			joueur.global_position = spawn_base.global_position
 		else:
 			print("[Portail] ERREUR : spawn_base manquant")
 	else:
 		EtatJeu.zone_actuelle = EtatJeu.Zone.MONDE
+		joueur.set_dash_autorise(true)
+		joueur.velocity = Vector2.ZERO
 		if EtatJeu.derniere_position_monde != Vector2.ZERO:
 			joueur.global_position = EtatJeu.derniere_position_monde
 		elif spawn_monde:

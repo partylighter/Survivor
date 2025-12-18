@@ -59,13 +59,15 @@ radius = 473.482
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
-collision_mask = 256
+collision_mask = 769
 script = ExtResource("1_g2els")
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
+collision_ennemis_actif = false
 poids_collision = 20.0
+collision_push_mult = 0.01
 
 [node name="Camera2D" type="Camera2D" parent="."]
 zoom = Vector2(0.32, 0.32)

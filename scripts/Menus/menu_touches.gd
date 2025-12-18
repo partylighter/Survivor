@@ -7,7 +7,7 @@ class_name MenuTouches
 	{"action": "haut", "label": "Haut / Saut / Monter"},
 	{"action": "bas", "label": "Bas / Descendre"},
 	{"action": "dash", "label": "Dash / Esquive"},
-	{"action": "attaque", "label": "Attaque"},
+	{"action": "interagir", "label": "Interagir"},
 	{"action": "pause", "label": "Pause / Menu"},
 	{"action": "attaque_main_droite", "label": "Attaque main droite"},
 	{"action": "attaque_main_gauche", "label": "Attaque main gauche"},
