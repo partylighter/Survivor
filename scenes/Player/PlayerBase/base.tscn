@@ -18,20 +18,12 @@ size = Vector2(162.9585, 1713.925)
 size = Vector2(162.9585, 1688.9642)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_mhijm"]
-radius = 1024.0
+radius = 3301.2756
 
 [node name="Base" type="CharacterBody2D"]
 z_index = -1
 script = ExtResource("2_niuik")
 chemin_deplacement = NodePath("DeplacementBase")
-
-[node name="A" type="Marker2D" parent="."]
-position = Vector2(-1269.0001, 16)
-scale = Vector2(0.074517325, 0.0712877)
-
-[node name="B" type="Marker2D" parent="."]
-position = Vector2(-306.00006, -5)
-scale = Vector2(0.074517325, 0.0712877)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
@@ -63,6 +55,7 @@ collision_layer = 256
 collision_mask = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="area siege"]
+position = Vector2(120.77729, -1402.7666)
 shape = SubResource("CircleShape2D_mhijm")
 debug_color = Color(0, 0, 0, 0.41960785)
 
@@ -76,6 +69,12 @@ scale = Vector2(0.074517325, 0.0712877)
 
 [node name="DeplacementBase" type="Node" parent="."]
 script = ExtResource("2_14dmd")
+vitesse_max_avant_px_s = 5000.0
+accel_avant_px_s2 = 3500.0
+frein_moteur_px_s2 = 100.0
+vitesse_rotation_rad_s = 2.0
+steer_smooth_in = 10.0
+steer_smooth_out = 1.0
 metadata/_custom_type_script = "uid://cdalkrelrvgtq"
 
 [node name="SiegePilote" type="Node" parent="."]

@@ -1,7 +1,8 @@
-[gd_scene load_steps=29 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=30 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
+[ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/Player/PlayerBase/CamPlayer.gd" id="2_wyey8"]
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/Utilitaires/santé.gd" id="3_qhqgy"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_dqkch"]
 [ext_resource type="Script" uid="uid://bauxt8yxsin5i" path="res://scripts/Utilitaires/hitbox.gd" id="5_qlg0r"]
@@ -70,7 +71,12 @@ poids_collision = 20.0
 collision_push_mult = 0.01
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.32, 0.32)
+zoom = Vector2(0.145, 0.145)
+script = ExtResource("2_wyey8")
+zoom_sol = 0.35
+zoom_conduite = 0.17
+look_ahead_conduite_px = 330.0
+mouse_look_sol_px = 220.0
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
 unique_name_in_owner = true

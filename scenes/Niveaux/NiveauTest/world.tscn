@@ -79,8 +79,8 @@ position = Vector2(-838.00024, 104)
 collision_layer = 256
 collision_mask = 2
 script = ExtResource("6_4k6s1")
-chemin_spawn_monde = NodePath("../A")
-chemin_spawn_base = NodePath("../B")
+chemin_spawn_monde = NodePath("../Marker2D")
+chemin_spawn_base = NodePath("../Marker2D2")
 metadata/_custom_type_script = "uid://dm0le8x15x64n"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Base/PortailBaseMonde"]
@@ -90,6 +90,12 @@ debug_color = Color(0.43391323, 0.33586666, 1, 0.41960785)
 [node name="Sprite2D" type="Sprite2D" parent="Base/PortailBaseMonde"]
 modulate = Color(2.3058233, 0, 2.3058233, 1)
 texture = ExtResource("10_075h3")
+
+[node name="Marker2D" type="Marker2D" parent="Base"]
+position = Vector2(-1126.0002, 130)
+
+[node name="Marker2D2" type="Marker2D" parent="Base"]
+position = Vector2(38.999756, 602)
 
 [node name="Gestionnaire Enemies" parent="." node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
