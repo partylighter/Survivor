@@ -7,6 +7,30 @@ class_name Player
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 
+@export_group("Vehicule")
+@export var chemin_base_vehicle: NodePath
+
+@export_group("Camera - Follow")
+@export var cam_follow_speed: float = 14.0
+@export var cam_offset_speed: float = 10.0
+@export var cam_zoom_speed: float = 8.0
+
+@export_group("Camera - Zoom")
+@export var cam_zoom_sol: float = 1.15
+@export var cam_zoom_conduite: float = 0.85
+@export var cam_speed_for_max_zoom: float = 900.0
+@export var cam_zoom_out_mult_at_max_speed: float = 0.78
+@export var cam_zoom_mouse_out_mult_at_edge: float = 0.92
+
+@export_group("Camera - Offset")
+@export var cam_look_ahead_sol_px: float = 90.0
+@export var cam_look_ahead_conduite_px: float = 170.0
+@export var cam_mouse_look_sol_px: float = 110.0
+@export var cam_mouse_look_conduite_px: float = 210.0
+@export var cam_mouse_deadzone: float = 0.06
+@export var cam_max_offset_px: float = 260.0
+@export var cam_mouse_influence_y: float = 0.85
+
 @export_group("Collision math - ennemis")
 @export var collision_ennemis_actif: bool = true
 @export var rayon_collision_px: float = 14.0
@@ -32,16 +56,32 @@ var dash_autorise: bool = true
 @onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
 @onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
 
+var base_vehicle: Node2D = null
 var _col_idx: int = 0
 
 func _ready() -> void:
 	add_to_group("joueur_principal")
 	if stats != null and sante != null:
 		stats.set_sante_ref(sante)
+	base_vehicle = get_node_or_null(chemin_base_vehicle) as Node2D
 
 func _physics_process(dt: float) -> void:
 	if gestion_deplacement:
 		gestion_deplacement.traiter(self, stats, dt)
+
+func set_base_vehicle(n: Node2D) -> void:
+	base_vehicle = n
+
+func est_en_conduite() -> bool:
+	if base_vehicle == null or not is_instance_valid(base_vehicle):
+		return false
+	var v = base_vehicle.get("controle_actif")
+	return typeof(v) == TYPE_BOOL and v
+
+func get_camera_target() -> Node2D:
+	if est_en_conduite():
+		return base_vehicle
+	return self
 
 func set_dash_infini(actif: bool) -> void:
 	dash_infini_actif = actif

@@ -1,9 +1,21 @@
-[gd_scene load_steps=10 format=3 uid="uid://nh3cinsmoq47"]
+[gd_scene load_steps=19 format=3 uid="uid://nh3cinsmoq47"]
 
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="1_14dmd"]
 [ext_resource type="Script" uid="uid://cdalkrelrvgtq" path="res://scripts/Player/PlayerBase/DeplacementBase.gd" id="2_14dmd"]
+[ext_resource type="Script" uid="uid://dm0le8x15x64n" path="res://scripts/Player/PlayerBase/PortailBaseMonde.gd" id="2_hm62n"]
+[ext_resource type="Script" uid="uid://cigftvbiq6qki" path="res://scripts/Player/PlayerBase/StatsBase.gd" id="2_ih0du"]
 [ext_resource type="Script" uid="uid://b1j7xhc3yrkbv" path="res://scripts/Player/PlayerBase/base.gd" id="2_niuik"]
 [ext_resource type="Script" uid="uid://dba6yh0skhit7" path="res://scripts/Player/PlayerBase/SiegePilote.gd" id="3_niuik"]
+[ext_resource type="Script" uid="uid://b3becmtc1pii6" path="res://scripts/Player/PlayerBase/CarburantBase.gd" id="7_sj2xv"]
+[ext_resource type="Script" uid="uid://cmy22q8wiay7d" path="res://scripts/Player/PlayerBase/SanteBase.gd" id="8_jvt5h"]
+[ext_resource type="Script" uid="uid://chng3p1drhuyo" path="res://scripts/Player/PlayerBase/BaseStatsDisplayer.gd" id="9_sj2xv"]
+
+[sub_resource type="Resource" id="Resource_0qh87"]
+script = ExtResource("2_ih0du")
+metadata/_custom_type_script = "uid://cigftvbiq6qki"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_35yvy"]
+radius = 185.9
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_4k6s1"]
 size = Vector2(86.55589, 1632.9999)
@@ -20,10 +32,45 @@ size = Vector2(162.9585, 1688.9642)
 [sub_resource type="CircleShape2D" id="CircleShape2D_mhijm"]
 radius = 3301.2756
 
+[sub_resource type="Resource" id="Resource_n0rra"]
+script = ExtResource("2_ih0du")
+metadata/_custom_type_script = "uid://cigftvbiq6qki"
+
+[sub_resource type="Resource" id="Resource_06ar0"]
+script = ExtResource("2_ih0du")
+metadata/_custom_type_script = "uid://cigftvbiq6qki"
+
 [node name="Base" type="CharacterBody2D"]
 z_index = -1
 script = ExtResource("2_niuik")
 chemin_deplacement = NodePath("DeplacementBase")
+chemin_sante_base = NodePath("SanteBase")
+chemin_carburant_base = NodePath("CarburantBase")
+stats_base = SubResource("Resource_0qh87")
+
+[node name="PortailBaseMonde" type="Area2D" parent="."]
+position = Vector2(-838.00024, 104)
+collision_layer = 256
+collision_mask = 2
+script = ExtResource("2_hm62n")
+chemin_spawn_monde = NodePath("Marker2D")
+chemin_spawn_base = NodePath("Marker2D2")
+verrou_s = 0.91
+metadata/_custom_type_script = "uid://dm0le8x15x64n"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PortailBaseMonde"]
+shape = SubResource("CircleShape2D_35yvy")
+debug_color = Color(0.43391323, 0.33586666, 1, 0.41960785)
+
+[node name="Sprite2D" type="Sprite2D" parent="PortailBaseMonde"]
+modulate = Color(2.3058233, 0, 2.3058233, 1)
+texture = ExtResource("1_14dmd")
+
+[node name="Marker2D" type="Node2D" parent="PortailBaseMonde"]
+position = Vector2(-288, 26)
+
+[node name="Marker2D2" type="Node2D" parent="PortailBaseMonde"]
+position = Vector2(877, 498)
 
 [node name="StaticBody2D" type="StaticBody2D" parent="."]
 
@@ -85,6 +132,16 @@ chemin_exit_marker = NodePath("../chemin sortie")
 action_interagir = &"interagir"
 metadata/_custom_type_script = "uid://dba6yh0skhit7"
 
+[node name="CarburantBase" type="Node" parent="."]
+script = ExtResource("7_sj2xv")
+stats = SubResource("Resource_n0rra")
+metadata/_custom_type_script = "uid://b3becmtc1pii6"
+
+[node name="SanteBase" type="Node" parent="."]
+script = ExtResource("8_jvt5h")
+stats = SubResource("Resource_06ar0")
+metadata/_custom_type_script = "uid://cmy22q8wiay7d"
+
 [node name="Sprite2D" type="Sprite2D" parent="."]
 scale = Vector2(13, 13)
 texture = ExtResource("1_14dmd")
@@ -95,3 +152,15 @@ z_index = 85
 position = Vector2(5, -435)
 scale = Vector2(1.390625, 1.390625)
 texture = ExtResource("1_14dmd")
+
+[node name="BaseStatsDisplayer" type="CanvasLayer" parent="."]
+script = ExtResource("9_sj2xv")
+chemin_base = NodePath("..")
+chemin_sante_base = NodePath("../SanteBase")
+chemin_carburant_base = NodePath("../CarburantBase")
+chemin_deplacement_base = NodePath("../DeplacementBase")
+ui_position = Vector2(2, 300)
+ui_couleur_texte = Color(0.34610188, 0.5477256, 1, 0.9019608)
+metadata/_custom_type_script = "uid://chng3p1drhuyo"
+
+[connection signal="body_entered" from="PortailBaseMonde" to="PortailBaseMonde" method="_on_body_entered"]
