@@ -13,9 +13,11 @@ enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
 @export_group("Distances")
 @export_range(0.0, 2000.0, 0.1) var distance_min: float = 300.0
 @export_range(0.0, 2000.0, 0.1) var distance_max: float = 500.0
-
 @export_range(0.0, 4000.0, 0.1) var distance_fusion_debut: float = 500.0
 @export_range(0.0, 4000.0, 0.1) var distance_fusion_range: float = 200.0
+
+@export_group("Stabilité FPS bas")
+@export_range(0.002, 0.05, 0.001) var max_substep_s: float = 0.012
 
 @export_group("Lissage adaptatif")
 @export_range(0.1, 60.0, 0.1) var lissage_hz_proche: float = 8.0
@@ -39,20 +41,24 @@ enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
 @export_range(0.1, 1.0, 0.01) var portee_main_secondaire: float = 0.7
 @export var auto_flip_visuel: bool = true
 
-var zone: ZoneRamassage
+@export_group("Switch armes")
+@export var switch_actif: bool = true
+@export var action_switch_mains: StringName = &"switch_mains"
+
+var zone: ZoneRamassage = null
 
 var arme_principale: ArmeBase = null
 var arme_secondaire: ArmeBase = null
 
-var _socket_principale: Node2D
-var _socket_secondaire: Node2D
-var _pivot_node: Node2D
-var _joueur: Player
+var _socket_principale: Node2D = null
+var _socket_secondaire: Node2D = null
+var _pivot_node: Node2D = null
+var _joueur: Player = null
 
-var _dist_principale: float
-var _dist_secondaire: float
-var _angle_main_affiche: float
-var _angle_secondaire_affiche: float
+var _dist_principale: float = 0.0
+var _dist_secondaire: float = 0.0
+var _angle_main_affiche: float = 0.0
+var _angle_secondaire_affiche: float = 0.0
 var _fusion_t: float = 0.0
 var _offset_secondaire_affiche: float = PI
 
@@ -73,6 +79,7 @@ func _ready() -> void:
 	_joueur = get_parent() as Player
 
 	if _socket_principale == null or _socket_secondaire == null or zone == null or _joueur == null:
+		set_physics_process(false)
 		set_process(false)
 		return
 
@@ -83,9 +90,24 @@ func _ready() -> void:
 	_fusion_t = 0.0
 	_offset_secondaire_affiche = PI
 
-func _process(dt: float) -> void:
+	set_process(false)
+	set_physics_process(true)
+
+func _physics_process(dt: float) -> void:
+	if dt <= 0.0:
+		return
+
 	_handle_inputs()
-	_mettre_a_jour_sockets(dt)
+
+	var mouse_raw: Vector2 = get_global_mouse_position()
+
+	var step: float = maxf(max_substep_s, 0.002)
+	var n: int = int(ceil(dt / step))
+	n = maxi(n, 1)
+	var sdt: float = dt / float(n)
+
+	for _i in range(n):
+		_mettre_a_jour_sockets_step(sdt, mouse_raw)
 
 func _alpha_from_hz(hz: float, dt: float) -> float:
 	return 1.0 - exp(-maxf(hz, 0.001) * dt)
@@ -94,28 +116,29 @@ func _t_distance(dist: float) -> float:
 	return clampf(dist / maxf(distance_max, 1.0), 0.0, 1.0)
 
 func _hz_lissage(dist: float) -> float:
-	var t := _t_distance(dist)
-	return lerpf(lissage_hz_proche, lissage_hz_loin, t)
+	return lerpf(lissage_hz_proche, lissage_hz_loin, _t_distance(dist))
 
 func _hz_souris(dist: float) -> float:
-	var t := _t_distance(dist)
-	return lerpf(souris_filtre_hz_proche, souris_filtre_hz_loin, t)
+	return lerpf(souris_filtre_hz_proche, souris_filtre_hz_loin, _t_distance(dist))
 
 func _get_world_node() -> Node:
 	return get_tree().current_scene
 
-func _get_pivot_global(dt: float, dist_ref: float) -> Vector2:
-	var raw: Vector2 = global_position
-
+func _get_pivot_guess() -> Vector2:
 	if pivot_mode == PivotMode.PIVOT_NODE:
 		if _pivot_node != null and is_instance_valid(_pivot_node):
-			raw = _pivot_node.global_position
-	elif pivot_mode == PivotMode.MILIEU_SOCKETS:
-		if _socket_principale != null and _socket_secondaire != null:
-			raw = (_socket_principale.global_position + _socket_secondaire.global_position) * 0.5
-	else:
-		raw = global_position
+			return _pivot_node.global_position
+		return global_position
 
+	if pivot_mode == PivotMode.MILIEU_SOCKETS:
+		if _socket_principale != null and _socket_secondaire != null:
+			return (_socket_principale.global_position + _socket_secondaire.global_position) * 0.5
+		return global_position
+
+	return global_position
+
+func _get_pivot_global(dt: float, dist_ref: float) -> Vector2:
+	var raw: Vector2 = _get_pivot_guess()
 	var a: float = _alpha_from_hz(_hz_souris(dist_ref), dt)
 
 	if not _has_pivot:
@@ -126,15 +149,8 @@ func _get_pivot_global(dt: float, dist_ref: float) -> Vector2:
 
 	return _pivot_filtre
 
-func _mettre_a_jour_sockets(dt: float) -> void:
-	var mouse_raw: Vector2 = get_global_mouse_position()
-
-	var pivot_guess: Vector2 = global_position
-	if pivot_mode == PivotMode.PIVOT_NODE and _pivot_node != null and is_instance_valid(_pivot_node):
-		pivot_guess = _pivot_node.global_position
-	elif pivot_mode == PivotMode.MILIEU_SOCKETS and _socket_principale != null and _socket_secondaire != null:
-		pivot_guess = (_socket_principale.global_position + _socket_secondaire.global_position) * 0.5
-
+func _mettre_a_jour_sockets_step(dt: float, mouse_raw: Vector2) -> void:
+	var pivot_guess: Vector2 = _get_pivot_guess()
 	var dist_raw: float = (mouse_raw - pivot_guess).length()
 	var pivot: Vector2 = _get_pivot_global(dt, dist_raw)
 
@@ -158,9 +174,8 @@ func _mettre_a_jour_sockets(dt: float) -> void:
 			_angle_locked = true
 
 	var angle_main_cible: float = _angle_main_affiche
-	if not _angle_locked:
-		if dist > 0.0001:
-			angle_main_cible = diff.angle()
+	if not _angle_locked and dist > 0.0001:
+		angle_main_cible = diff.angle()
 
 	var a: float = _alpha_from_hz(_hz_lissage(dist), dt)
 
@@ -285,6 +300,7 @@ func _est_equipee(n: Node) -> bool:
 func _essayer_ramasser() -> void:
 	if zone == null or not is_instance_valid(zone):
 		return
+
 	if arme_principale != null and arme_secondaire != null:
 		return
 
@@ -300,6 +316,7 @@ func _essayer_ramasser() -> void:
 
 	if cible == null or not is_instance_valid(cible):
 		return
+
 	if _est_equipee(cible):
 		return
 
@@ -435,8 +452,45 @@ func _handle_inputs() -> void:
 		_jeter(true)
 	if Input.is_action_just_pressed("jeter_main_gauche"):
 		_jeter(false)
+	if switch_actif and Input.is_action_just_pressed(action_switch_mains):
+		_switch_mains()
 
-#pas touche ou je te defonce
+func _switch_mains() -> void:
+	if _socket_principale == null or _socket_secondaire == null:
+		return
+
+	if arme_principale == null and arme_secondaire == null:
+		return
+
+	var a1: ArmeBase = arme_principale
+	var a2: ArmeBase = arme_secondaire
+
+	arme_principale = a2
+	arme_secondaire = a1
+
+	if is_instance_valid(a1):
+		var p := a1.get_parent()
+		if p:
+			p.remove_child(a1)
+		_socket_secondaire.add_child(a1)
+		a1.top_level = false
+		a1.position = Vector2.ZERO
+		a1.rotation = 0.0
+		a1.scale = Vector2.ONE
+
+	if is_instance_valid(a2):
+		var p2 := a2.get_parent()
+		if p2:
+			p2.remove_child(a2)
+		_socket_principale.add_child(a2)
+		a2.top_level = false
+		a2.position = Vector2.ZERO
+		a2.rotation = 0.0
+		a2.scale = Vector2.ONE
+
+	# Reset léger pour éviter un "saut" d'offset après swap
+	_offset_secondaire_affiche = PI
+
 func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var ang: float = wrapf(angle, -PI, PI)
 	var deg: float = abs(rad_to_deg(ang))

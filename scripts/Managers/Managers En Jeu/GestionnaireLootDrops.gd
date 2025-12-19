@@ -52,7 +52,7 @@ var _pool: Array[Loot] = []
 var _file_spawn: Array[Dictionary] = []
 var _file_tete: int = 0
 
-var _generateur_aleatoire: RandomNumberGenerator
+var _generateur_aleatoire: RandomNumberGenerator = null
 var _depuis_dernier_A: int = 0
 var _depuis_dernier_S: int = 0
 
@@ -61,6 +61,7 @@ var _parent_loots: Node = null
 func _ready() -> void:
 	_parent_loots = _get_parent_loots()
 	_precharger_pool()
+	set_process(true)
 
 func _process(_dt: float) -> void:
 	if _file_tete >= _file_spawn.size():
@@ -104,7 +105,8 @@ func _precharger_pool() -> void:
 	if _parent_loots == null:
 		_parent_loots = get_tree().current_scene
 
-	for i: int in range(max(pool_taille, 0)):
+	var n: int = maxi(pool_taille, 0)
+	for i: int in range(n):
 		var loot: Loot = scene_loot.instantiate() as Loot
 		if loot == null:
 			continue
@@ -134,7 +136,7 @@ func demander_drops(
 
 	_generateur_aleatoire = rng
 
-	var progression: float = max(progression_loot, 0.0)
+	var progression: float = maxf(progression_loot, 0.0)
 	var niveau_effectif: float = 1.0 + progression
 	var chance_joueur: float = _get_player_luck(joueur)
 
@@ -209,14 +211,14 @@ func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
 			nb_min = 0
 			nb_max = 1
 
-	var bonus_progression: int = int(max(niveau_effectif - 1.0, 0.0) / 10.0) * tirages_bonus_par_10_progression
+	var bonus_progression: int = int(maxf(niveau_effectif - 1.0, 0.0) / 10.0) * tirages_bonus_par_10_progression
 	nb_max += bonus_progression
 	if nb_max < nb_min:
 		nb_max = nb_min
 
 	var nb_brut: int = nb_min if nb_max <= nb_min else _generateur_aleatoire.randi_range(nb_min, nb_max)
 	var nb_final: int = int(round(float(nb_brut) * multiplicateur_tirages_global))
-	return max(0, nb_final)
+	return maxi(0, nb_final)
 
 func _get_table_enemy(type_ennemi: int) -> LootTableEnemy:
 	match type_ennemi:
@@ -248,9 +250,10 @@ func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: floa
 	var proba_A: float = proba_base[2]
 	var proba_S: float = proba_base[3]
 
-	var paliers_niveau: int = int(max(niveau_effectif - 1.0, 0.0) / 5.0)
+	var paliers_niveau: int = int(maxf(niveau_effectif - 1.0, 0.0) / 5.0)
 	var bonus_repartition: float = float(paliers_niveau) * 0.05
-	var deplacement_depuis_C: float = min(bonus_repartition, proba_C - 0.1)
+	var deplacement_depuis_C: float = minf(bonus_repartition, proba_C - 0.1)
+
 	if deplacement_depuis_C > 0.0:
 		proba_C -= deplacement_depuis_C
 		proba_B += deplacement_depuis_C * 0.5
@@ -258,16 +261,17 @@ func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: floa
 		proba_S += deplacement_depuis_C * 0.2
 
 	if chance_joueur > 0.0:
-		var facteur_chance: float = clamp(chance_joueur, 0.0, 100.0) / 100.0
+		var facteur_chance: float = clampf(chance_joueur, 0.0, 100.0) / 100.0
 		var bonus_A: float = 0.05 * facteur_chance
 		var bonus_S: float = 0.02 * facteur_chance
 		var total_bonus: float = bonus_A + bonus_S
 
 		var montant_max_deplacable: float = proba_C * 0.7 + proba_B * 0.3
-		var montant_deplace: float = min(total_bonus, montant_max_deplacable)
+		var montant_deplace: float = minf(total_bonus, montant_max_deplacable)
 
-		var pris_sur_C: float = min(proba_C, montant_deplace * 0.7)
-		var pris_sur_B: float = min(proba_B, montant_deplace * 0.3)
+		var pris_sur_C: float = minf(proba_C, montant_deplace * 0.7)
+		var pris_sur_B: float = minf(proba_B, montant_deplace * 0.3)
+
 		proba_C -= pris_sur_C
 		proba_B -= pris_sur_B
 		proba_A += bonus_A
@@ -293,9 +297,12 @@ func _tirer_rarete(type_ennemi: int, niveau_effectif: float, chance_joueur: floa
 	proba_S /= somme
 
 	var r: float = _generateur_aleatoire.randf()
-	if r < proba_C: return Loot.TypeLoot.C
+	if r < proba_C:
+		return Loot.TypeLoot.C
 	r -= proba_C
-	if r < proba_B: return Loot.TypeLoot.B
+	if r < proba_B:
+		return Loot.TypeLoot.B
 	r -= proba_B
-	if r < proba_A: return Loot.TypeLoot.A
+	if r < proba_A:
+		return Loot.TypeLoot.A
 	return Loot.TypeLoot.S

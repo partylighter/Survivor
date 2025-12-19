@@ -153,6 +153,7 @@ chemin_socket_principale = NodePath("SocketGauche")
 chemin_socket_secondaire = NodePath("SocketDroite")
 chemin_zone = NodePath("../ZoneRamassage")
 chemin_pivot = NodePath("SocketDroite")
+pivot_mode = 2
 distance_min = 150.0
 distance_max = 400.0
 distance_fusion_debut = 400.0

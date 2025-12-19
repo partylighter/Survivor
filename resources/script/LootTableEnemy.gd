@@ -30,34 +30,22 @@ func tirer_item_id(type_item: int, rarete: int, rng: RandomNumberGenerator) -> S
 
 	if type_item == Loot.TypeItem.CONSO:
 		match rarete:
-			Loot.TypeLoot.C:
-				pool = conso_C
-			Loot.TypeLoot.B:
-				pool = conso_B
-			Loot.TypeLoot.A:
-				pool = conso_A
-			Loot.TypeLoot.S:
-				pool = conso_S
+			Loot.TypeLoot.C: pool = conso_C
+			Loot.TypeLoot.B: pool = conso_B
+			Loot.TypeLoot.A: pool = conso_A
+			Loot.TypeLoot.S: pool = conso_S
 	elif type_item == Loot.TypeItem.UPGRADE:
 		match rarete:
-			Loot.TypeLoot.C:
-				pool = upgrade_C
-			Loot.TypeLoot.B:
-				pool = upgrade_B
-			Loot.TypeLoot.A:
-				pool = upgrade_A
-			Loot.TypeLoot.S:
-				pool = upgrade_S
+			Loot.TypeLoot.C: pool = upgrade_C
+			Loot.TypeLoot.B: pool = upgrade_B
+			Loot.TypeLoot.A: pool = upgrade_A
+			Loot.TypeLoot.S: pool = upgrade_S
 	elif type_item == Loot.TypeItem.ARME:
 		match rarete:
-			Loot.TypeLoot.C:
-				pool = arme_C
-			Loot.TypeLoot.B:
-				pool = arme_B
-			Loot.TypeLoot.A:
-				pool = arme_A
-			Loot.TypeLoot.S:
-				pool = arme_S
+			Loot.TypeLoot.C: pool = arme_C
+			Loot.TypeLoot.B: pool = arme_B
+			Loot.TypeLoot.A: pool = arme_A
+			Loot.TypeLoot.S: pool = arme_S
 
 	if pool.is_empty():
 		return &""
@@ -71,7 +59,7 @@ func _tirer_dans_pool(pool: Array[LootItemEntry], rng: RandomNumberGenerator) ->
 	var total_poids: float = 0.0
 	for entry: LootItemEntry in pool:
 		if entry != null:
-			total_poids += max(entry.poids, 0.0)
+			total_poids += maxf(entry.poids, 0.0)
 
 	if total_poids <= 0.0:
 		var first := pool[0]
@@ -85,14 +73,14 @@ func _tirer_dans_pool(pool: Array[LootItemEntry], rng: RandomNumberGenerator) ->
 	for entry: LootItemEntry in pool:
 		if entry == null:
 			continue
-		var w: float = max(entry.poids, 0.0)
+		var w: float = maxf(entry.poids, 0.0)
 		if w <= 0.0:
 			continue
 		cumul += w
 		if x <= cumul:
 			return entry.item_id
 
-	var last = pool[pool.size() - 1]
+	var last := pool[pool.size() - 1]
 	if last != null:
 		return last.item_id
 	return &""
@@ -134,7 +122,6 @@ func tirer_loot(
 	var item_id: StringName = _tirer_dans_pool(pool, rng)
 	return {"type_item": type_item, "item_id": item_id}
 
-
 func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
 	if type_item == Loot.TypeItem.CONSO:
 		match rarete:
@@ -155,7 +142,6 @@ func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
 			Loot.TypeLoot.A: return arme_A
 			Loot.TypeLoot.S: return arme_S
 	return []
-
 
 func _poids_pool(pool: Array[LootItemEntry]) -> float:
 	if pool.is_empty():

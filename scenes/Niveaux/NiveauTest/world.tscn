@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=25 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -24,14 +24,22 @@ metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_05p27"]
 script = ExtResource("11_op4qr")
-item_id = &"upgrade1"
+item_id = &"conso_overheal_1"
+nom_affiche = "nitro gene radioactif"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
+
+[sub_resource type="Resource" id="Resource_7hglk"]
+script = ExtResource("11_op4qr")
+item_id = &"upgrade_carburant_1"
+nom_affiche = "sang de goblin putréfié"
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
 script = ExtResource("11_22h11")
-proba_C = 0.0
-proba_B = 1.0
-upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_05p27")])
+proba_C = 0.36
+proba_B = 0.45
+conso_C = Array[ExtResource("11_op4qr")]([SubResource("Resource_05p27")])
+upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_7hglk")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_bjm5b"]
@@ -76,6 +84,7 @@ position = Vector2(2578.0002, -107)
 [node name="Gestionnaire Enemies" parent="." node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m")])
+max_ennemis = 1
 apparitions_par_sec = 25.0
 rayon_spawn_min = 4000.0
 rayon_spawn_max = 5000.0
@@ -105,6 +114,9 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
+multiplicateur_type_conso = 0.5
+multiplicateur_type_upgrade = 0.5
+multiplicateur_type_arme = 0.0
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")

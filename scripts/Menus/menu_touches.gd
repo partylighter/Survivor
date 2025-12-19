@@ -9,6 +9,7 @@ class_name MenuTouches
 	{"action": "dash", "label": "Dash / Esquive"},
 	{"action": "interagir", "label": "Interagir"},
 	{"action": "pause", "label": "Pause / Menu"},
+	{"action": "switch_mains", "label": "Switch mains"},
 	{"action": "attaque_main_droite", "label": "Attaque main droite"},
 	{"action": "attaque_main_gauche", "label": "Attaque main gauche"},
 	{"action": "ramasser", "label": "Ramasser"},

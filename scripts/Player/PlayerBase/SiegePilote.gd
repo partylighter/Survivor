@@ -7,7 +7,7 @@ class_name SiegePilote
 @export var chemin_exit_marker: NodePath
 
 @export_group("Input")
-@export var action_interagir: StringName = &"interragir"
+@export var action_interagir: StringName = &"interagir"
 
 @export_group("Debug")
 @export var debug_siege: bool = true
@@ -115,6 +115,20 @@ func _entrer(p: CharacterBody2D) -> void:
 
 	if vehicule.has_method("set_controle_actif"):
 		vehicule.call("set_controle_actif", true)
+
+	var gl = p.get("gestionnaire_loot")
+	if gl != null and is_instance_valid(gl):
+		if gl.has_method("on_entree_vehicule"):
+			if debug_siege:
+				print("[SiegePilote] Carburant -> on_entree_vehicule() vehicule=", vehicule, " stock=", gl.get("carburant_stocke"))
+			gl.call("on_entree_vehicule", vehicule)
+		elif gl.has_method("transferer_carburant_vers_vehicule"):
+			if debug_siege:
+				print("[SiegePilote] Carburant -> transferer_carburant_vers_vehicule() vehicule=", vehicule, " stock=", gl.get("carburant_stocke"))
+			gl.call("transferer_carburant_vers_vehicule", vehicule)
+	else:
+		if debug_siege:
+			print("[SiegePilote] Carburant -> gestionnaire_loot introuvable sur p")
 
 	if debug_siege:
 		print("[SiegePilote] ENTER fini: conducteur parent=", conducteur.get_parent(), " pos=", conducteur.global_position)

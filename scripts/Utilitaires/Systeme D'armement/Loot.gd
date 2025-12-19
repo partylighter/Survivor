@@ -15,6 +15,11 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 @export var quantite: int = 1
 @export var scene_contenu: PackedScene
 
+@export_group("Visuel")
+@export var nom_affiche: String = ""
+@export var icone: Texture2D
+@export var skin_id: StringName = &""
+
 @export var magnet_radius: float = 220.0
 @export var magnet_speed: float = 420.0
 @export var magnet_speed_close_mult: float = 2.2
@@ -63,6 +68,8 @@ func _ready() -> void:
 		_activer_collision(true)
 		call_deferred("_essayer_s_inscrire_manager")
 
+	_appliquer_visuel()
+
 func preparer_pour_pool(pool_owner: GestionnaireLootDrops) -> void:
 	_pool_owner = pool_owner
 	_desactiver_pour_pool()
@@ -77,6 +84,12 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	type_item = int(req.get("type_item", TypeItem.CONSO))
 	item_id = req.get("item_id", &"")
 	quantite = int(req.get("quantite", 1))
+	scene_contenu = req.get("scene", scene_contenu)
+
+	nom_affiche = String(req.get("nom_affiche", nom_affiche))
+	icone = req.get("icone", icone) as Texture2D
+	skin_id = req.get("skin_id", skin_id)
+
 	joueur_cible = req.get("joueur", joueur_cible)
 
 	global_position = req.get("pos", global_position)
@@ -91,6 +104,8 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 
 	if anim != null and anim.has_method("reset_etat"):
 		anim.reset_etat()
+
+	_appliquer_visuel()
 
 	show()
 	_activer_collision(true)
@@ -249,3 +264,23 @@ func vider() -> void:
 	type_loot = TypeLoot.C
 	item_id = &""
 	scene_contenu = null
+	nom_affiche = ""
+	icone = null
+	skin_id = &""
+
+func _appliquer_visuel() -> void:
+	var sprite: Sprite2D = null
+	var label: Label = null
+
+	var sprites := find_children("*", "Sprite2D", true, false)
+	if not sprites.is_empty():
+		sprite = sprites[0] as Sprite2D
+
+	var labels := find_children("*", "Label", true, false)
+	if not labels.is_empty():
+		label = labels[0] as Label
+
+	if sprite != null and icone != null:
+		sprite.texture = icone
+	if label != null and nom_affiche != "":
+		label.text = nom_affiche
