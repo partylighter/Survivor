@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene load_steps=36 format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -15,6 +15,11 @@
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/Managers/Managers En Jeu/LootDisplayer.gd" id="11_n7rn1"]
 [ext_resource type="Script" uid="uid://dqvkgiskf54md" path="res://scripts/Player/DeplacementJoueur.gd" id="12_t6q27"]
 [ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/Managers/Managers En Jeu/StatsJoueurDisplayer.gd" id="13_jxtnq"]
+[ext_resource type="Script" uid="uid://dvfjkpj8kikh3" path="res://resources/script/LootTableEnemy.gd" id="14_x8khf"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://resources/script/LootItemEntry.gd" id="15_aciub"]
+[ext_resource type="Resource" uid="uid://bpg2gwtyuypnq" path="res://resources/Jus de mutant concentre.tres" id="16_43ckd"]
+[ext_resource type="Resource" uid="uid://cp6fu5m15iv3o" path="res://resources/Jus de mutant.tres" id="16_aciub"]
+[ext_resource type="Resource" uid="uid://dk71txuwjlglb" path="res://resources/Sang de goblin.tres" id="16_hk2ix"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -57,6 +62,13 @@ radius = 287.028
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wwtew"]
 radius = 473.482
+
+[sub_resource type="Resource" id="Resource_43ckd"]
+script = ExtResource("14_x8khf")
+conso_B = Array[ExtResource("15_aciub")]([ExtResource("16_aciub")])
+conso_A = Array[ExtResource("15_aciub")]([ExtResource("16_43ckd")])
+upgrade_B = Array[ExtResource("15_aciub")]([ExtResource("16_hk2ix")])
+metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 2
@@ -200,6 +212,7 @@ metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
 [node name="GestionnaireLoot" type="Node" parent="."]
 script = ExtResource("10_uxo23")
+loot_tables = Array[ExtResource("14_x8khf")]([SubResource("Resource_43ckd")])
 metadata/_custom_type_script = "uid://d2qt2wohmdfas"
 
 [node name="LootDisplayer" type="CanvasLayer" parent="."]

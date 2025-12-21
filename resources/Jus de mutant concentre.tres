@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="LootItemEntry" load_steps=2 format=3 uid="uid://bpg2gwtyuypnq"]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://resources/script/LootItemEntry.gd" id="1_b10ut"]
+
+[resource]
+script = ExtResource("1_b10ut")
+item_id = &"conso_overheal_2"
+nom_affiche = "Jus mutant concentré"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

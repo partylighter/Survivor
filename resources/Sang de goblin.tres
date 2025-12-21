@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="LootItemEntry" load_steps=2 format=3 uid="uid://dk71txuwjlglb"]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://resources/script/LootItemEntry.gd" id="1_hey0i"]
+
+[resource]
+script = ExtResource("1_hey0i")
+item_id = &"upgrade_carburant_1"
+nom_affiche = "Sang de goblin"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

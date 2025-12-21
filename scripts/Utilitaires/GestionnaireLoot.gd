@@ -12,6 +12,9 @@ const ID_CARB_3: StringName = &"carburant_3"
 
 @export var debug_loot: bool = false
 
+@export_group("DB Items")
+@export var loot_tables: Array[LootTableEnemy] = []
+
 @export_group("Conso: Heal simple")
 @export_range(0, 200, 5) var conso_heal_amount: int = 100
 
@@ -59,6 +62,8 @@ const ID_CARB_3: StringName = &"carburant_3"
 @export var carburant_par_item_2: float = 24.0
 @export var carburant_par_item_3: float = 40.0
 
+var _entry_by_id: Dictionary = {}
+
 var carburant_stocke: float = 0.0
 var _vehicule_actuel: Node = null
 
@@ -82,6 +87,7 @@ var rage_dash_infini: bool = false
 
 func _ready() -> void:
 	joueur = get_parent() as Player
+	_rebuild_entry_db()
 	set_process(true)
 
 func _process(delta: float) -> void:
@@ -100,6 +106,43 @@ func _ensure_refs() -> void:
 		sante = joueur.sante
 		if sante != null and not sante.damaged.is_connected(_on_player_damaged):
 			sante.damaged.connect(_on_player_damaged)
+
+func _rebuild_entry_db() -> void:
+	_entry_by_id.clear()
+	for t in loot_tables:
+		if t == null:
+			continue
+		_register_pool(t.conso_C)
+		_register_pool(t.conso_B)
+		_register_pool(t.conso_A)
+		_register_pool(t.conso_S)
+		_register_pool(t.upgrade_C)
+		_register_pool(t.upgrade_B)
+		_register_pool(t.upgrade_A)
+		_register_pool(t.upgrade_S)
+		_register_pool(t.arme_C)
+		_register_pool(t.arme_B)
+		_register_pool(t.arme_A)
+		_register_pool(t.arme_S)
+
+func _register_pool(pool: Array[LootItemEntry]) -> void:
+	for e in pool:
+		if e == null:
+			continue
+		var sid: StringName = e.item_id
+		if String(sid) == "":
+			continue
+		_entry_by_id[sid] = e
+
+func get_nom_affiche_pour_id(id_any) -> String:
+	var sid := StringName(String(id_any))
+	if _entry_by_id.has(sid):
+		var e: LootItemEntry = _entry_by_id[sid]
+		if e != null:
+			var n := String(e.nom_affiche).strip_edges()
+			if n != "":
+				return n
+	return ""
 
 func _d_loot(msg: String) -> void:
 	if debug_loot:
@@ -123,7 +166,7 @@ func on_loot_collecte(payload: Dictionary) -> void:
 
 	var type_item: int = payload.get("type_item", Loot.TypeItem.CONSO)
 	var rarete: int = payload.get("type_loot", Loot.TypeLoot.C)
-	var identifiant: StringName = payload.get("id", &"")
+	var identifiant: StringName = payload.get("id", payload.get("item_id", &""))
 	var quantite: int = payload.get("quantite", 1)
 	var scene_contenu: PackedScene = payload.get("scene", null)
 
