@@ -122,6 +122,13 @@ func tirer_loot(
 	var item_id: StringName = _tirer_dans_pool(pool, rng)
 	return {"type_item": type_item, "item_id": item_id}
 
+func get_entry(type_item: int, rarete: int, item_id: StringName) -> LootItemEntry:
+	var pool: Array[LootItemEntry] = _get_pool(type_item, rarete)
+	for e: LootItemEntry in pool:
+		if e != null and e.item_id == item_id:
+			return e
+	return null
+
 func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
 	if type_item == Loot.TypeItem.CONSO:
 		match rarete:

@@ -175,6 +175,18 @@ func demander_drops(
 		if String(item_id) == "":
 			continue
 
+		var entry: LootItemEntry = null
+		if table.has_method("get_entry"):
+			entry = table.get_entry(type_item, rarete, item_id)
+
+		var nom_aff: String = ""
+		var ic: Texture2D = null
+		var skin: StringName = &""
+		if entry != null:
+			nom_aff = entry.nom_affiche
+			ic = entry.icone
+			skin = entry.skin_id
+
 		var ox: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
 		var oy: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
 
@@ -184,8 +196,12 @@ func demander_drops(
 			"type_item": type_item,
 			"item_id": item_id,
 			"quantite": 1,
-			"joueur": joueur
+			"joueur": joueur,
+			"nom_affiche": nom_aff,
+			"icone": ic,
+			"skin_id": skin
 		})
+
 
 func _tirer_nombre_tirages(type_ennemi: int, niveau_effectif: float) -> int:
 	var nb_min: int = 0

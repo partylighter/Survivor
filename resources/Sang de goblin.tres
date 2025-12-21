@@ -5,5 +5,4 @@
 [resource]
 script = ExtResource("1_hey0i")
 item_id = &"upgrade_carburant_1"
-nom_affiche = "Sang de goblin"
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

@@ -91,7 +91,6 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	skin_id = req.get("skin_id", skin_id)
 
 	joueur_cible = req.get("joueur", joueur_cible)
-
 	global_position = req.get("pos", global_position)
 
 	if parent_loots != null and get_parent() != parent_loots:
@@ -130,8 +129,10 @@ func _desactiver_pour_pool() -> void:
 	hide()
 	global_position = Vector2(1000000.0, 1000000.0)
 
+	vider()
+
 func _activer_collision(actif: bool) -> void:
-	set_deferred("monitoring", false)
+	set_deferred("monitoring", actif)
 	set_deferred("monitorable", actif)
 
 func _essayer_s_inscrire_manager() -> void:
@@ -253,10 +254,13 @@ func prendre_payload() -> Dictionary:
 		"type_loot": type_loot,
 		"type_item": type_item,
 		"id": item_id,
+		"item_id": item_id,
 		"quantite": quantite,
-		"scene": scene_contenu
+		"scene": scene_contenu,
+		"nom_affiche": nom_affiche,
+		"icone": icone,
+		"skin_id": skin_id
 	}
-	vider()
 	return d
 
 func vider() -> void:
