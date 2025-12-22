@@ -93,6 +93,7 @@ alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 0
+theme_override_font_sizes/font_size = 31
 text = "Retour"
 script = ExtResource("2_ips03")
 metadata/_custom_type_script = "uid://2fboxjeho0mu"
@@ -100,10 +101,12 @@ metadata/_custom_type_script = "uid://2fboxjeho0mu"
 [node name="btn_reinitialiser" type="Button" parent="Root/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_font_sizes/font_size = 31
 text = "Reinitialiser"
 
 [node name="btn_appliquer" type="Button" parent="Root/HBoxContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 31
 text = "Appliquer"
