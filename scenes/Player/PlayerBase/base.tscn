@@ -21,13 +21,13 @@ radius = 185.9
 size = Vector2(86.55589, 1632.9999)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_s05yr"]
-size = Vector2(162.9585, 1670.8672)
+size = Vector2(126.889465, 1684.3027)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mhijm"]
-size = Vector2(162.9585, 1713.925)
+size = Vector2(162.9585, 1649.9966)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hm62n"]
-size = Vector2(162.9585, 1688.9642)
+size = Vector2(190.9136, 1714.806)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_mhijm"]
 radius = 3301.2756
@@ -79,19 +79,20 @@ position = Vector2(-805.27795, 0.5)
 shape = SubResource("RectangleShape2D_4k6s1")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(0.75729775, -780.54285)
+position = Vector2(-6.003976, -762.5246)
 rotation = -1.5683849
 shape = SubResource("RectangleShape2D_s05yr")
 
 [node name="CollisionShape2D4" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(774, -28)
-rotation = -3.1594996
+position = Vector2(774.5723, 3.9590778)
+rotation = 3.1236856
+scale = Vector2(0.99999994, 0.99999994)
 shape = SubResource("RectangleShape2D_mhijm")
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="StaticBody2D"]
-position = Vector2(14.73616, 757.8732)
+position = Vector2(8.108154, 772.1715)
 rotation = -1.6169133
-scale = Vector2(0.99999994, 0.99999994)
+scale = Vector2(0.9999998, 0.9999998)
 shape = SubResource("RectangleShape2D_hm62n")
 
 [node name="area siege" type="Area2D" parent="."]
@@ -142,7 +143,8 @@ stats = SubResource("Resource_06ar0")
 metadata/_custom_type_script = "uid://cmy22q8wiay7d"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(13, 13)
+position = Vector2(1.999958, 0)
+scale = Vector2(12.96875, 13)
 texture = ExtResource("1_14dmd")
 
 [node name="Icon" type="Sprite2D" parent="."]

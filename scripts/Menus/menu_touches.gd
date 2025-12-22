@@ -27,10 +27,12 @@ var boutons_changer: Dictionary = {}
 var en_attente_de_rebind: bool = false
 var action_cible: StringName
 var modif_en_attente: bool = false
-
 var _mouse_filters_backup: Dictionary = {}
 
+const ACTION_FORCE_SIMPLE: StringName = &"attaque_main_gauche"
+
 func _ready() -> void:
+	_forcer_mouse_simple_click(ACTION_FORCE_SIMPLE, MOUSE_BUTTON_LEFT)
 	creer_interface()
 
 	bouton_appliquer.pressed.connect(_appliquer_modifs)
@@ -43,8 +45,15 @@ func _get_action_text(nom_action: StringName) -> String:
 	if not InputMap.has_action(nom_action):
 		return "Non assignée"
 	var evts: Array[InputEvent] = InputMap.action_get_events(nom_action)
-	if evts.size() == 0:
+	if evts.is_empty():
 		return "Non assignée"
+
+	for evt in evts:
+		if evt is InputEventMouseButton:
+			var mb := evt as InputEventMouseButton
+			if not mb.double_click:
+				return mb.as_text()
+
 	return evts[0].as_text()
 
 func creer_interface() -> void:
@@ -80,7 +89,6 @@ func creer_interface() -> void:
 		ligne.add_child(bouton_effacer)
 
 		conteneur_liste.add_child(ligne)
-
 		boutons_changer[nom_action] = bouton_modifier
 
 func _demarrer_rebind(nom_action: StringName) -> void:
@@ -105,9 +113,10 @@ func _unhandled_input(e: InputEvent) -> void:
 		return
 
 	if e is InputEventMouseButton and e.pressed:
+		var src := e as InputEventMouseButton
 		var souris := InputEventMouseButton.new()
-		souris.button_index = (e as InputEventMouseButton).button_index
-		souris.double_click = (e as InputEventMouseButton).double_click
+		souris.button_index = src.button_index
+		souris.double_click = src.double_click and Input.is_key_pressed(KEY_SHIFT)
 		_valider_rebind(action_cible, souris)
 		return
 
@@ -127,6 +136,7 @@ func _valider_rebind(nom_action: StringName, nouvelle_entree: InputEvent) -> voi
 
 func _reinitialiser_touches() -> void:
 	AutoInput.retablir_touches_defaut()
+	_forcer_mouse_simple_click(ACTION_FORCE_SIMPLE, MOUSE_BUTTON_LEFT)
 
 	for entree in actions_configurables:
 		var nom_action: StringName = StringName(entree.get("action", ""))
@@ -156,7 +166,6 @@ func _set_ui_capture_mouse(active: bool) -> void:
 			if is_instance_valid(n):
 				var c := n as Control
 				c.mouse_filter = _mouse_filters_backup[n] as Control.MouseFilter
-				
 		_mouse_filters_backup.clear()
 
 func _recursive_set_ignore(node: Node) -> void:
@@ -167,3 +176,39 @@ func _recursive_set_ignore(node: Node) -> void:
 
 	for child in node.get_children():
 		_recursive_set_ignore(child)
+
+func _forcer_mouse_simple_click(nom_action: StringName, button_index: int) -> void:
+	if not InputMap.has_action(nom_action):
+		return
+
+	var evts: Array[InputEvent] = InputMap.action_get_events(nom_action)
+	if evts.is_empty():
+		return
+
+	var has_simple := false
+	var has_double := false
+
+	for evt in evts:
+		if evt is InputEventMouseButton:
+			var mb := evt as InputEventMouseButton
+			if mb.button_index == button_index:
+				if mb.double_click:
+					has_double = true
+				else:
+					has_simple = true
+
+	if has_double and not has_simple:
+		var keep: Array[InputEvent] = []
+		for evt in evts:
+			if evt is InputEventMouseButton and (evt as InputEventMouseButton).button_index == button_index:
+				continue
+			keep.append(evt)
+
+		InputMap.action_erase_events(nom_action)
+		for evt in keep:
+			InputMap.action_add_event(nom_action, evt)
+
+		var mb2 := InputEventMouseButton.new()
+		mb2.button_index = button_index as MouseButton
+		mb2.double_click = false
+		InputMap.action_add_event(nom_action, mb2)

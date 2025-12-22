@@ -14,6 +14,7 @@ signal limite_atteinte()
 @export var graine: int = 1
 
 @export var max_ennemis: int = 500
+@export var ennemis_init: int = 25
 @export var apparitions_par_sec: float = 5.0
 @export var rayon_spawn_min: float = 600.0
 @export var rayon_spawn_max: float = 900.0
@@ -40,6 +41,7 @@ signal limite_atteinte()
 @export var croissance_taux: float = 1.1
 @export var croissance_max: float = 1.1
 @export var croissance_total: float = 1.1
+@export var duree_vague_defaut_infinie: float = 30.0
 
 @export var durees_vagues: PackedFloat32Array = []
 @export var taux_vagues: PackedFloat32Array = []
@@ -61,10 +63,10 @@ var _frame_horde: int = 0
 
 @export_group("Foule")
 @export var foule_actif: bool = true
-@export var foule_rayon_px: float = 18.0 # distance (en pixels) en dessous de laquelle deux ennemis commencent à se repousser.
-@export var foule_force_px_s: float = 180.0 # intensité maximale de la poussée ajoutée (vitesse de répulsion).
-@export var foule_taille_cellule_px: float = 40.0 # aille des cases de la grille spatiale utilisée pour trouver les voisins rapidement (perf)
-@export var foule_budget_par_frame: int = 140 # nombre max d’ennemis traités par frame pour la foule (limite de coût CPU)
+@export var foule_rayon_px: float = 18.0
+@export var foule_force_px_s: float = 180.0
+@export var foule_taille_cellule_px: float = 40.0
+@export var foule_budget_par_frame: int = 140
 @export var foule_update_interval_frames: int = 1
 @export var foule_max_voisins_par_ennemi: int = 24
 @export var foule_d2_min: float = 1.0
@@ -113,6 +115,18 @@ func _ready() -> void:
 
 	if mode_vagues and _nb_vagues() > 0:
 		_demarrer_vague(0)
+
+	for _i: int in range(max(0, ennemis_init)):
+		if ennemis.size() >= max_ennemis:
+			break
+		var idx: int = _choisir_type_vague() if mode_vagues else _choisir_type()
+		var e: Node2D = _creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
+		if e == null:
+			break
+		if mode_vagues and _nb_vagues() > 0:
+			e.set_meta("vague_id", i_vague)
+			vivants_vague += 1
+			total_spawn_vague += 1
 
 	if horde_visuelle != null:
 		var anneau_min: float = max(rayon_spawn_max, portee_arme_px + marge_securite_horde_px)
@@ -329,8 +343,6 @@ func _sur_mort(e: Node2D) -> void:
 	_rendre_a_pool(e)
 	emit_signal("ennemi_tue", e)
 
-
-
 func _activer_ennemi(e: Node2D, actif: bool) -> void:
 	e.set_physics_process(actif)
 	e.set_process(actif)
@@ -476,7 +488,6 @@ func _maj_budget() -> void:
 
 	tour_budget += 1
 
-
 func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	if i < 0 or i >= ennemis.size() or not is_instance_valid(joueur):
 		return false
@@ -582,7 +593,17 @@ func _duree_courante() -> float:
 	var base: float = 0.0
 	if i_vague < durees_vagues.size():
 		base = durees_vagues[i_vague]
-	return max(0.0, base)
+	base = max(0.0, base)
+
+	if base > 0.0:
+		return base
+
+	var cible: int = _cible_tues_courante()
+	var tot: int = _total_max_courant()
+	if vagues_infinies and cible < 0 and tot < 0:
+		return max(0.0, duree_vague_defaut_infinie)
+
+	return 0.0
 
 func _taux_courant() -> float:
 	var base: float = apparitions_par_sec
