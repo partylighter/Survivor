@@ -69,6 +69,9 @@ var _angle_locked: bool = false
 var _pivot_filtre: Vector2 = Vector2.ZERO
 var _has_pivot: bool = false
 
+var _main_principale_active: bool = true
+var _main_secondaire_active: bool = true
+
 const GROUPE_EQUIPEE := "__arme_equipee__"
 
 func _ready() -> void:
@@ -92,6 +95,8 @@ func _ready() -> void:
 
 	set_process(false)
 	set_physics_process(true)
+
+	_maj_main_vide_visu_et_process(true)
 
 func _physics_process(dt: float) -> void:
 	if dt <= 0.0:
@@ -364,6 +369,7 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_angle_main_affiche = _socket_principale.rotation
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
+	_maj_main_vide_visu_et_process()
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
 	if a == null or a == arme_principale:
@@ -380,6 +386,7 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	_offset_secondaire_affiche = PI
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
+	_maj_main_vide_visu_et_process()
 
 func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> void:
 	var a: ArmeBase = arme_principale if main_droite else arme_secondaire
@@ -391,6 +398,7 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 			arme_principale = null
 		else:
 			arme_secondaire = null
+		_maj_main_vide_visu_et_process()
 		return
 
 	_detach_to_world(a, s)
@@ -411,6 +419,8 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 		arme_principale = null
 	else:
 		arme_secondaire = null
+
+	_maj_main_vide_visu_et_process()
 
 func _lacher(main_droite: bool) -> void:
 	_liberer_interne(main_droite, false, 250)
@@ -488,8 +498,8 @@ func _switch_mains() -> void:
 		a2.rotation = 0.0
 		a2.scale = Vector2.ONE
 
-	# Reset léger pour éviter un "saut" d'offset après swap
 	_offset_secondaire_affiche = PI
+	_maj_main_vide_visu_et_process()
 
 func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var ang: float = wrapf(angle, -PI, PI)
@@ -507,3 +517,67 @@ func _appliquer_flip_visuel(n: Node2D, angle: float) -> void:
 	var sc: Vector2 = vis.scale
 	sc.y = -1.0 if doit_flip else 1.0
 	vis.scale = sc
+
+func _trouver_visuel_main(socket: Node) -> CanvasItem:
+	if socket == null:
+		return null
+
+	var n_sprite := socket.get_node_or_null("Sprite")
+	if n_sprite != null and n_sprite is CanvasItem and not (n_sprite is ArmeBase):
+		return n_sprite as CanvasItem
+
+	var stack: Array = [socket]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+
+		if n is ArmeBase:
+			continue
+
+		if n != socket and n is CanvasItem:
+			return n as CanvasItem
+
+		for c in n.get_children():
+			if c is ArmeBase:
+				continue
+			stack.append(c)
+
+	return null
+
+func _set_process_tree_main(n: Node, enabled: bool) -> void:
+	if n == null:
+		return
+	if n is ArmeBase:
+		return
+	n.set_process(enabled)
+	n.set_physics_process(enabled)
+	for c in n.get_children():
+		if c is ArmeBase:
+			continue
+		_set_process_tree_main(c, enabled)
+
+func _set_hand_state(socket: Node2D, active: bool) -> void:
+	if socket == null:
+		return
+
+	var vis: CanvasItem = _trouver_visuel_main(socket)
+
+	if vis != null:
+		vis.visible = active
+		_set_process_tree_main(vis, active)
+		return
+
+	if socket is CanvasItem:
+		(socket as CanvasItem).visible = active
+		_set_process_tree_main(socket, active)
+
+func _maj_main_vide_visu_et_process(force: bool = false) -> void:
+	var active_p: bool = (arme_principale != null)
+	var active_s: bool = (arme_secondaire != null)
+
+	if force or active_p != _main_principale_active:
+		_main_principale_active = active_p
+		_set_hand_state(_socket_principale, active_p)
+
+	if force or active_s != _main_secondaire_active:
+		_main_secondaire_active = active_s
+		_set_hand_state(_socket_secondaire, active_s)

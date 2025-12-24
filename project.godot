@@ -12,9 +12,9 @@ config_version=5
 
 config/name="MaximumOverdrive Survivor"
 config/description="Survivor"
-config/version="0.1.0"
-run/main_scene="uid://bxhvsp0qy5nos"
-config/features=PackedStringArray("4.5", "C#", "Forward Plus")
+config/version="0.1.1"
+run/main_scene="uid://0182ilsqlcwo"
+config/features=PackedStringArray("4.5", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 
 [autoload]

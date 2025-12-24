@@ -165,6 +165,7 @@ func _sortir() -> void:
 	else:
 		sortie_pos = vehicule.global_position + Vector2.RIGHT * 32.0
 	p.global_position = sortie_pos
+	p.global_rotation = 0.0
 
 	if debug_siege:
 		print("[SiegePilote] EXIT fini: parent=", p.get_parent(), " pos=", p.global_position, " layer=", _driver_layer, " mask=", _driver_mask)

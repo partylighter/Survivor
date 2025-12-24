@@ -143,13 +143,14 @@ stats = SubResource("Resource_06ar0")
 metadata/_custom_type_script = "uid://cmy22q8wiay7d"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+z_index = -1
 position = Vector2(1.999958, 0)
 scale = Vector2(12.96875, 13)
 texture = ExtResource("1_14dmd")
 
 [node name="Icon" type="Sprite2D" parent="."]
 modulate = Color(9.1448425e-07, 0.4394657, 0.4394658, 1)
-z_index = 85
+z_index = -1
 position = Vector2(5, -435)
 scale = Vector2(1.390625, 1.390625)
 texture = ExtResource("1_14dmd")

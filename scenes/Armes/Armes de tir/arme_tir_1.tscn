@@ -13,10 +13,11 @@ script = ExtResource("1_58xvi")
 scene_projectile = ExtResource("2_58xvi")
 chemin_effets = NodePath("ArmeEffets2D")
 chemin_socket_muzzle = NodePath("Socket")
-degats = 4
+dispersion_deg = 1.0
+degats = 1
 duree_active_s = 0.5
 cooldown_s = 0.1
-recul_force = 2000.0
+recul_force = 1.0
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://di6ajeojl73qu"
 

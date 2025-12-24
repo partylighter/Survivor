@@ -11,6 +11,7 @@ duree_vie_s = 3.0
 vitesse_px_s = 5000.0
 largeur_zone_scane = 200.0
 nombre_de_rayon_dans_zone_scane = 3
+contacts_avant_destruction = 3
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

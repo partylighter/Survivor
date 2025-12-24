@@ -10,12 +10,19 @@ signal expired(p: Projectile)
 @export var largeur_zone_scane: float = 0.0
 @export_range(1, 9, 1) var nombre_de_rayon_dans_zone_scane: int = 2
 
+@export_group("Piercing")
+@export_range(1, 50, 1) var contacts_avant_destruction: int = 1
+@export var ignorer_meme_cible: bool = true
+
 var _degats: int = 0
 var _dir: Vector2 = Vector2.ZERO
 var _recul_force: float = 0.0
 var _source: Node2D
 var _t: float = 0.0
 var _active: bool = false
+
+var _contacts_restants: int = 1
+var _cibles_deja_touchees: Dictionary = {} # instance_id -> true
 
 func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) -> void:
 	visible = true
@@ -27,6 +34,9 @@ func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) ->
 	_source = src
 	_t = 0.0
 	_active = true
+
+	_contacts_restants = max(contacts_avant_destruction, 1)
+	_cibles_deja_touchees.clear()
 
 func desactiver() -> void:
 	_active = false
@@ -53,14 +63,38 @@ func _physics_process(dt: float) -> void:
 
 	var hit := _intersect_large(from, ray_to, exclude)
 	if not hit.is_empty():
-		_appliquer_impact(hit.get("collider"))
-		desactiver()
-		return
+		var collider: Object = hit.get("collider", null)
+		if _gerer_impact(collider):
+			# on a consommé un contact -> si il reste des hits, on continue
+			if _contacts_restants <= 0:
+				desactiver()
+				return
 
+	# si tu veux un vrai "piercing", tu laisses avancer même après impact
 	global_position = move_to
+
 	_t += dt
 	if _t >= duree_vie_s:
 		desactiver()
+
+func _gerer_impact(collider: Object) -> bool:
+	if collider == null:
+		return false
+
+	# on identifie une "cible" (HurtBox si possible, sinon collider)
+	var hb: HurtBox = _resolve_hurtbox(collider)
+	var target_obj: Object = hb if hb != null else collider
+
+	if ignorer_meme_cible:
+		var id := target_obj.get_instance_id()
+		if _cibles_deja_touchees.has(id):
+			return false
+		_cibles_deja_touchees[id] = true
+
+	_appliquer_impact(collider)
+
+	_contacts_restants -= 1
+	return true
 
 func _intersect_large(from: Vector2, to: Vector2, exclude: Array) -> Dictionary:
 	var space := get_world_2d().direct_space_state

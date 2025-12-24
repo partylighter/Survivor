@@ -67,6 +67,7 @@ chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 cam_zoom_sol = 0.26
+cam_zoom_conduite = 0.17
 collision_ennemis_actif = false
 poids_collision = 20.0
 collision_push_mult = 0.01
@@ -148,18 +149,15 @@ toujours_visible = true
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")
-chemin_socket_principale = NodePath("SocketGauche")
-chemin_socket_secondaire = NodePath("SocketDroite")
+chemin_socket_principale = NodePath("SocketDroite")
+chemin_socket_secondaire = NodePath("SocketGauche")
 chemin_zone = NodePath("../ZoneRamassage")
-chemin_pivot = NodePath("SocketDroite")
+chemin_pivot = NodePath("SocketDroite/Sprite2D2")
 pivot_mode = 2
 distance_min = 150.0
 distance_max = 400.0
-distance_fusion_debut = 400.0
-vitesse_offset_max_rad_s = 3.0
-avance_max = 6.28
-ecart_lateral = 19.6
-portee_main_secondaire = 0.7999999999999999
+distance_fusion_debut = 758.6
+distance_fusion_range = 880.6
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
