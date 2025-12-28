@@ -22,11 +22,13 @@ script = ExtResource("1_4oad4")
 type_ennemi = 1
 valeur_score = 20
 chemin_sante = NodePath("Sante")
+chemin_sprite = NodePath("Sprite2D")
 speed = 900.0
 vitesse_rotation_rad_s = 5.0
 recul_amorti = 5.0
-recul_max = 2500.0
-secousse_force_px = 50.0
+recul_max = 10000.0
+secousse_force_px = 25.0
+secousse_scale_impulse = Vector2(3, -0.18)
 distance_ralentir_joueur_px = 400.0
 base_marge_px = 1000.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
@@ -37,7 +39,7 @@ texture = ExtResource("2_flehi")
 
 [node name="Sante" type="Node" parent="."]
 script = ExtResource("3_t4t15")
-max_pv = 5
+max_pv = 30
 metadata/_custom_type_script = "uid://dckl6i06hmi3g"
 
 [node name="HurtBox" type="Area2D" parent="."]

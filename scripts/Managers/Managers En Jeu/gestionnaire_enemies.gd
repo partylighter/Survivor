@@ -255,6 +255,50 @@ func _prendre_depuis_pool(type_idx: int) -> Node2D:
 			return e
 	return null
 
+func spawn_force(type_idx: int, pos: Vector2, vague_id: int = -1, metas: Dictionary = {}) -> Node2D:
+	return _creer_ennemi_index_pos(type_idx, pos, vague_id, metas)
+
+func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dictionary) -> Node2D:
+	if scenes_ennemis.is_empty() or not is_instance_valid(joueur):
+		return null
+
+	idx = clamp(idx, 0, scenes_ennemis.size() - 1)
+
+	var e: Node2D = _prendre_depuis_pool(idx)
+	if e == null:
+		e = scenes_ennemis[idx].instantiate() as Node2D
+		if e == null:
+			return null
+		e.set_meta("type_idx", idx)
+	else:
+		if e.has_method("reactiver_apres_pool"):
+			e.call("reactiver_apres_pool")
+
+	e.global_position = pos
+
+	if e.get_parent() != self:
+		add_child(e)
+
+	_activer_ennemi(e, true)
+	e.show()
+
+	if not ennemis.has(e):
+		ennemis.append(e)
+
+	e.set_meta("vague_id", vague_id)
+	e.set_meta("lod_mode", -1)
+
+	for k in metas.keys():
+		e.set_meta(k, metas[k])
+
+	if e.has_signal("mort"):
+		var cb: Callable = Callable(self, "_sur_mort").bind(e)
+		if not e.is_connected("mort", cb):
+			e.connect("mort", cb)
+
+	emit_signal("ennemi_cree", e)
+	return e
+
 func _rendre_a_pool(e: Node2D) -> void:
 	if not is_instance_valid(e):
 		return

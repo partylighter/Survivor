@@ -6,13 +6,14 @@ class_name ArmeTir
 @export_node_path("Node2D") var chemin_socket_muzzle: NodePath
 @export_node_path("Node") var chemin_racine_projectiles: NodePath
 @export_range(1, 10000, 1) var nb_balles: int = 1
-@export_range(0.0, 60.0, 0.1) var dispersion_deg: float = 0.0  
+@export_range(0.0, 60.0, 0.1) var dispersion_deg: float = 0.0
 @export var debug_tir: bool = false
 @export var hitscan: bool = false
 @export var tir_max_par_frame: int = 20
 @export var portee_hitscan_px: float = 2000.0
 @export var mask_tir: int = 0
 
+var upgrades: GestionnaireUpgradesArmeTir = null
 var effets: ArmeEffets2D
 var _muzzle: Node2D
 var _root_proj: Node
@@ -20,6 +21,10 @@ var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
 
 func _ready() -> void:
+	add_to_group("armes_tir")
+
+	_trouver_upgrades()
+
 	if chemin_effets != NodePath():
 		effets = get_node(chemin_effets) as ArmeEffets2D
 	if effets:
@@ -43,15 +48,21 @@ func _ready() -> void:
 	if _root_proj == null:
 		var p: Node2D = Node2D.new()
 		p.name = "Projectiles"
-		p.top_level = true  # ignore la transform du parent
+		p.top_level = true
 		get_tree().current_scene.add_child(p)
 		_root_proj = p
+
+func _trouver_upgrades() -> void:
+	if upgrades != null and is_instance_valid(upgrades):
+		return
+	var arr := get_tree().get_nodes_in_group("upg_arme_tir")
+	if not arr.is_empty():
+		upgrades = arr[0] as GestionnaireUpgradesArmeTir
 
 func _offset_eventail(i: int, n: int, spread_rad: float) -> float:
 	if n <= 1 or spread_rad <= 0.0:
 		return 0.0
 	return lerp(-spread_rad * 0.5, spread_rad * 0.5, float(i) / float(n - 1))
-
 
 func _process(_dt: float) -> void:
 	if effets:
@@ -85,6 +96,11 @@ func attaquer() -> void:
 	var now: float = Time.get_ticks_msec() * 0.001
 	if not peut_attaquer():
 		return
+
+	_trouver_upgrades()
+	if upgrades and upgrades.actif:
+		upgrades.appliquer_sur_arme(self)
+
 	if not hitscan and scene_projectile == null:
 		return
 	if now < _cooldown_fin_s:
@@ -97,9 +113,6 @@ func attaquer() -> void:
 	var dir0: Vector2 = _forward_dir()
 	var n: int = min(nb_balles, tir_max_par_frame)
 	var spread_rad: float = deg_to_rad(dispersion_deg)
-
-	if debug_tir:
-		print_debug("[ArmeTir#", get_instance_id(), "] n=", n, " hitscan=", hitscan, " spread=", dispersion_deg, "°")
 
 	for i: int in range(n):
 		var dir_i: Vector2 = dir0.rotated(_offset_eventail(i, n, spread_rad))
@@ -162,13 +175,13 @@ func _appliquer_recul_commune(target: Object, origine: Node2D, force: float) -> 
 			return
 		n = n.get_parent()
 
-
 func _prendre_projectile() -> Projectile:
 	var p: Projectile = null
 	while not _pool.is_empty() and p == null:
 		var cand: Projectile = _pool.pop_back()
 		if is_instance_valid(cand):
 			p = cand
+
 	if p == null and scene_projectile != null:
 		p = scene_projectile.instantiate() as Projectile
 		if p != null:
@@ -177,6 +190,11 @@ func _prendre_projectile() -> Projectile:
 			p.set_physics_process(false)
 			p.connect("expired", Callable(self, "_recycler_projectile"))
 			_root_proj.add_child(p)
+
+	_trouver_upgrades()
+	if upgrades and upgrades.actif and p != null:
+		upgrades.appliquer_sur_projectile(p)
+
 	return p
 
 func _recycler_projectile(p: Projectile) -> void:

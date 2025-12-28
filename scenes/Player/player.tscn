@@ -146,6 +146,7 @@ chemin_sante = NodePath("../Santé")
 chemin_loot = NodePath("../GestionnaireLoot")
 offset = Vector2(-61, -100)
 toujours_visible = true
+debug_level = 0
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")

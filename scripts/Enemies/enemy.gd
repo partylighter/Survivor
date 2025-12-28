@@ -12,6 +12,7 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 
 @export_group("Refs")
 @export_node_path("Node") var chemin_sante: NodePath
+@export_node_path("Sprite2D") var chemin_sprite: NodePath = NodePath()
 
 @export_group("Collision math")
 @export var rayon_collision_px: float = 14.0
@@ -44,6 +45,10 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export_group("Secousse visuelle")
 @export var secousse_force_px: float = 4.0
 @export var secousse_duree_s: float = 0.12
+@export var secousse_scale_impulse: Vector2 = Vector2(0.22, -0.18)
+@export var secousse_scale_spring: float = 120.0
+@export var secousse_scale_damping: float = 18.0
+@export var secousse_scale_max: float = 0.35
 
 @export_group("Distances joueur")
 @export var distance_arret_joueur_px: float = 70.0
@@ -97,15 +102,20 @@ var _doit_emit_reapparu_next_frame: bool = false
 var _layer_orig: int = -1
 var _mask_orig: int = -1
 
+var _sprite_scale_neutre: Vector2 = Vector2.ONE
+var _scale_offset: Vector2 = Vector2.ZERO
+var _scale_vel: Vector2 = Vector2.ZERO
+
 var _ai_enabled: bool = true
 
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
-@onready var sprite: Sprite2D = $Sprite2D
+@onready var sprite: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
 
 func _ready() -> void:
 	add_to_group("enemy")
 	_sprite_pos_neutre = sprite.position
+	_sprite_scale_neutre = sprite.scale
 
 	if sante:
 		sante.died.connect(_on_mort)
@@ -161,6 +171,7 @@ func appliquer_recul_depuis(source: Node2D, force: float) -> void:
 
 func _prendre_coup_visuel() -> void:
 	_secousse_t = secousse_duree_s
+	_scale_vel += secousse_scale_impulse
 
 func _regen_offset(dir_to_player: Vector2) -> void:
 	var s: float = max(offset_cible_max_px, 0.0)
@@ -178,6 +189,27 @@ func _regen_offset(dir_to_player: Vector2) -> void:
 	tangent = tangent.normalized()
 
 	_offset_cible_voulu = tangent * randf_range(-s, s)
+
+func _tick_scale_impact(dt: float) -> void:
+	var k: float = max(secousse_scale_spring, 0.0)
+	var d: float = max(secousse_scale_damping, 0.0)
+
+	if k <= 0.0:
+		sprite.scale = _sprite_scale_neutre
+		return
+
+	_scale_vel += (-_scale_offset * k - _scale_vel * d) * dt
+	_scale_offset += _scale_vel * dt
+
+	var m: float = max(secousse_scale_max, 0.0)
+	if m > 0.0:
+		_scale_offset.x = clamp(_scale_offset.x, -m, m)
+		_scale_offset.y = clamp(_scale_offset.y, -m, m)
+
+	var s: Vector2 = _sprite_scale_neutre + _scale_offset
+	s.x = max(s.x, 0.05)
+	s.y = max(s.y, 0.05)
+	sprite.scale = s
 
 func _physics_process(dt: float) -> void:
 	if _doit_emit_reapparu_next_frame:
@@ -317,13 +349,16 @@ func _physics_process(dt: float) -> void:
 
 	if _secousse_t > 0.0:
 		_secousse_t -= dt
-		var ratio: float = _secousse_t / secousse_duree_s
-		if ratio < 0.0:
-			ratio = 0.0
+		var ratio: float = 0.0
+		if secousse_duree_s > 0.0001:
+			ratio = _secousse_t / secousse_duree_s
+		ratio = clamp(ratio, 0.0, 1.0)
 		var offset: Vector2 = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
 		sprite.position = _sprite_pos_neutre + offset
 	else:
 		sprite.position = _sprite_pos_neutre
+
+	_tick_scale_impact(dt)
 
 	_maj_base_vel(dt)
 	_bloquer_entree_base(dt)
@@ -356,6 +391,11 @@ func _on_mort() -> void:
 
 	collision_layer = 0
 	collision_mask = 0
+
+	_scale_offset = Vector2.ZERO
+	_scale_vel = Vector2.ZERO
+	sprite.scale = _sprite_scale_neutre
+	sprite.position = _sprite_pos_neutre
 
 	visible = false
 	velocity = Vector2.ZERO
@@ -390,6 +430,10 @@ func reactiver_apres_pool() -> void:
 
 	_doit_emit_reapparu_next_frame = true
 	_secousse_t = 0.0
+
+	_scale_offset = Vector2.ZERO
+	_scale_vel = Vector2.ZERO
+	sprite.scale = _sprite_scale_neutre
 	sprite.position = _sprite_pos_neutre
 
 	_regen_offset(_dir_to_player_last)

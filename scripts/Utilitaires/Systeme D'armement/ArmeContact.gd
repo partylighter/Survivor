@@ -6,13 +6,26 @@ class_name ArmeContact
 
 var hitbox: HitBoxContact
 var effets: ArmeEffets2D
+var upgrades: GestionnaireUpgradesArmeContact = null
 
 func _ready() -> void:
+	add_to_group("armes_contact")
+
 	hitbox = get_node_or_null(chemin_hitbox) as HitBoxContact
+
 	if chemin_effets != NodePath():
 		effets = get_node(chemin_effets) as ArmeEffets2D
 	if effets:
 		effets.set_cible(self)
+
+	_trouver_upgrades()
+
+func _trouver_upgrades() -> void:
+	if upgrades != null and is_instance_valid(upgrades):
+		return
+	var arr := get_tree().get_nodes_in_group("upg_arme_contact")
+	if not arr.is_empty():
+		upgrades = arr[0] as GestionnaireUpgradesArmeContact
 
 func _process(_dt: float) -> void:
 	if effets:
@@ -30,8 +43,16 @@ func jeter_vers_souris(distance_px: float = 80.0) -> void:
 func attaquer() -> void:
 	if not peut_attaquer():
 		return
+
+	_trouver_upgrades()
+	if upgrades and upgrades.actif:
+		upgrades.appliquer_sur(self)
+
 	if hitbox == null:
-		return
+		hitbox = get_node_or_null(chemin_hitbox) as HitBoxContact
+		if hitbox == null:
+			return
+
 	_pret = false
 	hitbox.configurer(degats, recul_force, porteur)
 	hitbox.activer_pendant(duree_active_s)

@@ -130,6 +130,7 @@ script = ExtResource("3_niuik")
 chemin_seat_area = NodePath("../area siege")
 chemin_seat_marker = NodePath("../chemin siege")
 chemin_exit_marker = NodePath("../chemin sortie")
+debug_siege = false
 metadata/_custom_type_script = "uid://dba6yh0skhit7"
 
 [node name="CarburantBase" type="Node" parent="."]
