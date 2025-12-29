@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene load_steps=28 format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -17,12 +17,11 @@
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://resources/script/LootItemEntry.gd" id="11_op4qr"]
 [ext_resource type="Script" uid="uid://leky5p00ehnf" path="res://scripts/autoloads/AutoloadsMenuing/GestionairPause.gd" id="11_uuc06"]
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
-[ext_resource type="Resource" uid="uid://bpg2gwtyuypnq" path="res://resources/Jus de mutant concentre.tres" id="13_7vwj5"]
-[ext_resource type="Resource" uid="uid://cp6fu5m15iv3o" path="res://resources/Jus de mutant.tres" id="13_bjm5b"]
 [ext_resource type="Resource" uid="uid://dk71txuwjlglb" path="res://resources/Sang de goblin.tres" id="13_rsdp2"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/Managers/Managers En Jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
 [ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeContact.gd" id="17_g8on3"]
+[ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/Menus/labolo_menu.tscn" id="24_dwlrb"]
 
 [sub_resource type="Resource" id="Resource_op4qr"]
 script = ExtResource("11_22h11")
@@ -32,8 +31,6 @@ metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 script = ExtResource("11_22h11")
 proba_C = 0.39
 proba_B = 0.56
-conso_C = Array[ExtResource("11_op4qr")]([ExtResource("13_bjm5b")])
-conso_B = Array[ExtResource("11_op4qr")]([ExtResource("13_7vwj5")])
 upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("13_rsdp2")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
@@ -164,3 +161,5 @@ chemin_ennemis = NodePath("../Gestionnaire Enemies")
 
 [node name="PerfDisplayer" parent="." instance=ExtResource("7_i7xtm")]
 margin = Vector2(8, 50)
+
+[node name="LaboloMenu" parent="." instance=ExtResource("24_dwlrb")]

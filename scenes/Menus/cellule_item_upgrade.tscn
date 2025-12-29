@@ -1,0 +1,19 @@
+[gd_scene load_steps=2 format=3 uid="uid://ban0uu1up7fyp"]
+
+[ext_resource type="Script" uid="uid://c2c0ntx3j3c7g" path="res://scripts/Menus/CelluleItemUpgrade.gd" id="1_3ix4o"]
+
+[node name="CelluleItemUpgrade" type="PanelContainer"]
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_3ix4o")
+debug_drag = true
+metadata/_custom_type_script = "uid://c2c0ntx3j3c7g"
+
+[node name="Colonne" type="VBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Nom" type="Label" parent="Colonne"]
+layout_mode = 2
+
+[node name="Quantite" type="Label" parent="Colonne"]
+layout_mode = 2
