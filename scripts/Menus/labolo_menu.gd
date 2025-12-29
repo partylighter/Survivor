@@ -173,16 +173,40 @@ func _match_prefix(s: String) -> bool:
 			return true
 	return false
 
-func _on_item_depose(type_emplacement: int, id_item: StringName, quantite: int) -> void:
+func _on_item_depose(type_emplacement: int, id_item: StringName, _quantite: int) -> void:
 	var slot := "?"
 	if emplacement_tir and type_emplacement == int(emplacement_tir.type_emplacement):
 		slot = "TIR"
 	elif emplacement_contact and type_emplacement == int(emplacement_contact.type_emplacement):
 		slot = "CONTACT"
 
-	_d("DROP: slot=%s type_emplacement=%d id_item=%s q=%d" % [
-		slot, type_emplacement, String(id_item), quantite
-	])
+	_trouver_loot()
+	if loot_ref == null or not is_instance_valid(loot_ref):
+		if debug_labolo:
+			print("[Labolo] DROP REFUS: loot_ref manquant")
+		return
+
+	if not loot_ref.has_method("consommer_loot"):
+		if debug_labolo:
+			print("[Labolo] DROP REFUS: loot_ref n'a pas consommer_loot()")
+		return
+
+	# Par défaut: 1 item consommé par drop (tu pourras changer après)
+	var a_prendre: int = 1
+	var pris: int = int(loot_ref.call("consommer_loot", id_item, a_prendre))
+
+	if pris <= 0:
+		if debug_labolo:
+			print("[Labolo] DROP: rien consommé (stock vide?) slot=", slot, " id=", String(id_item))
+		return
+
+	if debug_labolo:
+		print("[Labolo] DROP OK: slot=", slot, " id=", String(id_item), " pris=", pris)
+
+	# TODO: ici on branchera l'application de l'upgrade sur l'arme
+	# _appliquer_upgrade_labo(type_emplacement, id_item, pris)
+
+	rafraichir_grille()
 
 func _d(msg: String) -> void:
 	if debug_labolo:

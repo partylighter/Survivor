@@ -104,6 +104,32 @@ func _process(delta: float) -> void:
 	_tick_invincible(delta)
 	_tick_rage(delta)
 
+func get_quantite_loot(id_item: StringName) -> int:
+	return int(stats_loot.get(id_item, 0))
+
+func consommer_loot(id_item: StringName, quantite: int) -> int:
+	var q_demande: int = maxi(quantite, 0)
+	if q_demande <= 0:
+		return 0
+
+	var q_dispo: int = int(stats_loot.get(id_item, 0))
+	if q_dispo <= 0:
+		return 0
+
+	var q_pris: int = mini(q_dispo, q_demande)
+	var q_reste: int = q_dispo - q_pris
+
+	if q_reste <= 0:
+		stats_loot.erase(id_item)
+	else:
+		stats_loot[id_item] = q_reste
+
+	if debug_loot:
+		print("[Loot] consommer_loot id=", String(id_item),
+			" pris=", q_pris, " reste=", int(stats_loot.get(id_item, 0)))
+
+	return q_pris
+
 func _ensure_refs() -> void:
 	if joueur == null or not is_instance_valid(joueur):
 		joueur = get_parent() as Player
