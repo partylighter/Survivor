@@ -40,11 +40,13 @@ func tek_it(damage: int, source: Node) -> void:
 		return
 	if sante != null:
 		sante.apply_damage(damage, source)
-		emit_signal("hit_received", damage, source) # <-- AJOUT (secousse)
+		emit_signal("hit_received", damage, source)
+	if groupe_hurtbox == &"player_hurtbox":
+		var cam := get_tree().get_first_node_in_group(&"cam_player") as CamPlayer
+		if cam != null:
+			cam.kick_shake_from_damage(damage)
 
-	_i_t = max(invincibilite_s, 0.0)
-	if _i_t > 0.0:
-		set_physics_process(true)
+
 
 func set_actif(v: bool) -> void:
 	set_deferred("monitoring", v)

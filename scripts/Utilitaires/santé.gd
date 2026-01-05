@@ -33,6 +33,7 @@ func apply_damage(amount: int, source: Node) -> void:
 			emit_signal("died")
 
 
+
 func heal(amount: int) -> void:
 	var heal_value = max(amount, 0)
 	if heal_value <= 0.0:

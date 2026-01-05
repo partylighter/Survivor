@@ -68,6 +68,14 @@ collision_push_mult = 0.01
 [node name="Camera2D" type="Camera2D" parent="."]
 script = ExtResource("2_wyey8")
 chemin_joueur = NodePath("..")
+mouse_look_sol_px = 250.0
+mouse_look_conduite_px = 500.0
+mouse_influence_y = 1.0
+zoom_sol = 0.3
+zoom_conduite = 0.39999999999999997
+zoom_move_sol = 0.2
+zoom_speed = 3.0
+zoom_in_delay_s = 2.0
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
 unique_name_in_owner = true
