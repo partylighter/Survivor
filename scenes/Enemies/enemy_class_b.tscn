@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://blg7jbv4ugjh5"]
+[gd_scene load_steps=9 format=3 uid="uid://blg7jbv4ugjh5"]
 
 [ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/Enemies/enemy.gd" id="1_4oad4"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_flehi"]
 [ext_resource type="Shader" uid="uid://cv0r5dn3er7dj" path="res://Shaders/TremblementCoups.gdshader" id="2_t4t15"]
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/Utilitaires/santé.gd" id="3_t4t15"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_htv04"]
+[ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/Enemies/ContactDamage.gd" id="6_flehi"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_flehi"]
 shader = ExtResource("2_t4t15")
@@ -23,6 +24,7 @@ type_ennemi = 1
 valeur_score = 20
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Sprite2D")
+rayon_collision_px = 50.0
 speed = 900.0
 vitesse_rotation_rad_s = 5.0
 recul_amorti = 5.0
@@ -47,8 +49,13 @@ collision_layer = 32
 collision_mask = 0
 script = ExtResource("4_htv04")
 chemin_sante = NodePath("../Sante")
+groupe_hurtbox = &"enemy_hurtbox"
 metadata/_custom_type_script = "uid://cp87fy13f23lc"
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="HurtBox"]
 shape = SubResource("CircleShape2D_p6dij")
 debug_color = Color(1, 1, 1, 0)
+
+[node name="ContactDamage" type="Node" parent="."]
+script = ExtResource("6_flehi")
+metadata/_custom_type_script = "uid://b1wenibwev34d"

@@ -4,7 +4,7 @@ class_name Enemy
 signal mort
 signal reapparu
 
-enum TypeEnnemi {C, B, A, S, BOSS}
+enum TypeEnnemi { C, B, A, S, BOSS }
 
 @export_group("Type")
 @export_enum("C","B","A","S","BOSS") var type_ennemi: int = TypeEnnemi.C
@@ -26,7 +26,10 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var wobble_angle_rad: float = 0.12
 @export var wobble_freq_hz: float = 1.3
 
-@export_group("Recul (hit)")
+@export_group("Recul")
+@export var recul_force_par_degats: float = 18.0
+@export var recul_force_min: float = 0.0
+@export var recul_force_max: float = 220.0
 @export var recul_amorti: float = 18.0
 @export var recul_max: float = 500.0
 @export var recul_bloque_chase: bool = true
@@ -66,12 +69,13 @@ enum TypeEnnemi {C, B, A, S, BOSS}
 @export var base_marge_px: float = 8.0
 
 static var _base_cache: Node2D = null
+static var _base_cache_prev_pos: Vector2 = Vector2.ZERO
+static var _base_cache_vel: Vector2 = Vector2.ZERO
+static var _base_cache_inited: bool = false
+static var _base_cache_frame: int = -1
 
 var base_refuge: Node2D = null
-var _base_ref_prev: Node2D = null
-var _base_prev_pos: Vector2 = Vector2.ZERO
 var _base_vel: Vector2 = Vector2.ZERO
-var _base_init: bool = false
 
 var _recul_lock_t: float = 0.0
 var recul: Vector2 = Vector2.ZERO
@@ -111,14 +115,19 @@ var _ai_enabled: bool = true
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var target: Player = _find_player(get_tree().current_scene)
 @onready var sprite: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
+@onready var hurtbox: HurtBox = get_node_or_null("HurtBox") as HurtBox
+@onready var contact_damage: ContactDamage = get_node_or_null("ContactDamage") as ContactDamage
 
 func _ready() -> void:
 	add_to_group("enemy")
-	_sprite_pos_neutre = sprite.position
-	_sprite_scale_neutre = sprite.scale
 
-	if sante:
+	if sprite != null:
+		_sprite_pos_neutre = sprite.position
+		_sprite_scale_neutre = sprite.scale
+
+	if sante != null:
 		sante.died.connect(_on_mort)
+		sante.damaged.connect(_on_damaged)
 
 	_layer_orig = collision_layer
 	_mask_orig = collision_mask
@@ -149,7 +158,9 @@ func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
 	if m > pousse_max:
 		pousse = pousse * (pousse_max / m)
 
-	var ls: float = lock_s if lock_s >= 0.0 else pousse_bloque_chase_duree_s
+	var ls: float = pousse_bloque_chase_duree_s
+	if lock_s >= 0.0:
+		ls = lock_s
 	_pousse_lock_t = max(_pousse_lock_t, max(ls, 0.0))
 
 func appliquer_recul(direction: Vector2, force: float) -> void:
@@ -173,6 +184,14 @@ func _prendre_coup_visuel() -> void:
 	_secousse_t = secousse_duree_s
 	_scale_vel += secousse_scale_impulse
 
+func _on_damaged(amount: int, source: Node) -> void:
+	if not (source is Node2D):
+		return
+	var f: float = clamp(float(amount) * max(recul_force_par_degats, 0.0), recul_force_min, recul_force_max)
+	if f <= 0.0:
+		return
+	appliquer_recul_depuis(source as Node2D, f)
+
 func _regen_offset(dir_to_player: Vector2) -> void:
 	var s: float = max(offset_cible_max_px, 0.0)
 	if s <= 0.0:
@@ -191,12 +210,16 @@ func _regen_offset(dir_to_player: Vector2) -> void:
 	_offset_cible_voulu = tangent * randf_range(-s, s)
 
 func _tick_scale_impact(dt: float) -> void:
-	var k: float = max(secousse_scale_spring, 0.0)
-	var d: float = max(secousse_scale_damping, 0.0)
-
-	if k <= 0.0:
-		sprite.scale = _sprite_scale_neutre
+	if sprite == null:
 		return
+
+	var k: float = max(secousse_scale_spring, 0.0)
+	if k <= 0.0:
+		if sprite.scale != _sprite_scale_neutre:
+			sprite.scale = _sprite_scale_neutre
+		return
+
+	var d: float = max(secousse_scale_damping, 0.0)
 
 	_scale_vel += (-_scale_offset * k - _scale_vel * d) * dt
 	_scale_offset += _scale_vel * dt
@@ -206,10 +229,89 @@ func _tick_scale_impact(dt: float) -> void:
 		_scale_offset.x = clamp(_scale_offset.x, -m, m)
 		_scale_offset.y = clamp(_scale_offset.y, -m, m)
 
+	if _scale_offset.length_squared() < 0.000001 and _scale_vel.length_squared() < 0.000001:
+		_scale_offset = Vector2.ZERO
+		_scale_vel = Vector2.ZERO
+		if sprite.scale != _sprite_scale_neutre:
+			sprite.scale = _sprite_scale_neutre
+		return
+
 	var s: Vector2 = _sprite_scale_neutre + _scale_offset
 	s.x = max(s.x, 0.05)
 	s.y = max(s.y, 0.05)
 	sprite.scale = s
+
+func _update_base_shared(dt: float) -> void:
+	var frame: int = Engine.get_physics_frames()
+	if _base_cache_frame == frame:
+		return
+	_base_cache_frame = frame
+
+	if not is_instance_valid(_base_cache):
+		var n := get_tree().get_first_node_in_group("base_vehicle")
+		_base_cache = n as Node2D
+		_base_cache_inited = false
+		_base_cache_prev_pos = Vector2.ZERO
+		_base_cache_vel = Vector2.ZERO
+
+	if _base_cache == null:
+		_base_cache_inited = false
+		_base_cache_vel = Vector2.ZERO
+		return
+
+	var pos: Vector2 = _base_cache.global_position
+	if not _base_cache_inited:
+		_base_cache_inited = true
+		_base_cache_prev_pos = pos
+		_base_cache_vel = Vector2.ZERO
+		return
+
+	if dt > 0.0:
+		_base_cache_vel = (pos - _base_cache_prev_pos) / dt
+	else:
+		_base_cache_vel = Vector2.ZERO
+	_base_cache_prev_pos = pos
+
+func _maj_base_vel(dt: float) -> void:
+	_update_base_shared(dt)
+	base_refuge = _base_cache
+	_base_vel = _base_cache_vel
+
+func _bloquer_entree_base(dt: float) -> void:
+	if not base_actif or base_refuge == null:
+		return
+
+	var c: Vector2 = base_refuge.global_position
+	var from_center: Vector2 = global_position - c
+
+	var r: float = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
+	if r <= 0.0:
+		return
+
+	var r2: float = r * r
+	var d2: float = from_center.length_squared()
+	var inv_dist: float = 1.0 / sqrt(max(d2, 0.0001))
+	var dist: float = 1.0 / inv_dist
+
+	var v_rel: Vector2 = velocity - _base_vel
+
+	if d2 < r2:
+		var n_out: Vector2 = from_center * inv_dist
+		global_position = c + n_out * r
+
+		var toward_center: float = v_rel.dot(-n_out)
+		if toward_center > 0.0:
+			v_rel += n_out * toward_center
+
+		velocity = v_rel + _base_vel
+		return
+
+	var n_in: Vector2 = (-from_center) * inv_dist
+	var inward: float = v_rel.dot(n_in)
+	if inward > 0.0 and (dist - inward * dt) < r:
+		v_rel -= n_in * inward
+
+	velocity = v_rel + _base_vel
 
 func _physics_process(dt: float) -> void:
 	if _doit_emit_reapparu_next_frame:
@@ -222,11 +324,13 @@ func _physics_process(dt: float) -> void:
 	var dist_player: float = 999999.0
 	var dir_to_player: Vector2 = _dir_to_player_last
 
-	if target != null:
+	if target != null and is_instance_valid(target):
 		var tp: Vector2 = target.global_position - global_position
-		dist_player = tp.length()
-		if dist_player > 0.0001:
-			dir_to_player = tp / dist_player
+		var d2p: float = tp.length_squared()
+		if d2p > 0.0001:
+			var invp: float = 1.0 / sqrt(d2p)
+			dist_player = 1.0 / invp
+			dir_to_player = tp * invp
 			_dir_to_player_last = dir_to_player
 
 	_recul_lock_t = max(_recul_lock_t - dt, 0.0)
@@ -250,7 +354,7 @@ func _physics_process(dt: float) -> void:
 	var desired_speed: float = 0.0
 	var desired_dir: Vector2 = _dir_mouvement_last
 
-	if target != null and not bloc_actif:
+	if target != null and is_instance_valid(target) and not bloc_actif:
 		_t_offset -= dt
 		if _t_offset <= 0.0:
 			_t_offset = max(offset_cible_refresh_s, 0.001)
@@ -264,10 +368,10 @@ func _physics_process(dt: float) -> void:
 			desired_dir = _dir_mouvement_last
 		else:
 			var to: Vector2 = (target.global_position + _offset_cible) - global_position
-			var dist_to: float = to.length()
+			var d2to: float = to.length_squared()
 
-			if dist_to > 0.0001:
-				desired_dir = to / dist_to
+			if d2to > 0.0001:
+				desired_dir = to * (1.0 / sqrt(d2to))
 			else:
 				desired_dir = dir_to_player
 
@@ -285,7 +389,7 @@ func _physics_process(dt: float) -> void:
 	var wobble_rate: float = max(wobble_freq_hz, 0.0) * TAU
 	var wobble_angle: float = sin(_wobble_phase + _wobble_t * wobble_rate) * max(wobble_angle_rad, 0.0) * _wobble_sign
 	if desired_speed > 0.001 and desired_dir.length_squared() > 0.0001:
-		desired_dir = desired_dir.rotated(wobble_angle).normalized()
+		desired_dir = desired_dir.rotated(wobble_angle)
 
 	if desired_dir.length_squared() > 0.0001:
 		if vitesse_rotation_rad_s <= 0.0:
@@ -294,15 +398,10 @@ func _physics_process(dt: float) -> void:
 			var cur_dir: Vector2 = _dir_mouvement_last
 			if cur_dir.length_squared() < 0.0001:
 				cur_dir = desired_dir
-
-			var a_cur: float = atan2(cur_dir.y, cur_dir.x)
-			var a_des: float = atan2(desired_dir.y, desired_dir.x)
-			var da: float = wrapf(a_des - a_cur, -PI, PI)
-			var max_step: float = max(vitesse_rotation_rad_s, 0.0) * dt
-			da = clamp(da, -max_step, max_step)
-
-			var a_new: float = a_cur + da
-			_dir_mouvement_last = Vector2(cos(a_new), sin(a_new))
+			var krot: float = clamp(max(vitesse_rotation_rad_s, 0.0) * dt, 0.0, 1.0)
+			_dir_mouvement_last = cur_dir.lerp(desired_dir, krot)
+			if _dir_mouvement_last.length_squared() > 0.0001:
+				_dir_mouvement_last = _dir_mouvement_last.normalized()
 
 	var desired_vel: Vector2 = _dir_mouvement_last * desired_speed
 
@@ -334,7 +433,7 @@ func _physics_process(dt: float) -> void:
 	if pousse.length_squared() < 1.0:
 		pousse = Vector2.ZERO
 
-	if target != null and dir_to_player.length_squared() > 0.0001:
+	if target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
 			var inward0: float = velocity.dot(dir_to_player)
 			if inward0 > 0.0:
@@ -347,18 +446,26 @@ func _physics_process(dt: float) -> void:
 			if inward > max_in:
 				velocity -= dir_to_player * (inward - max_in)
 
-	if _secousse_t > 0.0:
-		_secousse_t -= dt
-		var ratio: float = 0.0
-		if secousse_duree_s > 0.0001:
-			ratio = _secousse_t / secousse_duree_s
-		ratio = clamp(ratio, 0.0, 1.0)
-		var offset: Vector2 = Vector2(randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
-		sprite.position = _sprite_pos_neutre + offset
-	else:
-		sprite.position = _sprite_pos_neutre
+	if sprite != null:
+		if _secousse_t > 0.0:
+			_secousse_t -= dt
+			var ratio: float = 0.0
+			if secousse_duree_s > 0.0001:
+				ratio = _secousse_t / secousse_duree_s
+			ratio = clamp(ratio, 0.0, 1.0)
+			var ox: float = randf_range(-1.0, 1.0)
+			var oy: float = randf_range(-1.0, 1.0)
+			var offset: Vector2 = Vector2(ox, oy) * secousse_force_px * ratio
+			sprite.position = _sprite_pos_neutre + offset
+		else:
+			if sprite.position != _sprite_pos_neutre:
+				sprite.position = _sprite_pos_neutre
 
-	_tick_scale_impact(dt)
+		if _scale_offset.length_squared() > 0.000001 or _scale_vel.length_squared() > 0.000001:
+			_tick_scale_impact(dt)
+		else:
+			if sprite.scale != _sprite_scale_neutre:
+				sprite.scale = _sprite_scale_neutre
 
 	_maj_base_vel(dt)
 	_bloquer_entree_base(dt)
@@ -379,6 +486,9 @@ func _on_mort() -> void:
 		return
 	deja_mort = true
 
+	if is_in_group("enemy"):
+		remove_from_group("enemy")
+
 	if _layer_orig < 0:
 		_layer_orig = collision_layer
 	if _mask_orig < 0:
@@ -389,13 +499,21 @@ func _on_mort() -> void:
 	if not has_meta("sm"):
 		set_meta("sm", _mask_orig)
 
+	if hurtbox != null:
+		hurtbox.set_actif(false)
+
+	if contact_damage != null:
+		contact_damage.set_physics_process(false)
+
 	collision_layer = 0
 	collision_mask = 0
 
 	_scale_offset = Vector2.ZERO
 	_scale_vel = Vector2.ZERO
-	sprite.scale = _sprite_scale_neutre
-	sprite.position = _sprite_pos_neutre
+
+	if sprite != null:
+		sprite.scale = _sprite_scale_neutre
+		sprite.position = _sprite_pos_neutre
 
 	visible = false
 	velocity = Vector2.ZERO
@@ -413,15 +531,23 @@ func _on_mort() -> void:
 func reactiver_apres_pool() -> void:
 	deja_mort = false
 
-	if sante:
-		var max_pv_now: float = float(sante.max_pv)
-		sante.pv = max_pv_now
+	if not is_in_group("enemy"):
+		add_to_group("enemy")
+
+	if sante != null:
+		sante.pv = float(sante.max_pv)
 
 	visible = true
 	velocity = Vector2.ZERO
 	_vel_mouvement = Vector2.ZERO
 	recul = Vector2.ZERO
 	pousse = Vector2.ZERO
+
+	if hurtbox != null:
+		hurtbox.set_actif(true)
+
+	if contact_damage != null:
+		contact_damage.set_physics_process(true)
 
 	set_physics_process(true)
 	set_process(true)
@@ -433,8 +559,10 @@ func reactiver_apres_pool() -> void:
 
 	_scale_offset = Vector2.ZERO
 	_scale_vel = Vector2.ZERO
-	sprite.scale = _sprite_scale_neutre
-	sprite.position = _sprite_pos_neutre
+
+	if sprite != null:
+		sprite.scale = _sprite_scale_neutre
+		sprite.position = _sprite_pos_neutre
 
 	_regen_offset(_dir_to_player_last)
 	_offset_cible = _offset_cible_voulu
@@ -445,8 +573,6 @@ func reactiver_apres_pool() -> void:
 	_wobble_t = randf() * 10.0
 
 	_bloc_actif_prev = false
-
-	_base_init = false
 	_base_vel = Vector2.ZERO
 
 func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
@@ -454,9 +580,14 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 		return
 
 	_ai_enabled = actif_moteur
-
 	set_physics_process(actif_moteur)
 	set_process(actif_moteur)
+
+	if hurtbox != null:
+		hurtbox.set_actif(actif_moteur)
+
+	if contact_damage != null:
+		contact_damage.set_physics_process(actif_moteur)
 
 	if actif_moteur:
 		if has_meta("sl"):
@@ -469,67 +600,5 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 		elif _mask_orig >= 0:
 			collision_mask = _mask_orig
 
-func _get_base_refuge() -> Node2D:
-	if is_instance_valid(_base_cache):
-		return _base_cache
-	var n := get_tree().get_first_node_in_group("base_vehicle")
-	_base_cache = n as Node2D
-	return _base_cache
-
-func _maj_base_vel(dt: float) -> void:
-	base_refuge = _get_base_refuge()
-
-	if base_refuge != _base_ref_prev:
-		_base_ref_prev = base_refuge
-		_base_init = false
-		_base_vel = Vector2.ZERO
-
-	if not base_actif or base_refuge == null:
-		_base_vel = Vector2.ZERO
-		return
-
-	var pos: Vector2 = base_refuge.global_position
-	if not _base_init:
-		_base_init = true
-		_base_prev_pos = pos
-		_base_vel = Vector2.ZERO
-		return
-
-	if dt > 0.0:
-		_base_vel = (pos - _base_prev_pos) / dt
-	_base_prev_pos = pos
-
-func _bloquer_entree_base(dt: float) -> void:
-	if not base_actif or base_refuge == null:
-		return
-
-	var c: Vector2 = base_refuge.global_position
-	var from_center: Vector2 = global_position - c
-
-	var r: float = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
-	if r <= 0.0:
-		return
-
-	var r2: float = r * r
-	var d2: float = from_center.length_squared()
-	var dist: float = sqrt(max(d2, 0.0001))
-
-	var v_rel: Vector2 = velocity - _base_vel
-
-	if d2 < r2:
-		var n_out: Vector2 = from_center / dist
-		global_position = c + n_out * r
-
-		var toward_center: float = v_rel.dot(-n_out)
-		if toward_center > 0.0:
-			v_rel += n_out * toward_center
-
-		velocity = v_rel + _base_vel
-		return
-
-	var n_in: Vector2 = (-from_center) / dist
-	var inward: float = v_rel.dot(n_in)
-	if inward > 0.0 and (dist - inward * dt) < r:
-		v_rel -= n_in * inward
-
-	velocity = v_rel + _base_vel
+func hit_radius() -> float:
+	return max(rayon_collision_px, 0.0)

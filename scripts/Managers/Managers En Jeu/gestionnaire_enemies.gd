@@ -308,7 +308,10 @@ func _rendre_a_pool(e: Node2D) -> void:
 
 	var type_idx: int = int(e.get_meta("type_idx"))
 
+	if e is Enemy:
+		(e as Enemy).set_combat_state(false, false)
 	_activer_ennemi(e, false)
+
 	e.hide()
 
 	if e.get_parent() == self:
@@ -550,6 +553,8 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 
 	if d2 <= r2_disp:
 		_activer_ennemi(e, false)
+		if e is Enemy:
+			(e as Enemy).set_combat_state(false, false) # coupe monitorable + contact
 		if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
 			_tick_lointain(e)
 		return false

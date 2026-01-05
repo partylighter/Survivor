@@ -1,4 +1,4 @@
-extends Area2D
+extends Node2D
 class_name Loot
 
 const ACT_RIEN: int = 0
@@ -65,7 +65,6 @@ func _ready() -> void:
 	if _pool_owner != null:
 		_desactiver_pour_pool()
 	else:
-		_activer_collision(true)
 		call_deferred("_essayer_s_inscrire_manager")
 
 	_appliquer_visuel()
@@ -107,8 +106,6 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	_appliquer_visuel()
 
 	show()
-	_activer_collision(true)
-
 	call_deferred("_essayer_s_inscrire_manager")
 
 func _desactiver_pour_pool() -> void:
@@ -121,19 +118,12 @@ func _desactiver_pour_pool() -> void:
 	if _lm != null and is_instance_valid(_lm):
 		_lm.retirer_loot(self)
 
-	_activer_collision(false)
-
 	if anim != null and anim.has_method("reset_etat"):
 		anim.reset_etat()
 
 	hide()
 	global_position = Vector2(1000000.0, 1000000.0)
-
 	vider()
-
-func _activer_collision(actif: bool) -> void:
-	set_deferred("monitoring", actif)
-	set_deferred("monitorable", actif)
 
 func _essayer_s_inscrire_manager() -> void:
 	if not _actif:
@@ -250,7 +240,7 @@ func _retour_pool() -> void:
 		queue_free()
 
 func prendre_payload() -> Dictionary:
-	var d: Dictionary = {
+	return {
 		"type_loot": type_loot,
 		"type_item": type_item,
 		"id": item_id,
@@ -261,7 +251,6 @@ func prendre_payload() -> Dictionary:
 		"icone": icone,
 		"skin_id": skin_id
 	}
-	return d
 
 func vider() -> void:
 	quantite = 0
