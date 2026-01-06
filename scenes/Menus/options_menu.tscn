@@ -5,7 +5,7 @@
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_qldvp"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sg86w"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f71jj"]
 bg_color = Color(0.0361008, 0.0361009, 0.0361008, 1)
 border_color = Color(0, 0, 0, 1)
 corner_radius_top_left = 5
@@ -19,7 +19,7 @@ expand_margin_bottom = 2.0
 shadow_color = Color(1, 1, 1, 1)
 shadow_size = 1
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gn0ho"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cf8an"]
 bg_color = Color(0.062622, 0.062622, 0.0626219, 1)
 corner_radius_top_left = 5
 corner_radius_top_right = 5
@@ -46,8 +46,8 @@ shadow_size = 2
 default_font_size = 50
 Button/font_sizes/font_size = 50
 Button/styles/focus = SubResource("StyleBoxEmpty_qldvp")
-Button/styles/hover = SubResource("StyleBoxFlat_sg86w")
-Button/styles/normal = SubResource("StyleBoxFlat_gn0ho")
+Button/styles/hover = SubResource("StyleBoxFlat_f71jj")
+Button/styles/normal = SubResource("StyleBoxFlat_cf8an")
 Button/styles/pressed = SubResource("StyleBoxFlat_otqhu")
 
 [node name="OptionsMenu" type="CanvasLayer"]

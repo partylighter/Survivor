@@ -1,4 +1,3 @@
-# res://Scripts/GestionnaireRetour.gd
 extends Node
 
 signal historique_modifie

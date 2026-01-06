@@ -75,7 +75,7 @@ position = Vector2(2578.0002, -107)
 [node name="Gestionnaire Enemies" parent="." node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("4_71j4m")])
-max_ennemis = 1
+max_ennemis = 900
 apparitions_par_sec = 150.0
 rayon_spawn_min = 4000.0
 rayon_spawn_max = 5000.0
