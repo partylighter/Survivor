@@ -26,7 +26,15 @@ func _ready() -> void:
 	btn_appliquer.pressed.connect(_on_appliquer_pressed)
 	btn_reinitialiser.pressed.connect(_on_reinitialiser_pressed)
 
+	visibility_changed.connect(_on_visibility_changed)
+
+	GestionnaireGraphisme.cancel_preview()
 	_refresh()
+
+func _on_visibility_changed() -> void:
+	if visible:
+		GestionnaireGraphisme.cancel_preview()
+		_refresh()
 
 func _on_resolution_pressed() -> void:
 	GestionnaireGraphisme.cycle_resolution_preview(1)
@@ -42,15 +50,16 @@ func _on_appliquer_pressed() -> void:
 
 func _on_reinitialiser_pressed() -> void:
 	GestionnaireGraphisme.reset_defaults()
+	GestionnaireGraphisme.apply_and_save()
 	_refresh()
 
 func _refresh() -> void:
-	var r := GestionnaireGraphisme.get_preview_resolution()
+	var r: Vector2i = GestionnaireGraphisme.get_preview_resolution()
 	btn_resolution.text = "Résolution: " + str(r.x) + " x " + str(r.y)
 
-	var mode_txt := "Fullscreen" if GestionnaireGraphisme.get_preview_fullscreen() else "Fenêtré"
+	var mode_txt: String = "Fullscreen" if GestionnaireGraphisme.get_preview_fullscreen() else "Fenêtré"
 	btn_mode.text = "Mode: " + mode_txt
 
-	var pending := GestionnaireGraphisme.has_pending_changes()
+	var pending: bool = GestionnaireGraphisme.has_pending_changes()
 	btn_appliquer.visible = pending
-	btn_reinitialiser.disabled = not pending
+	btn_reinitialiser.visible = pending or not GestionnaireGraphisme.is_using_defaults()

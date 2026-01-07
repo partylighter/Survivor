@@ -24,11 +24,11 @@ GestionnaireRetour="*res://scripts/autoloads/AutoloadsMenuing/GestionnaireRetour
 AutoInput="*res://scripts/autoloads/AutoloadsMenuing/AutoInput.gd"
 GestionnaireMultiecran="*res://scripts/autoloads/Autres/gestionnaire_multiecran.gd"
 EtatJeu="*res://scripts/Managers/Managers En Jeu/EtatJeu.gd"
+GestionnaireGraphisme="*res://scripts/Managers/Managers Menus/GestionnaireGraphisme.gd"
 
 [display]
 
 window/stretch/mode="viewport"
-window/stretch/aspect="expand"
 
 [dotnet]
 
