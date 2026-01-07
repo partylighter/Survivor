@@ -33,6 +33,7 @@ secousse_force_px = 25.0
 secousse_scale_impulse = Vector2(3, -0.18)
 distance_ralentir_joueur_px = 400.0
 base_marge_px = 1000.0
+mort_delai_pool_s = 0.55
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

@@ -296,8 +296,14 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 		if not e.is_connected("mort", cb):
 			e.connect("mort", cb)
 
+	if e.has_signal("pret_pour_pool"):
+		var cbp: Callable = Callable(self, "_sur_pret_pour_pool").bind(e)
+		if not e.is_connected("pret_pour_pool", cbp):
+			e.connect("pret_pour_pool", cbp)
+
 	emit_signal("ennemi_cree", e)
 	return e
+
 
 func _rendre_a_pool(e: Node2D) -> void:
 	if not is_instance_valid(e):
@@ -364,6 +370,11 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 		if not e.is_connected("mort", cb):
 			e.connect("mort", cb)
 
+	if e.has_signal("pret_pour_pool"):
+		var cbp: Callable = Callable(self, "_sur_pret_pour_pool").bind(e)
+		if not e.is_connected("pret_pour_pool", cbp):
+			e.connect("pret_pour_pool", cbp)
+
 	emit_signal("ennemi_cree", e)
 	return e
 
@@ -387,8 +398,10 @@ func _sur_mort(e: Node2D) -> void:
 			vivants_vague = max(0, vivants_vague - 1)
 			tues_vague += 1
 
-	_rendre_a_pool(e)
 	emit_signal("ennemi_tue", e)
+
+func _sur_pret_pour_pool(e: Node2D) -> void:
+	_rendre_a_pool(e)
 
 func _activer_ennemi(e: Node2D, actif: bool) -> void:
 	e.set_physics_process(actif)

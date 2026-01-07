@@ -3,6 +3,7 @@ class_name Enemy
 
 signal mort
 signal reapparu
+signal pret_pour_pool
 
 enum TypeEnnemi { C, B, A, S, BOSS }
 
@@ -68,6 +69,14 @@ enum TypeEnnemi { C, B, A, S, BOSS }
 @export var base_rayon_px: float = 220.0
 @export var base_marge_px: float = 8.0
 
+
+@export_group("Mort")
+@export var mort_delai_pool_s: float = 0.18
+
+var _mort_t: float = 0.0
+var _sprite_modulate_neutre: Color = Color(1, 1, 1, 1)
+
+
 static var _base_cache: Node2D = null
 static var _base_cache_prev_pos: Vector2 = Vector2.ZERO
 static var _base_cache_vel: Vector2 = Vector2.ZERO
@@ -124,6 +133,7 @@ func _ready() -> void:
 	if sprite != null:
 		_sprite_pos_neutre = sprite.position
 		_sprite_scale_neutre = sprite.scale
+		_sprite_modulate_neutre = sprite.modulate
 
 	if sante != null:
 		sante.died.connect(_on_mort)
@@ -140,6 +150,7 @@ func _ready() -> void:
 	_wobble_sign = -1.0 if randf() < 0.5 else 1.0
 	_wobble_t = randf() * 10.0
 
+
 func get_type_id() -> int:
 	return type_ennemi
 
@@ -150,6 +161,8 @@ func get_score() -> int:
 	return valeur_score
 
 func set_poussee_foule(v: Vector2) -> void:
+	if deja_mort:
+		return
 	appliquer_pousse(v, 0.0)
 
 func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
@@ -318,13 +331,16 @@ func _physics_process(dt: float) -> void:
 		_doit_emit_reapparu_next_frame = false
 		emit_signal("reapparu")
 
-	if deja_mort or not _ai_enabled:
+	if deja_mort:
+		_mort_t = max(_mort_t - dt, 0.0)
+
+	if not _ai_enabled and not deja_mort:
 		return
 
 	var dist_player: float = 999999.0
 	var dir_to_player: Vector2 = _dir_to_player_last
 
-	if target != null and is_instance_valid(target):
+	if not deja_mort and target != null and is_instance_valid(target):
 		var tp: Vector2 = target.global_position - global_position
 		var d2p: float = tp.length_squared()
 		if d2p > 0.0001:
@@ -354,7 +370,7 @@ func _physics_process(dt: float) -> void:
 	var desired_speed: float = 0.0
 	var desired_dir: Vector2 = _dir_mouvement_last
 
-	if target != null and is_instance_valid(target) and not bloc_actif:
+	if not deja_mort and target != null and is_instance_valid(target) and not bloc_actif:
 		_t_offset -= dt
 		if _t_offset <= 0.0:
 			_t_offset = max(offset_cible_refresh_s, 0.001)
@@ -433,7 +449,7 @@ func _physics_process(dt: float) -> void:
 	if pousse.length_squared() < 1.0:
 		pousse = Vector2.ZERO
 
-	if target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
+	if not deja_mort and target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
 			var inward0: float = velocity.dot(dir_to_player)
 			if inward0 > 0.0:
@@ -472,6 +488,68 @@ func _physics_process(dt: float) -> void:
 
 	move_and_slide()
 
+	if deja_mort and _mort_t <= 0.0:
+		_finir_mort()
+
+func _tick_mort(dt: float) -> void:
+	_mort_t = max(_mort_t - dt, 0.0)
+
+	velocity += recul
+	var alpha_r: float = clamp(recul_amorti * dt, 0.0, 0.95)
+	recul = recul.lerp(Vector2.ZERO, alpha_r)
+	if recul.length_squared() < 1.0:
+		recul = Vector2.ZERO
+
+	velocity += pousse
+	var alpha_p: float = clamp(pousse_amorti * dt, 0.0, 0.95)
+	pousse = pousse.lerp(Vector2.ZERO, alpha_p)
+	if pousse.length_squared() < 1.0:
+		pousse = Vector2.ZERO
+
+	if sprite != null:
+		if _secousse_t > 0.0:
+			_secousse_t -= dt
+			var ratio: float = 0.0
+			if secousse_duree_s > 0.0001:
+				ratio = _secousse_t / secousse_duree_s
+			ratio = clamp(ratio, 0.0, 1.0)
+			var ox: float = randf_range(-1.0, 1.0)
+			var oy: float = randf_range(-1.0, 1.0)
+			var offset: Vector2 = Vector2(ox, oy) * secousse_force_px * ratio
+			sprite.position = _sprite_pos_neutre + offset
+		else:
+			if sprite.position != _sprite_pos_neutre:
+				sprite.position = _sprite_pos_neutre
+
+		if _scale_offset.length_squared() > 0.000001 or _scale_vel.length_squared() > 0.000001:
+			_tick_scale_impact(dt)
+		else:
+			if sprite.scale != _sprite_scale_neutre:
+				sprite.scale = _sprite_scale_neutre
+
+	_maj_base_vel(dt)
+	_bloquer_entree_base(dt)
+
+	move_and_slide()
+
+	if _mort_t <= 0.0:
+		_finir_mort()
+
+func _finir_mort() -> void:
+	visible = false
+	velocity = Vector2.ZERO
+	_vel_mouvement = Vector2.ZERO
+	recul = Vector2.ZERO
+	pousse = Vector2.ZERO
+
+	collision_layer = 0
+	collision_mask = 0
+
+	set_physics_process(false)
+	set_process(false)
+
+	emit_signal("pret_pour_pool")
+
 func _find_player(n: Node) -> Player:
 	if n is Player:
 		return n
@@ -505,26 +583,16 @@ func _on_mort() -> void:
 	if contact_damage != null:
 		contact_damage.set_physics_process(false)
 
+	_ai_enabled = false
+	set_process(false)
+	set_physics_process(true)
+
 	collision_layer = 0
 	collision_mask = 0
 
-	_scale_offset = Vector2.ZERO
-	_scale_vel = Vector2.ZERO
-
-	if sprite != null:
-		sprite.scale = _sprite_scale_neutre
-		sprite.position = _sprite_pos_neutre
-
-	visible = false
-	velocity = Vector2.ZERO
 	_vel_mouvement = Vector2.ZERO
-	recul = Vector2.ZERO
-	pousse = Vector2.ZERO
 
-	set_physics_process(false)
-	set_process(false)
-
-	_ai_enabled = false
+	_mort_t = max(mort_delai_pool_s, 0.0)
 
 	emit_signal("mort")
 
@@ -536,6 +604,9 @@ func reactiver_apres_pool() -> void:
 
 	if sante != null:
 		sante.pv = float(sante.max_pv)
+
+	if sprite != null:
+		sprite.modulate = _sprite_modulate_neutre
 
 	visible = true
 	velocity = Vector2.ZERO

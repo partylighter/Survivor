@@ -26,7 +26,7 @@ class_name CamPlayer
 
 @export_group("Zoom Delay")
 @export_range(0.0, 2.0, 0.01) var zoom_out_delay_s: float = 0.20
-@export_range(0.0, 2.0, 0.01) var zoom_in_delay_s: float = 0.45
+@export_range(0.0, 10.0, 0.01) var zoom_in_delay_s: float = 0.45
 @export_range(0.0, 2000.0, 1.0) var zoom_out_speed_threshold: float = 30.0
 @export_range(0.0, 2000.0, 1.0) var zoom_in_speed_threshold: float = 12.0
 @export_range(0.0, 10.0, 0.1) var zoom_delay_release_mul: float = 3.0

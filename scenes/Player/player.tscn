@@ -59,8 +59,6 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
-cam_zoom_sol = 0.26
-cam_zoom_conduite = 0.17
 collision_ennemis_actif = false
 poids_collision = 20.0
 collision_push_mult = 0.01
@@ -70,12 +68,15 @@ script = ExtResource("2_wyey8")
 chemin_joueur = NodePath("..")
 mouse_look_sol_px = 250.0
 mouse_look_conduite_px = 500.0
+mouse_deadzone = 0.27
 mouse_influence_y = 1.0
-zoom_sol = 0.3
+offset_speed = 7.0
+zoom_sol = 0.39999999999999997
 zoom_conduite = 0.39999999999999997
 zoom_move_sol = 0.2
-zoom_speed = 3.0
-zoom_in_delay_s = 2.0
+zoom_move_conduite = 0.32
+zoom_speed = 4.0
+zoom_in_delay_s = 6.0
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
 unique_name_in_owner = true
@@ -136,7 +137,7 @@ offset = Vector2(-61, -100)
 toujours_visible = true
 shake_force_px = 40.0
 shake_duree_s = 0.14
-shake_frequence_hz = 47.0
+debug_level = 0
 
 [node name="GestionnaireArme" type="Node2D" parent="."]
 script = ExtResource("7_a06cl")

@@ -10,27 +10,6 @@ class_name Player
 @export_group("Vehicule")
 @export var chemin_base_vehicle: NodePath
 
-@export_group("Camera - Follow")
-@export var cam_follow_speed: float = 14.0
-@export var cam_offset_speed: float = 10.0
-@export var cam_zoom_speed: float = 8.0
-
-@export_group("Camera - Zoom")
-@export var cam_zoom_sol: float = 1.15
-@export var cam_zoom_conduite: float = 0.85
-@export var cam_speed_for_max_zoom: float = 900.0
-@export var cam_zoom_out_mult_at_max_speed: float = 0.78
-@export var cam_zoom_mouse_out_mult_at_edge: float = 0.92
-
-@export_group("Camera - Offset")
-@export var cam_look_ahead_sol_px: float = 90.0
-@export var cam_look_ahead_conduite_px: float = 170.0
-@export var cam_mouse_look_sol_px: float = 110.0
-@export var cam_mouse_look_conduite_px: float = 210.0
-@export var cam_mouse_deadzone: float = 0.06
-@export var cam_max_offset_px: float = 260.0
-@export var cam_mouse_influence_y: float = 0.85
-
 @export_group("Collision math - ennemis")
 @export var collision_ennemis_actif: bool = true
 @export var rayon_collision_px: float = 14.0
