@@ -17,8 +17,8 @@ var _ui_visible: bool = true
 	{"action": "droite", "label": "Droite"},
 	{"action": "haut", "label": "Haut"},
 	{"action": "bas", "label": "Bas"},
-	{"action": "dash", "label": "Dash"},
-	{"action": "interagir", "label": "Interagir"},
+	{"action": "ramasser", "label": "Ramasser"},
+	{"action": "dash", "label": "Dash + Interragir"},
 	{"action": "attaque_main_gauche", "label": "Attaque G"},
 	{"action": "attaque_main_droite", "label": "Attaque D"},
 	{"action": "pause", "label": "Pause"}

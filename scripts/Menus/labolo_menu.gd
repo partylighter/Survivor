@@ -1,6 +1,9 @@
 extends CanvasLayer
 class_name LaboloMenu
 
+const GROUPE_UPG_TIR: StringName = &"upg_arme_tir"
+var upg_tir_ref: Node = null
+
 const GROUPE_LOOT: StringName = &"gestionnaire_loot"
 const ACTION_MENU_LABO: StringName = &"menu_labo"
 
@@ -40,6 +43,25 @@ func _ready() -> void:
 
 	if get_tree():
 		get_tree().node_added.connect(_on_node_added)
+
+func _trouver_upg_tir() -> void:
+	if upg_tir_ref != null and is_instance_valid(upg_tir_ref):
+		return
+	upg_tir_ref = get_tree().get_first_node_in_group(GROUPE_UPG_TIR)
+
+func _appliquer_upgrade_labo(_type_emplacement: int, id_item: StringName, quantite: int) -> void:
+	_trouver_upg_tir()
+	if upg_tir_ref == null or not is_instance_valid(upg_tir_ref):
+		if debug_labolo:
+			print("[Labolo] UPG REFUS: manager upg_tir introuvable")
+		return
+	if not upg_tir_ref.has_method("ajouter_upgrade_par_id"):
+		if debug_labolo:
+			print("[Labolo] UPG REFUS: upg_tir n'a pas ajouter_upgrade_par_id(id, q)")
+		return
+	upg_tir_ref.call("ajouter_upgrade_par_id", id_item, quantite)
+	if upg_tir_ref.has_method("re_appliquer"):
+		upg_tir_ref.call("re_appliquer")
 
 func _exit_tree() -> void:
 	if get_tree() and get_tree().node_added.is_connected(_on_node_added):
@@ -85,6 +107,7 @@ func _detacher_loot() -> void:
 		if loot_ref.tree_exited.is_connected(_on_loot_quitte_scene):
 			loot_ref.tree_exited.disconnect(_on_loot_quitte_scene)
 	loot_ref = null
+
 
 func _on_loot_quitte_scene() -> void:
 	_d("Loot a quitté l'arbre -> reset ref")
@@ -191,7 +214,7 @@ func _on_item_depose(type_emplacement: int, id_item: StringName, _quantite: int)
 			print("[Labolo] DROP REFUS: loot_ref n'a pas consommer_loot()")
 		return
 
-	# Par défaut: 1 item consommé par drop (tu pourras changer après)
+	# Par défaut: 1 item consommé par drop 
 	var a_prendre: int = 1
 	var pris: int = int(loot_ref.call("consommer_loot", id_item, a_prendre))
 
@@ -204,7 +227,7 @@ func _on_item_depose(type_emplacement: int, id_item: StringName, _quantite: int)
 		print("[Labolo] DROP OK: slot=", slot, " id=", String(id_item), " pris=", pris)
 
 	# TODO: ici on branchera l'application de l'upgrade sur l'arme
-	# _appliquer_upgrade_labo(type_emplacement, id_item, pris)
+	_appliquer_upgrade_labo(type_emplacement, id_item, pris)
 
 	rafraichir_grille()
 

@@ -2,6 +2,7 @@ extends Node
 class_name GestionnaireLoot
 
 signal carburant_stock_change(stocke: float)
+signal loot_change()
 
 const ID_UP_CARB_1: StringName = &"upgrade_carburant_1"
 const ID_UP_CARB_2: StringName = &"upgrade_carburant_2"
@@ -92,11 +93,10 @@ func _exit_tree() -> void:
 	remove_from_group(&"gestionnaire_loot")
 
 func _debug_remplir_loot_test() -> void:
-	stats_loot[&"upgrade_test_degats"] = 3
-	stats_loot[&"upg_test_vitesse"] = 1
+	stats_loot[&"upgrade_test_degats"] = 3 # OK car "upgrade_" commence bien par "upgrade_"
+	stats_loot[&"upg_test_vitesse"] = 1    # OK car "upg_" commence bien par "upg_"
 	_nom_par_id[&"upgrade_test_degats"] = "Upgrade dégâts"
 	_nom_par_id[&"upg_test_vitesse"] = "Upg vitesse"
-
 
 func _process(delta: float) -> void:
 	_ensure_refs()
@@ -128,6 +128,7 @@ func consommer_loot(id_item: StringName, quantite: int) -> int:
 		print("[Loot] consommer_loot id=", String(id_item),
 			" pris=", q_pris, " reste=", int(stats_loot.get(id_item, 0)))
 
+	emit_signal("loot_change")
 	return q_pris
 
 func _ensure_refs() -> void:
@@ -155,6 +156,7 @@ func _enregistrer_loot(identifiant: StringName, quantite: int) -> void:
 	if String(identifiant) == "":
 		return
 	stats_loot[identifiant] = int(stats_loot.get(identifiant, 0)) + quantite
+	emit_signal("loot_change")
 
 func get_stats_loot() -> Dictionary:
 	return stats_loot.duplicate()
@@ -456,7 +458,7 @@ func _appliquer_amelioration(identifiant: StringName, quantite: int) -> void:
 		ID_UP_CARB_3, ID_CARB_3:
 			ajouter_carburant_stock(3, quantite)
 		_:
-			_d_loot("[Loot] upgrade inconnu : %s x%d" % [String(identifiant), quantite])
+			pass
 
 func _debloquer_arme_par_id(identifiant: StringName, rarete: int, quantite: int) -> void:
 	_d_loot("[Loot] arme logique : %s rarete=%d x%d" % [str(identifiant), rarete, quantite])

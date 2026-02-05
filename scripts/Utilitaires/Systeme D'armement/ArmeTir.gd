@@ -99,7 +99,8 @@ func attaquer() -> void:
 
 	_trouver_upgrades()
 	if upgrades and upgrades.actif:
-		upgrades.appliquer_sur_arme(self)
+		upgrades.re_appliquer_sur_arme(self)
+
 
 	if not hitscan and scene_projectile == null:
 		return
@@ -193,7 +194,8 @@ func _prendre_projectile() -> Projectile:
 
 	_trouver_upgrades()
 	if upgrades and upgrades.actif and p != null:
-		upgrades.appliquer_sur_projectile(p)
+		upgrades.re_appliquer() # applique manuel + registry sur l'arme ET sur pool/actifs
+		upgrades.appliquer_sur_projectile(p) # garde le manuel sur le projectile en plus
 
 	return p
 

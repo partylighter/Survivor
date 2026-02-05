@@ -119,3 +119,21 @@ scene_jeu = ExtResource("3_iipul")
 scene_options = ExtResource("4_iipul")
 scene_credits = ExtResource("5_iipul")
 metadata/_custom_type_script = "uid://b7hstmkshyre5"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -82.0
+offset_right = 242.0
+grow_vertical = 0
+
+[node name="Auteur" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "By PARTYLIGHTER"
+
+[node name="Label Game Version" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Version 0.1.2"

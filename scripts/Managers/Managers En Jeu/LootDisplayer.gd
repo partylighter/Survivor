@@ -3,7 +3,6 @@ class_name LootDisplayer
 
 @export var actif: bool = true
 @export var ui_visible: bool = true : set = set_ui_visible, get = get_ui_visible
-
 @export_node_path("GestionnaireLoot") var chemin_loot: NodePath
 @export var position_loot_ui: Vector2 = Vector2(16, 16)
 
@@ -40,7 +39,21 @@ func _ready() -> void:
 	c.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	c.position = position_loot_ui
 
-func _process(_dt: float) -> void:
+	_attach_loot_signal()
+	_refresh_ui()
+
+func _attach_loot_signal() -> void:
+	if loot_ref == null or not is_instance_valid(loot_ref):
+		return
+	if loot_ref.has_signal("loot_change") and not loot_ref.loot_change.is_connected(_on_loot_change):
+		loot_ref.loot_change.connect(_on_loot_change)
+
+func _on_loot_change() -> void:
+	if not actif:
+		return
+	_refresh_ui()
+
+func _refresh_ui() -> void:
 	if not actif:
 		return
 
@@ -50,6 +63,7 @@ func _process(_dt: float) -> void:
 			if lbl_loot:
 				lbl_loot.text = "Loot: (GestionnaireLoot introuvable)"
 			return
+		_attach_loot_signal()
 
 	if lbl_loot == null or not is_instance_valid(lbl_loot):
 		return

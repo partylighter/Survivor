@@ -5,6 +5,8 @@ const CONFIG_PATH: String = "user://display.cfg"
 const DEFAULT_RESOLUTION: Vector2i = Vector2i(1920, 1080)
 const DEFAULT_FULLSCREEN: bool = true
 
+const BASE_CANVAS_SIZE: Vector2i = Vector2i(1920, 1080)
+
 const DECOR_MARGIN_PX: Vector2i = Vector2i(40, 90)
 const MIN_WINDOW_PX: Vector2i = Vector2i(640, 360)
 
@@ -101,15 +103,16 @@ func apply_to_window(w: Window) -> void:
 
 	w.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
 	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	w.content_scale_size = BASE_CANVAS_SIZE
 
 	var r := get_current_resolution()
-	w.content_scale_size = r
 
 	if fullscreen:
 		if OS.has_feature("editor"):
 			w.mode = Window.MODE_FULLSCREEN
 		else:
 			w.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
+		DisplayServer.window_set_size(r, w.get_window_id())
 		return
 
 	w.mode = Window.MODE_WINDOWED

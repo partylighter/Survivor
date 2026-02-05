@@ -1,4 +1,4 @@
-[gd_scene load_steps=32 format=3 uid="uid://0182ilsqlcwo"]
+[gd_scene format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/Player/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/Managers/Manager En Jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
@@ -17,24 +17,30 @@
 [ext_resource type="Script" uid="uid://dvfjkpj8kikh3" path="res://resources/script/LootTableEnemy.gd" id="11_22h11"]
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://resources/script/LootItemEntry.gd" id="11_op4qr"]
 [ext_resource type="Script" uid="uid://leky5p00ehnf" path="res://scripts/autoloads/AutoloadsMenuing/GestionairPause.gd" id="11_uuc06"]
+[ext_resource type="Script" uid="uid://dcilq6nxyvo36" path="res://scripts/autoloads/GestionnaireGameplay/UpgradeRegistry.gd" id="12_2ks8m"]
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
+[ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://resources/script/UpgradeData.gd" id="13_ixded"]
 [ext_resource type="Resource" uid="uid://dk71txuwjlglb" path="res://resources/Sang de goblin.tres" id="13_rsdp2"]
+[ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://resources/Items/upg_degats_tir_1.tres" id="14_ixded"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/Managers/Managers En Jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
 [ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeContact.gd" id="17_g8on3"]
 [ext_resource type="Script" uid="uid://kthfkdydc61t" path="res://scripts/Managers/Managers En Jeu/EnemyCountDisplayer.gd" id="20_g8on3"]
 [ext_resource type="Script" uid="uid://c3n45jyngklmv" path="res://scripts/Managers/Managers En Jeu/TouchesHUDDisplayer.gd" id="24_5r2b3"]
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/Menus/labolo_menu.tscn" id="24_dwlrb"]
+[ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/Managers/Managers En Jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 
-[sub_resource type="Resource" id="Resource_5r2b3"]
+[sub_resource type="Resource" id="Resource_ild1w"]
 script = ExtResource("11_op4qr")
-item_id = &"conso_overheal_1"
-nom_affiche = "heal"
+item_id = &"upg_degats_tir_1"
+nom_affiche = "boost degats tir"
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_op4qr"]
 script = ExtResource("11_22h11")
-conso_C = Array[ExtResource("11_op4qr")]([SubResource("Resource_5r2b3")])
+proba_C = 0.0
+proba_B = 1.0
+upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_ild1w")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
@@ -56,72 +62,82 @@ metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 script = ExtResource("11_22h11")
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
-[node name="World" type="Node2D"]
+[node name="World" type="Node2D" unique_id=2023534950]
 
-[node name="Icon" type="Sprite2D" parent="."]
+[node name="Icon" type="Sprite2D" parent="." unique_id=757728578]
 modulate = Color(0.34902, 0.34902, 0.34902, 0.698039)
 z_index = -760
 position = Vector2(-47, 608)
 scale = Vector2(100, 100)
 texture = ExtResource("10_075h3")
 
-[node name="Loot" parent="." instance=ExtResource("9_075h3")]
+[node name="Loot" parent="." unique_id=2091000665 instance=ExtResource("9_075h3")]
 position = Vector2(-200, 234)
 type_item = 2
 scene_contenu = ExtResource("10_uuc06")
 
-[node name="Loot2" parent="." instance=ExtResource("9_075h3")]
+[node name="Loot2" parent="." unique_id=700604809 instance=ExtResource("9_075h3")]
 position = Vector2(44, 253)
 type_item = 2
 scene_contenu = ExtResource("9_30tab")
 
-[node name="Player" parent="." instance=ExtResource("1_nnsk1")]
+[node name="Player" parent="." unique_id=581119379 instance=ExtResource("1_nnsk1")]
 chemin_base_vehicle = NodePath("../Base")
 
-[node name="Base" parent="." instance=ExtResource("6_rsdp2")]
-position = Vector2(2578.0002, -107)
+[node name="Base" parent="." unique_id=2051095588 instance=ExtResource("6_rsdp2")]
+position = Vector2(63788, 45778)
 
-[node name="Gestionnaire Enemies" parent="." node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
+[node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("4_71j4m")])
 poids_types = [0.5, 0.5]
-max_ennemis = 900
+max_ennemis = 2
+ennemis_init = 10
 apparitions_par_sec = 150.0
 rayon_spawn_min = 4000.0
 rayon_spawn_max = 5000.0
 rayon_simulation = 6000.0
 rayon_disparition = 6500.0
 lod_update_interval_frames = 50
-max_full_actifs = 600
+max_full_actifs = 500
 max_buffer_actifs = 1500
 rayon_engage = 50000.0
 vitesse_lointain = 5000.0
-croissance_total = 1.5
+interlude_s = 0.0
+croissance_total = 10.0
 loot_manager = NodePath("../GestionnaireLootDrops")
 foule_rayon_px = 50.0
 foule_taille_cellule_px = 100.0
 foule_budget_par_frame = 15
 
-[node name="ProjectileHub" type="Node2D" parent="."]
+[node name="ProjectileHub" type="Node2D" parent="." unique_id=1274116743]
 script = ExtResource("12_30tab")
 metadata/_custom_type_script = "uid://ctjko77ppqoqd"
 
-[node name="ParentLootPath" type="Node2D" parent="."]
+[node name="ParentLootPath" type="Node2D" parent="." unique_id=1392105591]
 
-[node name="GestionnaireHordeFormations" type="Node" parent="."]
+[node name="GestionnaireHordeFormations" type="Node" parent="." unique_id=1535809774]
 script = ExtResource("10_snixj")
 chemin_ennemis = NodePath("../Gestionnaire Enemies")
 actif = false
 direction_mode = 1
 metadata/_custom_type_script = "uid://bd4l01sn16cch"
 
-[node name="GestionnaireLootDrops" type="Node" parent="."]
+[node name="UpgradeRegistry" type="Node" parent="." unique_id=2043351419]
+script = ExtResource("12_2ks8m")
+debug_registry = true
+upgrades = Array[ExtResource("13_ixded")]([ExtResource("14_ixded")])
+metadata/_custom_type_script = "uid://dcilq6nxyvo36"
+
+[node name="GestionnaireLootDrops" type="Node" parent="." unique_id=700485635]
 script = ExtResource("10_s05yr")
 scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
+tirages_max_type_C = 7
 tirages_min_type_B = 0
+tirages_max_type_B = 8
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")
@@ -133,7 +149,7 @@ pity_boost_A = 0.0
 pity_boost_S = 0.0
 metadata/_custom_type_script = "uid://cvuge010wptp1"
 
-[node name="GestionnaireUpgradesArmeContact" type="Node" parent="."]
+[node name="GestionnaireUpgradesArmeContact" type="Node" parent="." unique_id=1433686319]
 script = ExtResource("17_g8on3")
 mod_degats = true
 degats = 15
@@ -142,7 +158,7 @@ mod_recul_force = true
 recul_force = 1500.0
 metadata/_custom_type_script = "uid://du7hwwgrox0gu"
 
-[node name="GestioUpgArmeTir" type="Node" parent="."]
+[node name="GestioUpgArmeTir" type="Node" parent="." unique_id=303982631]
 script = ExtResource("17_7hglk")
 mod_degats = true
 degats = 15
@@ -159,36 +175,44 @@ mod_nombre_de_rayon_dans_zone_scane = true
 nombre_de_rayon_dans_zone_scane = 3
 mod_contacts_avant_destruction = true
 contacts_avant_destruction = 7
-ignorer_meme_cible = false
+chemin_registry = NodePath("../UpgradeRegistry")
 metadata/_custom_type_script = "uid://cv21bsmmjcq40"
 
-[node name="StatsVagues" parent="." instance=ExtResource("5_71j4m")]
+[node name="StatsVagues" parent="." unique_id=1933406241 instance=ExtResource("5_71j4m")]
 chemin_manager = NodePath("../Gestionnaire Enemies")
 
-[node name="PauseManagerClass" type="Node" parent="."]
+[node name="PauseManagerClass" type="Node" parent="." unique_id=170426512]
 script = ExtResource("11_uuc06")
 metadata/_custom_type_script = "uid://leky5p00ehnf"
 
-[node name="LootManager" type="Node" parent="."]
+[node name="LootManager" type="Node" parent="." unique_id=1763611612]
 script = ExtResource("15_05p27")
 chemin_joueur = NodePath("../Player")
 metadata/_custom_type_script = "uid://do0yqbnnckvc0"
 
-[node name="EnemyCountDisplayer" type="CanvasLayer" parent="."]
+[node name="EnemyCountDisplayer" type="CanvasLayer" parent="." unique_id=1270604926]
 script = ExtResource("20_g8on3")
 chemin_ennemis = NodePath("../Gestionnaire Enemies")
 label_pos = Vector2(250, 48)
 metadata/_custom_type_script = "uid://kthfkdydc61t"
 
-[node name="StatsDisplayer" parent="." instance=ExtResource("6_qfnet")]
+[node name="StatsDisplayer" parent="." unique_id=285191055 instance=ExtResource("6_qfnet")]
 chemin_stats = NodePath("../StatsVagues")
 chemin_ennemis = NodePath("../Gestionnaire Enemies")
 
-[node name="PerfDisplayer" parent="." instance=ExtResource("7_i7xtm")]
+[node name="PerfDisplayer" parent="." unique_id=1367246842 instance=ExtResource("7_i7xtm")]
 margin = Vector2(8, 50)
 
-[node name="LaboloMenu" parent="." instance=ExtResource("24_dwlrb")]
+[node name="LaboloMenu" parent="." unique_id=1988590845 instance=ExtResource("24_dwlrb")]
+visible = false
 
-[node name="TouchesHUDDisplayer" type="CanvasLayer" parent="."]
+[node name="TouchesHUDDisplayer" type="CanvasLayer" parent="." unique_id=1596464376]
 script = ExtResource("24_5r2b3")
 metadata/_custom_type_script = "uid://c3n45jyngklmv"
+
+[node name="ArmTirStatsDisplayer" type="CanvasLayer" parent="." unique_id=691509430]
+script = ExtResource("29_ild1w")
+debug_enabled = true
+chemin_upgrades = NodePath("../GestioUpgArmeTir")
+ui_position = Vector2(1500, 550)
+metadata/_custom_type_script = "uid://fg6vtmeufp88"

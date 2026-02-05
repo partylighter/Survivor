@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3 uid="uid://bxw0i82773n7u"]
+[gd_scene format=3 uid="uid://bxw0i82773n7u"]
 
 [ext_resource type="Script" uid="uid://dij2tc45vr4ov" path="res://scripts/Player/player.gd" id="1_g2els"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_qhqgy"]
@@ -51,7 +51,7 @@ size = Vector2(131, 131)
 [sub_resource type="CircleShape2D" id="CircleShape2D_wwtew"]
 radius = 473.482
 
-[node name="Player" type="CharacterBody2D"]
+[node name="Player" type="CharacterBody2D" unique_id=1666505051]
 collision_layer = 2
 collision_mask = 769
 script = ExtResource("1_g2els")
@@ -63,7 +63,7 @@ collision_ennemis_actif = false
 poids_collision = 20.0
 collision_push_mult = 0.01
 
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=417599169]
 script = ExtResource("2_wyey8")
 chemin_joueur = NodePath("..")
 mouse_look_sol_px = 250.0
@@ -71,14 +71,14 @@ mouse_look_conduite_px = 500.0
 mouse_deadzone = 0.27
 mouse_influence_y = 1.0
 offset_speed = 7.0
-zoom_sol = 0.39999999999999997
-zoom_conduite = 0.39999999999999997
-zoom_move_sol = 0.2
-zoom_move_conduite = 0.32
+zoom_sol = 0.7000000000000001
+zoom_conduite = 0.7000000000000001
+zoom_move_sol = 0.37
+zoom_move_conduite = 0.5
 zoom_speed = 4.0
 zoom_in_delay_s = 6.0
 
-[node name="HScrollBarHoverHeal" type="HScrollBar" parent="."]
+[node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true
 offset_left = 69.0
 offset_top = -104.0
@@ -91,7 +91,7 @@ theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_wyey8")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_1bwnf")
 page = 100.0
 
-[node name="HScrollBarPV" type="HScrollBar" parent="."]
+[node name="HScrollBarPV" type="HScrollBar" parent="." unique_id=718288286]
 unique_name_in_owner = true
 offset_left = -61.0
 offset_top = -104.0
@@ -104,29 +104,29 @@ theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_ur7pv")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_y4r1p")
 page = 100.0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1989065735]
 position = Vector2(1.5, -0.5)
 shape = SubResource("RectangleShape2D_dqkch")
 debug_color = Color(0.355273, 0.430568, 1, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=340298531]
 texture = ExtResource("2_qhqgy")
 
-[node name="Hurtbox" type="Area2D" parent="."]
+[node name="Hurtbox" type="Area2D" parent="." unique_id=812846246]
 script = ExtResource("4_dqkch")
 chemin_sante = NodePath("../Santé")
 hit_radius_px = 100.0
 groupe_hurtbox = &"player_hurtbox"
 
-[node name="ZoneRamassage" type="Area2D" parent="."]
+[node name="ZoneRamassage" type="Area2D" parent="." unique_id=673492411]
 script = ExtResource("8_dl1wr")
 metadata/_custom_type_script = "uid://cni7dvefjr67x"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage" unique_id=1492769066]
 shape = SubResource("CircleShape2D_wwtew")
 debug_color = Color(0, 0.6, 0.701961, 0)
 
-[node name="BarPV" type="Node2D" parent="."]
+[node name="BarPV" type="Node2D" parent="." unique_id=1249917707]
 script = ExtResource("6_tuyoq")
 chemin_hote = NodePath("../Sprite2D")
 chemin_bar = NodePath("../HScrollBarPV")
@@ -139,7 +139,7 @@ shake_force_px = 40.0
 shake_duree_s = 0.14
 debug_level = 0
 
-[node name="GestionnaireArme" type="Node2D" parent="."]
+[node name="GestionnaireArme" type="Node2D" parent="." unique_id=1667835939]
 script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketDroite")
 chemin_socket_secondaire = NodePath("SocketGauche")
@@ -152,28 +152,28 @@ distance_fusion_debut = 758.6
 distance_fusion_range = 880.6
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
-[node name="SocketGauche" type="Node2D" parent="GestionnaireArme"]
+[node name="SocketGauche" type="Node2D" parent="GestionnaireArme" unique_id=1473468658]
 position = Vector2(-155, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="GestionnaireArme/SocketGauche"]
+[node name="Sprite2D" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=829007635]
 texture = ExtResource("2_qhqgy")
 
-[node name="SocketDroite" type="Node2D" parent="GestionnaireArme"]
+[node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=77895239]
 position = Vector2(148, 0)
 
-[node name="Sprite2D2" type="Sprite2D" parent="GestionnaireArme/SocketDroite"]
+[node name="Sprite2D2" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=788168865]
 position = Vector2(-1, 0)
 texture = ExtResource("2_qhqgy")
 
-[node name="Santé" type="Node" parent="."]
+[node name="Santé" type="Node" parent="." unique_id=2029737781]
 script = ExtResource("3_qhqgy")
 
-[node name="StatsJoueur" type="Node" parent="."]
+[node name="StatsJoueur" type="Node" parent="." unique_id=655173724]
 script = ExtResource("9_7tfl1")
 vitesse_base = 1200.0
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
-[node name="GestionDeplacementJoueur" type="Node" parent="."]
+[node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=85766498]
 script = ExtResource("12_t6q27")
 acceleration_px_s2 = 3100.0
 deceleration_px_s2 = 1000.0
@@ -182,13 +182,14 @@ dash_multiplicateur_vitesse = 2.0
 dash_duree_s = 0.05
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
-[node name="ControleAttaquesArmes" type="Node" parent="."]
+[node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1157013637]
 script = ExtResource("9_wwtew")
 chemin_gestionnaire = NodePath("../GestionnaireArme")
 metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
-[node name="GestionnaireLoot" type="Node" parent="."]
+[node name="GestionnaireLoot" type="Node" parent="." unique_id=1146967959]
 script = ExtResource("10_uxo23")
+debug_loot = true
 conso_overheal_1_amount = 1.0
 conso_overheal_2_amount = 2.0
 conso_overheal_3_amount = 6.0
@@ -197,13 +198,13 @@ carburant_par_item_2 = 6.0
 carburant_par_item_3 = 10.0
 metadata/_custom_type_script = "uid://d2qt2wohmdfas"
 
-[node name="LootDisplayer" type="CanvasLayer" parent="."]
+[node name="LootDisplayer" type="CanvasLayer" parent="." unique_id=1078718419]
 script = ExtResource("11_n7rn1")
 chemin_loot = NodePath("../GestionnaireLoot")
-position_loot_ui = Vector2(950, 25)
+position_loot_ui = Vector2(10, 450)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
 
-[node name="StatsJoueurDisplayer" type="CanvasLayer" parent="."]
+[node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=353504141]
 script = ExtResource("13_jxtnq")
 chemin_stats = NodePath("../StatsJoueur")
 chemin_sante = NodePath("../Santé")
