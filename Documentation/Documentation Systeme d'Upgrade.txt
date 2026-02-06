@@ -2,193 +2,264 @@
 
 ## 0) Ce que le système fait réellement (résumé exact)
 
-1. Un **GestionnaireLoot** contient des items (id + quantite + nom)
-2. Le **Labolo** (menu d’upgrade) lit ce loot et affiche une **grille** de cellules
-3. Tu drag une **CelluleUpg** vers un **DepotArme** (slot d’équipement d’upgrade)
+1. Un GestionnaireLoot contient des items (id + quantite + nom)
+2. Le Labolo (menu d’upgrade) lit ce loot et affiche une grille de cellules
+3. Tu drag une CelluleUpg vers un DepotArme (slot d’équipement d’upgrade)
 4. Si le drop est valide :
 
-   * le dépôt “accepte” l’item
-   * le loot est **consommé** (pris=1)
+   * le dépôt accepte l’item
+   * le loot est consommé (pris=1)
    * le Labo refresh sa grille
-   * le **GestionnaireUpgradesArmeTir** reçoit `ajouter_upgrade_par_id(id_item, q)`
+   * le gestionnaire d’upgrades du slot reçoit ajouter_upgrade_par_id(id_item, q)
 5. Le gestionnaire applique :
 
-   * sur l’arme courante (groupe `armes_tir`)
-   * sur les projectiles (pool + actifs)
+   * sur l’arme courante (groupe armes_tir / armes_contact)
+   * sur les projectiles (pool + actifs) pour Tir
+   * sur l’arme + hitbox pour Contact
 
 ---
 
 # 1) Modules du système (TOUS)
 
-## A) `GestionnaireLoot` (Node)
+## A) GestionnaireLoot (Node)
 
 ### Rôle
 
 * Stocke l’inventaire d’items loot/upgrade.
-* Fournit au Labo : la liste des ids et quantités.
-* Applique la consommation quand un upgrade est “pris”.
+* Fournit au Labo la liste des ids et quantités.
+* Applique la consommation quand un upgrade est pris.
 
 ### Ce que tes logs prouvent
 
-* `"[Labolo] Loot attaché: GestionnaireLoot:<Node#...>"`
-* `"[Loot] consommer_loot id=... pris=1 reste=..."`
+* "[Labolo] Loot attaché: GestionnaireLoot:<Node#...>"
+* "[Loot] consommer_loot id=... pris=1 reste=..."
 
-Donc : **le drop déclenche une consommation**, et **la source des quantités est Loot**.
+Donc : le drop déclenche une consommation, et la source des quantités est Loot.
 
 ---
 
-## B) `LaboloMenu` / `Labolo` (UI / Menu)
+## B) LaboloMenu / Labolo (UI / Menu)
 
 ### Rôle
 
 * Ouvre/ferme le menu.
 * Lit le loot attaché.
 * Affiche la grille filtrée.
-* Envoie les drops au dépôt (et au gestionnaire d’upgrades).
+* Reçoit les drops des dépôts et route vers le bon gestionnaire d’upgrades.
 
 ### Logs importants
 
-* `[Labolo] OUVRIR menu / FERMER menu`
-* `[Labolo] Grille: total_ids=... affiches=... prefixes=["upg_", "upgrade_"]`
-* `[Labolo] DROP OK: slot=TIR id=... pris=1`
+* [Labolo] OUVRIR menu / FERMER menu
+* [Labolo] Grille: total_ids=... affiches=... prefixes=["upg_", "upgrade_"]
+* [Labolo] DROP OK: slot=... id=... pris=1
 
-### Détails clés que tu utilises (très important)
+### Détails clés
 
-* **Filtrage par prefixes** : `upg_` et `upgrade_`
+* Filtrage par prefixes : upg_ et upgrade_
+* Le Labo refresh la grille après chaque drop.
+* Routage par type_emplacement :
 
-  * ça veut dire : le Labo ne montre pas tout, il filtre l’inventaire loot.
-* Le Labo **refresh la grille** après chaque drop.
+  * slot TIR → groupe upg_arme_tir → GestionnaireUpgradesArmeTir
+  * slot CONTACT → groupe upg_arme_contact → GestionnaireUpgradesArmeContact
 
 ---
 
-## C) `CelluleUpg` (UI draggable)
+## C) CelluleUpg (UI draggable)
 
 ### Rôle
 
 * Représente un item upgrade (id + quantite + nom_item).
 * Est draggable.
-* Produit un “payload” de drop.
+* Produit un payload de drop.
 
 ### Logs
 
-* `[CelluleUpg] drag OK {id_item=..., quantite=..., nom_item=...}`
+* [CelluleUpg] drag OK {id_item=..., quantite=..., nom_item=...}
 
-👉 ton système de drag & drop ne passe pas juste un id : il passe une structure de data.
+Le drag & drop passe une structure de data, pas juste un id.
 
 ---
 
-## D) `DepotArme` (slot de drop)
+## D) DepotArme (slot de drop)
 
 ### Rôle
 
-* Décide si l’objet peut être droppé (`can_drop`)
-* Connait un “slot logique” (ici `TIR (ARME TIR)`)
-* Reçoit la data dropée
-* Si OK : déclenche la consommation loot + appel au gestionnaire d’upgrade
+* Décide si l’objet peut être droppé (can_drop)
+* Connait un slot logique (TIR ou CONTACT)
+* Reçoit la data droppée
+* Si OK : déclenche consommation loot + appel au gestionnaire d’upgrade via le Labo
 
 ### Logs critiques
 
-* `[DepotArme] can_drop=true slot=TIR ... data={id_item=..., quantite=...}`
-* `[DepotArme] DROP OK slot=TIR ... id=... q=...`
+* [DepotArme] can_drop=true slot=... data={id_item=..., quantite=...}
+* [DepotArme] DROP OK slot=... id=... q=...
 
-👉 **C’est le dépôt qui valide**, pas le gestionnaire d’upgrade.
-
----
-
-## E) `UpgradeRegistry`
-
-Déjà décrit, mais on ajoute un point important :
-
-### Rôle “réel” dans ton système
-
-* Il n’est pas juste une liste : c’est **la traduction “id item” → “effet”**.
-* Si `_map` est vide ou pas à jour, ton gestionnaire tombe en fallback manuel.
-
-Tu as : `[UpgradeRegistry] loaded=1`
-Donc ton registry ne contient **qu’un seul UpgradeData** actuellement (ou un seul valide).
+C’est le dépôt qui valide, pas le gestionnaire d’upgrade.
 
 ---
 
-## F) `UpgradeData`
+## E) UpgradeRegistry
 
-Déjà décrit. Mais point crucial :
+### Rôle réel
 
-### “prop” doit matcher EXACTEMENT une propriété exportée
+* Traduction id item → UpgradeData (effet data-driven)
+* Si _map est vide ou pas à jour, le gestionnaire doit fallback (manuel) ou ne fait rien.
 
-* Sur `ArmeBase`, `ArmeTir`, `Projectile`.
-  Sinon : `apply_to()` ne fait rien.
+Log typique :
+
+* [UpgradeRegistry] loaded=...
 
 ---
 
-## G) `GestionnaireUpgradesArmeTir`
+## F) UpgradeData
 
-On ajoute ce que tu utilises vraiment :
+### Point crucial
+
+* prop doit matcher exactement une propriété exportée sur la cible.
+* Si prop ne matche pas : apply_to() ne fait rien.
+
+Cibles typiques :
+
+* ArmeBase
+* ArmeTir
+* Projectile
+* ArmeContact
+* HitBoxContact
+
+---
+
+## G) GestionnaireUpgradesArmeTir
 
 ### Entrées
 
-* `ajouter_upgrade_par_id(id_item, q)`
-
-  * appelée depuis le flow Labo → Dépôt
+* ajouter_upgrade_par_id(id_item, q)
 
 ### Stockage
 
-Tu as 2 stockages différents :
+* _upg_stacks : total global par id
+* _upg_by_slot : état effectif appliqué (slot -> id + stacks)
 
-* `_upg_stacks` : total global par id (utile debug/stats)
-* `_upg_by_slot` : état effectif appliqué (slot -> id + stacks)
+Règle importante
 
-⚠️ Très important :
-
-* Si deux upgrades ont le même `slot`, **le dernier remplace** l’ancien.
-* Donc tu peux avoir `_upg_stacks` qui monte, mais `_upg_by_slot` qui n’applique qu’un seul id par slot.
+* Si deux upgrades partagent le même slot, le dernier remplace l’ancien dans _upg_by_slot.
 
 ### Application
 
-* `re_appliquer()` : prend la première arme `armes_tir`
-* applique “manuel” puis “registry”
-* puis applique sur projectiles
+* re_appliquer() :
+
+  * prend une arme du groupe armes_tir
+  * applique manuel puis registry
+  * applique aussi aux projectiles (pool + actifs)
 
 ---
 
-## H) `ArmeTir` / `ArmeBase`
+## H) ArmeTir / ArmeBase
 
-### Points importants du système réel
+### Points importants
 
-* L’arme est **instanciée via loot**, mais ça ne change rien : elle rejoint le groupe `armes_tir` dans `_ready()`.
-* L’arme appelle `upgrades.appliquer_sur_arme(self)` au moment d’attaquer (et aussi sur projectile au spawn).
-
-👉 Donc même si `re_appliquer()` n’était pas appelé, tu as quand même une application au moment de tirer. (Ça explique pourquoi ton displayer voit les changements.)
+* Arme instanciée via loot : elle rejoint armes_tir dans _ready().
+* L’arme applique ses upgrades au moment de tirer (et/ou au spawn projectile selon ton implémentation).
 
 ---
 
-## I) `Projectile`
+## I) Projectile
 
 ### Détail important
 
 * Les projectiles poolés gardent leurs valeurs.
-* Si tu modifies des stats projectile après coup, il faut :
+* Si tu modifies des stats projectile après coup :
 
-  * soit repasser sur pool + actifs (ce que fait ton gestionnaire)
-  * soit au moins modifier au spawn (ce que fait `_prendre_projectile()`)
+  * soit tu patches pool + actifs (ce que fait le gestionnaire)
+  * soit tu appliques au spawn (dans _prendre_projectile()).
 
 ---
 
-## J) `ArmTirStatsDisplayer` (ton displayer)
+## J) ArmTirStatsDisplayer
 
 ### Rôle
 
-* Debug “preuve” que les stats changent réellement en runtime.
-* Dans tes logs :
+* Preuve runtime que les stats changent.
+* Trouve arme via groupe armes_tir et upgrades via groupe upg_arme_tir.
 
-  * il ne trouve pas l’arme au début (normal si arme instanciée après)
-  * puis il la trouve et l’affiche
+Logs typiques
 
-Logs :
+* [ArmTirStatsDisplayer] aucune arme dans groupe 'armes_tir'
+* [ArmTirStatsDisplayer] arme trouvée ...
 
-* `[ArmTirStatsDisplayer] aucune arme dans groupe 'armes_tir'`
-* `[ArmTirStatsDisplayer] arme trouvée ...`
+---
 
-👉 ça confirme que **ton système de groupes est OK**.
+## K) GestionnaireUpgradesArmeContact
+
+### Rôle
+
+* Stocke les upgrades contact par id (stacks).
+* Convertit un id en modifs concrètes (degats, cooldown, recul, etc.).
+* Applique sur :
+
+  * ArmeContact (stats héritées de ArmeBase)
+  * HitBoxContact (collision_mask/layer + monitoring/disabled si activé)
+
+### Entrées
+
+* ajouter_upgrade_par_id(id_item, q)
+* re_appliquer()
+
+### Stockage
+
+* _stacks : total par id
+* optionnel : _upg_by_slot si tu veux une logique de slot unique côté contact
+
+### Application
+
+* appliquer_sur(arme_contact) :
+
+  * capture base si besoin
+  * revert base
+  * applique les flags mod_* via _patch()
+  * applique aussi sur hitbox si trouvée
+
+Comportement important
+
+* Sans re_appliquer() immédiat, l’effet peut n’être visible qu’au moment de l’attaque (si tu ne refresh pas l’arme au drop).
+
+---
+
+## L) ArmeContact / ArmeBase
+
+### Points importants
+
+* ArmeContact rejoint armes_contact dans _ready().
+* Au moment d’attaquer :
+
+  * cherche upgrades (groupe upg_arme_contact)
+  * applique upgrades.appliquer_sur(self)
+  * configure la hitbox avec degats/recul_force/porteur
+  * active la hitbox pendant duree_active_s
+  * cooldown via timer
+
+---
+
+## M) HitBoxContact
+
+### Rôle
+
+* Reçoit la config d’attaque :
+
+  * configurer(degats, recul_force, porteur)
+  * activer_pendant(duree_active_s)
+* Peut recevoir des modifs collision/monitoring/disabled depuis le gestionnaire upgrades contact.
+
+---
+
+## N) ArmContactStatsDisplayer
+
+### Rôle
+
+* Preuve runtime pour le contact.
+* Affiche :
+
+  * stats actuelles de l’arme contact (degats, cooldown, duree_active, recul)
+  * état des paramètres du gestionnaire contact (si tu lis directement les vars exportées)
 
 ---
 
@@ -197,79 +268,91 @@ Logs :
 ## 1) Loot → Labo
 
 * Loot attaché au Labo
-* Labo filtre `upg_` / `upgrade_`
-* affiche items
+* Labo filtre upg_ / upgrade_
+* Affiche les items
 
 ## 2) Drag CelluleUpg
 
-* cellule fabrique data `{id_item, quantite, nom_item}`
+* La cellule fabrique data {id_item, quantite, nom_item}
 
 ## 3) Drop sur DepotArme
 
 * DepotArme valide can_drop
-* DepotArme consomme loot (`pris=1`)
-* DepotArme déclenche appel upgrade
+* DepotArme fait consommer_loot(id_item, 1) → pris=1
+* DepotArme déclenche le Labo qui appelle le bon gestionnaire selon le slot
 
-## 4) GestionnaireUpgradesArmeTir reçoit l’ID
+## 4) GestionnaireUpgrades reçoit l’ID
 
-* cherche UpgradeData via registry
-* si trouvé : stocke par slot et applique
-* sinon : fallback manuel if/elif
+* slot TIR → GestionnaireUpgradesArmeTir.ajouter_upgrade_par_id + re_appliquer
+* slot CONTACT → GestionnaireUpgradesArmeContact.ajouter_upgrade_par_id + re_appliquer (si tu veux effet immédiat)
 
-## 5) L’arme et projectiles se mettent à jour
+## 5) Les éléments se mettent à jour
 
-* arme : propriétés changent
-* projectile : pool + actifs changent
+* Tir :
 
----
+  * arme : propriétés changent
+  * projectiles : pool + actifs changent
+* Contact :
 
-# 3) Pourquoi tu pensais que “ça marche pas” alors que ça marche
-
-Parce que tu avais 2 problèmes de perception possibles :
-
-1. **Registry loaded=1**
-
-   * donc tes upgrades `upg_degats_tir_1` etc. n’étaient probablement PAS dans le registry → ils passaient en fallback manuel OU ne faisaient rien (si pas fallback).
-   * Mais toi tu regardais le résultat global en jeu, donc confusion.
-
-2. **slot unique**
-
-   * si plusieurs upgrades partagent le même slot, tu “perds” un upgrade (remplacé).
-   * Toi tu vois “j’ai 3 items consommés”, mais l’effet final n’en reflète qu’un.
-
-3. **hitscan vs projectile**
-
-   * un upgrade “vitesse projectile” ne sert à rien si l’arme est en hitscan.
+  * arme : propriétés changent
+  * hitbox : paramètres collision/monitoring/disabled changent si activés
+  * application gameplay garantie au moment de l’attaque via hitbox.configurer()
 
 ---
 
-# 4) Les éléments que j’avais pas documenté au départ (liste)
+# 3) Pourquoi tu pensais que ça marche pas alors que ça marche
 
-* `GestionnaireLoot` (stock + consommation)
-* `Labolo` (UI + filtrage prefix + refresh)
-* `CelluleUpg` (drag payload)
-* `DepotArme` (validation drop, slot, consommation, routage)
-* le filtrage `prefixes=["upg_", "upgrade_"]`
-* le fait que `pris=1` même si quantite>1
-* le displayer et le timing d’instanciation de l’arme
+1. Registry loaded faible
+
+* Si UpgradeRegistry.loaded est bas, beaucoup d’ids passent en fallback manuel ou ne font rien.
+* Tu consommes des items mais l’effet attendu ne correspond pas.
+
+2. Slot unique (Tir)
+
+* Tu consommes plusieurs items mais un seul est effectif si même slot.
+
+3. Hitscan vs projectile (Tir)
+
+* Upgrades projectile inutiles si arme hitscan.
+
+4. Contact appliqué au mauvais moment
+
+* Si tu n’appliques pas au drop, tu ne vois rien tant que tu n’attaques pas.
+* Le vrai moment gameplay côté contact, c’est quand la hitbox est configurée et activée.
 
 ---
 
-# 5) Check-list “ça marche / ça marche pas” (ultra rapide)
+# 4) Les éléments manquants au départ (liste)
 
-## Si tu veux que 100% des upgrades soient data-driven (registry)
+* GestionnaireLoot (stock + consommation)
+* Labolo (UI + filtrage prefix + refresh + routage)
+* CelluleUpg (payload drag)
+* DepotArme (validation drop, slot, consommation)
+* Filtrage prefixes=["upg_", "upgrade_"]
+* pris=1 même si quantite > 1
+* Displayer + timing d’apparition des armes
+* GestionnaireUpgradesArmeContact + différence “appliquer au drop” vs “appliquer à l’attaque”
+* HitBoxContact comme point d’impact gameplay
 
-Tu dois avoir :
+---
 
-* `UpgradeRegistry.loaded == nombre d’upgrades valides`
-* chaque item loot id == upgradeData.id
-* chaque upgradeData.prop == vraie propriété exportée
-* slots cohérents (pas tous `"default"` si tu veux cumuler plusieurs effets)
+# 5) Check-list ça marche / ça marche pas (ultra rapide)
 
-## Si tu veux juste que “ça marche maintenant”
+## Si tu veux 100% data-driven (registry)
 
-* displayer te confirme déjà que dégâts/vitesse changent
-* donc ton problème n’est pas “ça prend pas effet” → c’était soit :
+* UpgradeRegistry.loaded == nombre d’upgrades valides attendus
+* loot id == UpgradeData.id
+* UpgradeData.prop == vraie propriété exportée sur la cible
+* slots cohérents (pas tous "default" si tu veux cumuler)
+* cibles correctes (ArmeTir/Projectile vs ArmeContact/HitBoxContact)
 
-  * un manque de visibilité, soit
-  * un cas où ça ne changeait pas le gameplay (hitscan etc.)
+## Si tu veux juste que ça marche maintenant
+
+* Le Labo consomme bien (pris=1)
+* Le bon gestionnaire est trouvé via groupe (upg_arme_tir / upg_arme_contact)
+* Tir :
+
+  * re_appliquer() met à jour arme + projectiles
+* Contact :
+
+  * re_appliquer() met à jour l’arme immédiatement ou, au minimum, attaque() applique avant hitbox.configurer()

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://ccrho425bef1n"]
+
+[ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://resources/script/UpgradeData.gd" id="1_nw503"]
+
+[resource]
+script = ExtResource("1_nw503")
+id = &"upg_degats_contact_1"
+prop = &"degats"
+mode = 2
+valeur = 2.0
+max_stacks = 10
+metadata/_custom_type_script = "uid://3drknm51cgh8"

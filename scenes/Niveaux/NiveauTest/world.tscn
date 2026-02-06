@@ -23,24 +23,33 @@
 [ext_resource type="Resource" uid="uid://dk71txuwjlglb" path="res://resources/Sang de goblin.tres" id="13_rsdp2"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://resources/Items/upg_degats_tir_1.tres" id="14_ixded"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/Managers/Managers En Jeu/LootManager.gd" id="15_05p27"]
+[ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://resources/Items/upg_degats_contact_1.tres" id="15_lougb"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
 [ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/Managers/Managers En Jeu/GestionnaireUpgradesArmeContact.gd" id="17_g8on3"]
 [ext_resource type="Script" uid="uid://kthfkdydc61t" path="res://scripts/Managers/Managers En Jeu/EnemyCountDisplayer.gd" id="20_g8on3"]
 [ext_resource type="Script" uid="uid://c3n45jyngklmv" path="res://scripts/Managers/Managers En Jeu/TouchesHUDDisplayer.gd" id="24_5r2b3"]
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/Menus/labolo_menu.tscn" id="24_dwlrb"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/Managers/Managers En Jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
+[ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/Managers/Managers En Jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
 
 [sub_resource type="Resource" id="Resource_ild1w"]
 script = ExtResource("11_op4qr")
 item_id = &"upg_degats_tir_1"
+poids = 0.5
 nom_affiche = "boost degats tir"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
+
+[sub_resource type="Resource" id="Resource_b3mfv"]
+script = ExtResource("11_op4qr")
+item_id = &"upg_degats_contact_1"
+poids = 0.5
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_op4qr"]
 script = ExtResource("11_22h11")
 proba_C = 0.0
 proba_B = 1.0
-upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_ild1w")])
+upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_ild1w"), SubResource("Resource_b3mfv")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
@@ -126,7 +135,7 @@ metadata/_custom_type_script = "uid://bd4l01sn16cch"
 [node name="UpgradeRegistry" type="Node" parent="." unique_id=2043351419]
 script = ExtResource("12_2ks8m")
 debug_registry = true
-upgrades = Array[ExtResource("13_ixded")]([ExtResource("14_ixded")])
+upgrades = Array[ExtResource("13_ixded")]([ExtResource("14_ixded"), ExtResource("15_lougb")])
 metadata/_custom_type_script = "uid://dcilq6nxyvo36"
 
 [node name="GestionnaireLootDrops" type="Node" parent="." unique_id=700485635]
@@ -175,6 +184,7 @@ mod_nombre_de_rayon_dans_zone_scane = true
 nombre_de_rayon_dans_zone_scane = 3
 mod_contacts_avant_destruction = true
 contacts_avant_destruction = 7
+ignorer_meme_cible = false
 chemin_registry = NodePath("../UpgradeRegistry")
 metadata/_custom_type_script = "uid://cv21bsmmjcq40"
 
@@ -216,3 +226,10 @@ debug_enabled = true
 chemin_upgrades = NodePath("../GestioUpgArmeTir")
 ui_position = Vector2(1500, 550)
 metadata/_custom_type_script = "uid://fg6vtmeufp88"
+
+[node name="ArmContactStatsDisplayer" type="CanvasLayer" parent="." unique_id=198998267]
+script = ExtResource("30_vykxf")
+debug_enabled = true
+chemin_upgrades = NodePath("../GestionnaireUpgradesArmeContact")
+ui_position = Vector2(1700, 500)
+metadata/_custom_type_script = "uid://n1ib2janvwgn"

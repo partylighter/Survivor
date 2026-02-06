@@ -1,20 +1,19 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4npq4wsjbvmf"]
+[gd_scene format=3 uid="uid://b4npq4wsjbvmf"]
 
 [ext_resource type="Script" uid="uid://bcfretktrsvva" path="res://scripts/Menus/EmplacementDepotArme.gd" id="1_bjmei"]
 
-[node name="EmplacementDepotArme" type="PanelContainer"]
+[node name="EmplacementDepotArme" type="PanelContainer" unique_id=1909273424]
 offset_right = 40.0
 offset_bottom = 40.0
 script = ExtResource("1_bjmei")
-debug_depot = true
 metadata/_custom_type_script = "uid://bcfretktrsvva"
 
-[node name="Colonne" type="VBoxContainer" parent="."]
+[node name="Colonne" type="VBoxContainer" parent="." unique_id=1421449733]
 layout_mode = 2
 
-[node name="Titre" type="Label" parent="Colonne"]
+[node name="Titre" type="Label" parent="Colonne" unique_id=1573944139]
 layout_mode = 2
 text = "ARME"
 
-[node name="Indice" type="Label" parent="Colonne"]
+[node name="Indice" type="Label" parent="Colonne" unique_id=1072107852]
 layout_mode = 2

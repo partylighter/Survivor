@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://c30q3eslekhjr"]
+[gd_scene format=3 uid="uid://c30q3eslekhjr"]
 
 [ext_resource type="Script" uid="uid://3vrdepif8avt" path="res://scripts/Menus/labolo_menu.gd" id="1_2eyb5"]
 [ext_resource type="PackedScene" uid="uid://ban0uu1up7fyp" path="res://scenes/Menus/cellule_item_upgrade.tscn" id="2_o4ub2"]
@@ -16,7 +16,7 @@ corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 corner_detail = 5
 
-[node name="LaboloMenu" type="CanvasLayer"]
+[node name="LaboloMenu" type="CanvasLayer" unique_id=337874261]
 script = ExtResource("1_2eyb5")
 debug_labolo = true
 chemin_grille = NodePath("Panel/Root/Scroll/GrilleItems")
@@ -24,7 +24,7 @@ chemin_emplacement_tir = NodePath("Panel/Root/LigneArmes/EmplacementTir")
 chemin_emplacement_contact = NodePath("Panel/Root/LigneArmes/EmplacementContact")
 scene_cellule = ExtResource("2_o4ub2")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=947617030]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -32,7 +32,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_2eyb5")
 
-[node name="Root" type="VBoxContainer" parent="Panel"]
+[node name="Root" type="VBoxContainer" parent="Panel" unique_id=469042539]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -41,24 +41,26 @@ grow_horizontal = 2
 grow_vertical = 2
 alignment = 1
 
-[node name="LigneArmes" type="HBoxContainer" parent="Panel/Root"]
+[node name="LigneArmes" type="HBoxContainer" parent="Panel/Root" unique_id=769695718]
 layout_mode = 2
 alignment = 1
 
-[node name="EmplacementTir" parent="Panel/Root/LigneArmes" instance=ExtResource("3_cn0ws")]
+[node name="EmplacementTir" parent="Panel/Root/LigneArmes" unique_id=557469234 instance=ExtResource("3_cn0ws")]
 layout_mode = 2
 titre = "ARME TIR"
+debug_depot = true
 
-[node name="EmplacementContact" parent="Panel/Root/LigneArmes" instance=ExtResource("3_cn0ws")]
+[node name="EmplacementContact" parent="Panel/Root/LigneArmes" unique_id=2020609156 instance=ExtResource("3_cn0ws")]
 layout_mode = 2
 type_emplacement = 1
 titre = "ARME CONTACT"
+debug_depot = true
 
-[node name="Scroll" type="ScrollContainer" parent="Panel/Root"]
+[node name="Scroll" type="ScrollContainer" parent="Panel/Root" unique_id=1547421719]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 
-[node name="GrilleItems" type="GridContainer" parent="Panel/Root/Scroll"]
+[node name="GrilleItems" type="GridContainer" parent="Panel/Root/Scroll" unique_id=14771533]
 layout_mode = 2
 size_flags_horizontal = 6
 size_flags_vertical = 10

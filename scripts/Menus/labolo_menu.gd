@@ -3,6 +3,8 @@ class_name LaboloMenu
 
 const GROUPE_UPG_TIR: StringName = &"upg_arme_tir"
 var upg_tir_ref: Node = null
+const GROUPE_UPG_CONTACT: StringName = &"upg_arme_contact"
+var upg_contact_ref: Node = null
 
 const GROUPE_LOOT: StringName = &"gestionnaire_loot"
 const ACTION_MENU_LABO: StringName = &"menu_labo"
@@ -17,6 +19,9 @@ const ACTION_MENU_LABO: StringName = &"menu_labo"
 @export var prefixes_affiches: PackedStringArray = ["upg_", "upgrade_"]
 
 var loot_ref: Node = null
+
+var _refresh_pending: bool = false
+var _loot_sig_connected: bool = false
 
 @onready var grille: GridContainer = get_node_or_null(chemin_grille) as GridContainer
 @onready var emplacement_tir: EmplacementDepotArme = get_node_or_null(chemin_emplacement_tir) as EmplacementDepotArme
@@ -43,25 +48,35 @@ func _ready() -> void:
 
 	if get_tree():
 		get_tree().node_added.connect(_on_node_added)
+func _trouver_upg_contact() -> void:
+	if upg_contact_ref != null and is_instance_valid(upg_contact_ref):
+		return
+	upg_contact_ref = get_tree().get_first_node_in_group(GROUPE_UPG_CONTACT)
 
 func _trouver_upg_tir() -> void:
 	if upg_tir_ref != null and is_instance_valid(upg_tir_ref):
 		return
 	upg_tir_ref = get_tree().get_first_node_in_group(GROUPE_UPG_TIR)
 
-func _appliquer_upgrade_labo(_type_emplacement: int, id_item: StringName, quantite: int) -> void:
-	_trouver_upg_tir()
-	if upg_tir_ref == null or not is_instance_valid(upg_tir_ref):
-		if debug_labolo:
-			print("[Labolo] UPG REFUS: manager upg_tir introuvable")
+func _appliquer_upgrade_labo(type_emplacement: int, id_item: StringName, quantite: int) -> void:
+	var manager: Node = null
+
+	if emplacement_tir and type_emplacement == int(emplacement_tir.type_emplacement):
+		_trouver_upg_tir()
+		manager = upg_tir_ref
+
+	elif emplacement_contact and type_emplacement == int(emplacement_contact.type_emplacement):
+		_trouver_upg_contact()
+		manager = upg_contact_ref
+
+	if manager == null or not is_instance_valid(manager):
 		return
-	if not upg_tir_ref.has_method("ajouter_upgrade_par_id"):
-		if debug_labolo:
-			print("[Labolo] UPG REFUS: upg_tir n'a pas ajouter_upgrade_par_id(id, q)")
-		return
-	upg_tir_ref.call("ajouter_upgrade_par_id", id_item, quantite)
-	if upg_tir_ref.has_method("re_appliquer"):
-		upg_tir_ref.call("re_appliquer")
+
+	if manager.has_method("ajouter_upgrade_par_id"):
+		manager.call("ajouter_upgrade_par_id", id_item, quantite)
+
+	if manager.has_method("re_appliquer"):
+		manager.call("re_appliquer")
 
 func _exit_tree() -> void:
 	if get_tree() and get_tree().node_added.is_connected(_on_node_added):
@@ -100,14 +115,43 @@ func _attacher_loot(n: Node) -> void:
 	if not loot_ref.tree_exited.is_connected(_on_loot_quitte_scene):
 		loot_ref.tree_exited.connect(_on_loot_quitte_scene)
 
+	# CONNECT SIGNAL LOOT_CHANGE
+	_loot_sig_connected = false
+	if loot_ref.has_signal("loot_change"):
+		var cb := Callable(self, "_on_loot_change")
+		if not loot_ref.is_connected("loot_change", cb):
+			loot_ref.connect("loot_change", cb)
+		_loot_sig_connected = true
+	else:
+		_d("WARN: loot_ref n'a pas le signal loot_change -> pas de refresh temps réel")
+
 	_d("Loot attaché: %s" % [_node_tag(loot_ref)])
 
 func _detacher_loot() -> void:
 	if loot_ref != null and is_instance_valid(loot_ref):
 		if loot_ref.tree_exited.is_connected(_on_loot_quitte_scene):
 			loot_ref.tree_exited.disconnect(_on_loot_quitte_scene)
-	loot_ref = null
 
+		# Deconnecte SIGNAL LOOT_CHANGE
+		if loot_ref.has_signal("loot_change"):
+			var cb := Callable(self, "_on_loot_change")
+			if loot_ref.is_connected("loot_change", cb):
+				loot_ref.disconnect("loot_change", cb)
+
+	loot_ref = null
+	_loot_sig_connected = false
+
+func _on_loot_change() -> void:
+	if not visible:
+		return
+	if _refresh_pending:
+		return
+	_refresh_pending = true
+	call_deferred("_refresh_grille_deferred")
+
+func _refresh_grille_deferred() -> void:
+	_refresh_pending = false
+	rafraichir_grille()
 
 func _on_loot_quitte_scene() -> void:
 	_d("Loot a quitté l'arbre -> reset ref")
@@ -118,10 +162,19 @@ func ouvrir() -> void:
 	_d("OUVRIR menu")
 	_trouver_loot()
 	rafraichir_grille()
+	_set_inputs_enabled(false)
 
 func fermer() -> void:
 	visible = false
 	_d("FERMER menu")
+	_set_inputs_enabled(true)
+
+func _set_inputs_enabled(enabled: bool) -> void:
+	for n in get_tree().get_nodes_in_group(&"inputs_jeu"):
+		if not is_instance_valid(n):
+			continue
+		n.set_process(enabled)
+		n.set_physics_process(enabled)
 
 func toggle() -> void:
 	if visible:
@@ -147,6 +200,7 @@ func rafraichir_grille() -> void:
 		return
 
 	for c in grille.get_children():
+		grille.remove_child(c)
 		c.queue_free()
 
 	var d: Dictionary = loot_ref.call("get_stats_loot")

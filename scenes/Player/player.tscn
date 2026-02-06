@@ -59,7 +59,6 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
-collision_ennemis_actif = false
 poids_collision = 20.0
 collision_push_mult = 0.01
 
@@ -189,7 +188,6 @@ metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1146967959]
 script = ExtResource("10_uxo23")
-debug_loot = true
 conso_overheal_1_amount = 1.0
 conso_overheal_2_amount = 2.0
 conso_overheal_3_amount = 6.0

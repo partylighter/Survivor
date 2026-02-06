@@ -75,6 +75,7 @@ var _main_secondaire_active: bool = true
 const GROUPE_EQUIPEE := "__arme_equipee__"
 
 func _ready() -> void:
+	add_to_group(&"inputs_jeu")
 	_socket_principale = get_node_or_null(chemin_socket_principale) as Node2D
 	_socket_secondaire = get_node_or_null(chemin_socket_secondaire) as Node2D
 	zone = get_node_or_null(chemin_zone) as ZoneRamassage

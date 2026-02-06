@@ -8,6 +8,7 @@ var auto_droite: bool = false
 var auto_gauche: bool = false
 
 func _ready() -> void:
+	add_to_group(&"inputs_jeu")
 	gestionnaire = get_node_or_null(chemin_gestionnaire) as GestionnaireArme
 
 func _process(_dt: float) -> void:

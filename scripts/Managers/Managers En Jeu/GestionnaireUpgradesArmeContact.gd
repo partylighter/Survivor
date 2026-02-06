@@ -29,6 +29,8 @@ enum Mode { SET, ADD, MUL }
 @export var hitbox_disabled: bool = false
 @export var mod_hitbox_monitoring: bool = false
 @export var hitbox_monitoring: bool = true
+var _stacks: Dictionary = {}
+var _upg_by_slot: Dictionary = {}
 
 var _props_cache: Dictionary = {}
 var _base_arme: Dictionary = {}
@@ -129,10 +131,75 @@ func _ensure_props_cache(o: Object) -> void:
 	_props_cache[id] = props
 
 func _has_prop(o: Object, prop: StringName) -> bool:
+	if o == null:
+		return false
+
 	var id := o.get_instance_id()
 	if not _props_cache.has(id):
-		return false
+		var props := {}
+		for d in o.get_property_list():
+			props[StringName(d.name)] = true
+		_props_cache[id] = props
+
 	return _props_cache[id].has(prop)
+
+func ajouter_upgrade_par_id(id_item: StringName, quantite: int = 1) -> void:
+	if not actif:
+		return
+	var q := maxi(1, quantite)
+
+	_stacks[id_item] = int(_stacks.get(id_item, 0)) + q
+	_upg_by_slot[&"default"] = { "id": id_item, "q": int(_stacks[id_item]) }
+
+	re_appliquer()
+	for a in get_tree().get_nodes_in_group("armes_contact"):
+		if a is ArmeContact and is_instance_valid(a):
+			appliquer_sur(a)
+	if debug_upgrades:
+		print("[UpgContact] ajouter_upgrade_par_id id=", String(id_item), " q=", q, " stacks=", int(_stacks[id_item]))
+
+func re_appliquer() -> void:
+	if not actif:
+		return
+
+	mod_degats = false
+	mod_duree_active_s = false
+	mod_cooldown_s = false
+	mod_recul_force = false
+
+	mod_hitbox_collision_mask = false
+	mod_hitbox_collision_layer = false
+	mod_hitbox_disabled = false
+	mod_hitbox_monitoring = false
+
+	for id_item in _stacks.keys():
+		_apply_from_id(id_item as StringName, int(_stacks[id_item]))
+
+func _apply_from_id(id_item: StringName, stacks: int) -> void:
+	var s := String(id_item)
+
+	if s.begins_with("upg_degats_contact_"):
+		mod_degats = true
+		degats += 2 * stacks
+		return
+
+	if s.begins_with("upg_duree_contact_"):
+		mod_duree_active_s = true
+		duree_active_s += 0.03 * float(stacks)
+		return
+
+	if s.begins_with("upg_cooldown_contact_"):
+		mod_cooldown_s = true
+		cooldown_s = maxf(0.05, cooldown_s - 0.03 * float(stacks))
+		return
+
+	if s.begins_with("upg_recul_contact_"):
+		mod_recul_force = true
+		recul_force += 35.0 * float(stacks)
+		return
+
+	if debug_upgrades:
+		print("[UpgContact] id inconnu -> ", s)
 
 func _patch(o: Object, prop: StringName, enabled: bool, v, mode: int) -> void:
 	if not enabled:

@@ -86,17 +86,17 @@ var _nom_par_id: Dictionary = {}
 func _ready() -> void:
 	add_to_group("gestionnaire_loot")
 	joueur = get_parent() as Player
-	_debug_remplir_loot_test()
+	#_debug_remplir_loot_test()
 	set_process(true)
 
 func _exit_tree() -> void:
 	remove_from_group(&"gestionnaire_loot")
 
-func _debug_remplir_loot_test() -> void:
-	stats_loot[&"upgrade_test_degats"] = 3 # OK car "upgrade_" commence bien par "upgrade_"
-	stats_loot[&"upg_test_vitesse"] = 1    # OK car "upg_" commence bien par "upg_"
-	_nom_par_id[&"upgrade_test_degats"] = "Upgrade dégâts"
-	_nom_par_id[&"upg_test_vitesse"] = "Upg vitesse"
+#func _debug_remplir_loot_test() -> void:
+	#stats_loot[&"upgrade_test_degats"] = 3 # OK car "upgrade_" commence bien par "upgrade_"
+	#stats_loot[&"upg_test_vitesse"] = 1    # OK car "upg_" commence bien par "upg_"
+	#_nom_par_id[&"upgrade_test_degats"] = "Upgrade dégâts"
+	#_nom_par_id[&"upg_test_vitesse"] = "Upg vitesse"
 
 func _process(delta: float) -> void:
 	_ensure_refs()

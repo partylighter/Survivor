@@ -19,6 +19,8 @@ func _ready() -> void:
 		effets.set_cible(self)
 
 	_trouver_upgrades()
+	if upgrades and upgrades.actif:
+		upgrades.appliquer_sur(self)
 
 func _trouver_upgrades() -> void:
 	if upgrades != null and is_instance_valid(upgrades):
