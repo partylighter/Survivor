@@ -20,7 +20,6 @@
 [ext_resource type="Script" uid="uid://dcilq6nxyvo36" path="res://scripts/autoloads/GestionnaireGameplay/UpgradeRegistry.gd" id="12_2ks8m"]
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/autoloads/AutoloadsPerf/ProjectileHub.gd" id="12_30tab"]
 [ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://resources/script/UpgradeData.gd" id="13_ixded"]
-[ext_resource type="Resource" uid="uid://dk71txuwjlglb" path="res://resources/Sang de goblin.tres" id="13_rsdp2"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://resources/Items/upg_degats_tir_1.tres" id="14_ixded"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/Managers/Managers En Jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://resources/Items/upg_degats_contact_1.tres" id="15_lougb"]
@@ -32,16 +31,15 @@
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/Managers/Managers En Jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 [ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/Managers/Managers En Jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
 
-[sub_resource type="Resource" id="Resource_ild1w"]
-script = ExtResource("11_op4qr")
-item_id = &"upg_degats_tir_1"
-poids = 0.5
-nom_affiche = "boost degats tir"
-metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
-
 [sub_resource type="Resource" id="Resource_b3mfv"]
 script = ExtResource("11_op4qr")
 item_id = &"upg_degats_contact_1"
+poids = 0.5
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
+
+[sub_resource type="Resource" id="Resource_lougb"]
+script = ExtResource("11_op4qr")
+item_id = &"upg_degats_tir_1"
 poids = 0.5
 metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
@@ -49,14 +47,19 @@ metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 script = ExtResource("11_22h11")
 proba_C = 0.0
 proba_B = 1.0
-upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_ild1w"), SubResource("Resource_b3mfv")])
+upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_b3mfv"), SubResource("Resource_lougb")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
+
+[sub_resource type="Resource" id="Resource_vykxf"]
+script = ExtResource("11_op4qr")
+item_id = &"upg_degats_contact_1"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
 script = ExtResource("11_22h11")
 proba_C = 0.39
 proba_B = 0.56
-upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("13_rsdp2")])
+upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_vykxf")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_bjm5b"]
@@ -144,8 +147,9 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
+tirages_min_type_C = 7
 tirages_max_type_C = 7
-tirages_min_type_B = 0
+tirages_min_type_B = 8
 tirages_max_type_B = 8
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")

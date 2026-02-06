@@ -251,38 +251,45 @@ func _match_prefix(s: String) -> bool:
 	return false
 
 func _on_item_depose(type_emplacement: int, id_item: StringName, _quantite: int) -> void:
-	var slot := "?"
-	if emplacement_tir and type_emplacement == int(emplacement_tir.type_emplacement):
-		slot = "TIR"
-	elif emplacement_contact and type_emplacement == int(emplacement_contact.type_emplacement):
-		slot = "CONTACT"
+	var is_tir := emplacement_tir and type_emplacement == int(emplacement_tir.type_emplacement)
+	var is_contact := emplacement_contact and type_emplacement == int(emplacement_contact.type_emplacement)
 
 	_trouver_loot()
 	if loot_ref == null or not is_instance_valid(loot_ref):
 		if debug_labolo:
 			print("[Labolo] DROP REFUS: loot_ref manquant")
 		return
-
 	if not loot_ref.has_method("consommer_loot"):
 		if debug_labolo:
 			print("[Labolo] DROP REFUS: loot_ref n'a pas consommer_loot()")
 		return
 
-	# Par défaut: 1 item consommé par drop 
-	var a_prendre: int = 1
-	var pris: int = int(loot_ref.call("consommer_loot", id_item, a_prendre))
-
-	if pris <= 0:
+	var reg := get_tree().get_first_node_in_group("upgrade_registry") as UpgradeRegistry
+	var upg := reg.get_upgrade(id_item) if reg != null else null
+	if upg == null:
 		if debug_labolo:
-			print("[Labolo] DROP: rien consommé (stock vide?) slot=", slot, " id=", String(id_item))
+			print("[Labolo] DROP REFUS: upgrade inconnu id=", String(id_item))
 		return
 
-	if debug_labolo:
-		print("[Labolo] DROP OK: slot=", slot, " id=", String(id_item), " pris=", pris)
+	var ok := false
+	if is_tir:
+		ok = (upg.slot == &"tir")
+	elif is_contact:
+		ok = (upg.slot == &"contact")
 
-	# TODO: ici on branchera l'application de l'upgrade sur l'arme
+	if not ok:
+		if debug_labolo:
+			print("[Labolo] DROP REFUS: mauvais slot id=", String(id_item), " slot_upg=", String(upg.slot))
+		return
+
+	var a_prendre: int = 1
+	var pris: int = int(loot_ref.call("consommer_loot", id_item, a_prendre))
+	if pris <= 0:
+		if debug_labolo:
+			print("[Labolo] DROP: rien consommé id=", String(id_item))
+		return
+
 	_appliquer_upgrade_labo(type_emplacement, id_item, pris)
-
 	rafraichir_grille()
 
 func _d(msg: String) -> void:

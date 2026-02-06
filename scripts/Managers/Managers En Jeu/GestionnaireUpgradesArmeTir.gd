@@ -339,6 +339,10 @@ func re_appliquer() -> void:
 			var upg := _registry.get_upgrade(uid)
 			if upg == null:
 				continue
+			if upg.cible != UpgradeData.Target.ARME:
+				continue
+			if upg.slot != &"tir":
+				continue
 
 			if int(upg.cible) == int(UpgradeData.Target.ARME):
 				upg.apply_to(arme, stacks)

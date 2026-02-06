@@ -8,5 +8,6 @@ id = &"upg_degats_contact_1"
 prop = &"degats"
 mode = 2
 valeur = 2.0
+slot = &"contact"
 max_stacks = 10
 metadata/_custom_type_script = "uid://3drknm51cgh8"
