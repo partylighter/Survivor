@@ -2,10 +2,31 @@ extends CanvasLayer
 class_name LootDisplayer
 
 @export var actif: bool = true
-@export var ui_visible: bool = true : set = set_ui_visible, get = get_ui_visible
-@export_node_path("GestionnaireLoot") var chemin_loot: NodePath
-@export var position_loot_ui: Vector2 = Vector2(16, 16)
+@export var debug_enabled: bool = false
 
+var _ui_visible: bool = true
+@export var ui_visible: bool = true:
+	set(v):
+		_ui_visible = v
+		_apply_ui_visible()
+	get:
+		return _ui_visible
+
+@export_node_path("GestionnaireLoot") var chemin_loot: NodePath
+
+@export_group("Affichage")
+@export var ui_position: Vector2 = Vector2(16, 16)
+@export var ui_largeur_min_px: float = 360.0
+@export_range(8, 64, 1) var ui_taille_police: int = 14
+@export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
+@export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
+@export_range(0, 64, 1) var ui_espace_lignes: int = 4
+@export_range(0, 32, 1) var ui_max_items_affiches: int = 24
+
+@export_group("Raccourci")
+@export var toggle_key: Key = KEY_F12
+
+@export_group("Noms")
 @export var noms_par_id: Dictionary = {
 	"carburant_1": "Fuel I",
 	"carburant_2": "Fuel II",
@@ -15,32 +36,121 @@ class_name LootDisplayer
 	"upgrade_carburant_3": "Fuel III"
 }
 
-var _ui_visible: bool = true
 var loot_ref: GestionnaireLoot = null
-var lbl_loot: Label = null
+
+var _panel: Panel
+var _margin: MarginContainer
+var _root: VBoxContainer
+var _stylebox: StyleBoxFlat
+var _title: Label
+var _sub: Label
+var _list: VBoxContainer
+
+var _items_labels: Array[Label] = []
 
 func _ready() -> void:
 	_ui_visible = ui_visible
-	set_ui_visible(_ui_visible)
-
 	loot_ref = get_node_or_null(chemin_loot) as GestionnaireLoot
-
-	lbl_loot = Label.new()
-	lbl_loot.name = "LblLoot"
-	lbl_loot.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	lbl_loot.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	lbl_loot.autowrap_mode = TextServer.AUTOWRAP_WORD
-	lbl_loot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_loot.size_flags_vertical = Control.SIZE_FILL
-	lbl_loot.custom_minimum_size = Vector2(280, 180)
-	add_child(lbl_loot)
-
-	var c := lbl_loot as Control
-	c.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	c.position = position_loot_ui
-
+	_creer_ui()
+	_appliquer_style()
+	_apply_ui_visible()
 	_attach_loot_signal()
 	_refresh_ui()
+
+func _dbg(msg: String) -> void:
+	if debug_enabled:
+		print("[LootDisplayer] ", msg)
+
+func _apply_ui_visible() -> void:
+	visible = _ui_visible
+	if _panel != null:
+		_panel.visible = _ui_visible
+	set_process(_ui_visible and actif)
+
+func _creer_ui() -> void:
+	_panel = Panel.new()
+	add_child(_panel)
+	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
+
+	_margin = MarginContainer.new()
+	_panel.add_child(_margin)
+	_margin.add_theme_constant_override("margin_left", 10)
+	_margin.add_theme_constant_override("margin_top", 10)
+	_margin.add_theme_constant_override("margin_right", 10)
+	_margin.add_theme_constant_override("margin_bottom", 10)
+
+	_root = VBoxContainer.new()
+	_margin.add_child(_root)
+	_root.add_theme_constant_override("separation", ui_espace_lignes)
+
+	var header := VBoxContainer.new()
+	_root.add_child(header)
+	header.add_theme_constant_override("separation", 2)
+
+	_title = Label.new()
+	_sub = Label.new()
+	header.add_child(_title)
+	header.add_child(_sub)
+
+	_root.add_child(HSeparator.new())
+
+	_list = VBoxContainer.new()
+	_root.add_child(_list)
+	_list.add_theme_constant_override("separation", 0)
+
+	_ensure_item_labels(ui_max_items_affiches)
+
+func _ensure_item_labels(n: int) -> void:
+	n = max(n, 1)
+	while _items_labels.size() < n:
+		var l := Label.new()
+		l.text = ""
+		l.visible = false
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_list.add_child(l)
+		_items_labels.append(l)
+
+func _appliquer_style() -> void:
+	if _stylebox == null:
+		_stylebox = StyleBoxFlat.new()
+
+	_stylebox.bg_color = ui_couleur_fond
+	_stylebox.border_color = Color(1, 1, 1, 0.22)
+	_stylebox.border_width_top = 1
+	_stylebox.border_width_bottom = 1
+	_stylebox.border_width_left = 1
+	_stylebox.border_width_right = 1
+	_stylebox.corner_radius_top_left = 8
+	_stylebox.corner_radius_top_right = 8
+	_stylebox.corner_radius_bottom_left = 8
+	_stylebox.corner_radius_bottom_right = 8
+	_stylebox.shadow_color = Color(0, 0, 0, 0.35)
+	_stylebox.shadow_size = 6
+
+	_panel.add_theme_stylebox_override("panel", _stylebox)
+
+	_title.text = "LOOT"
+	_title.add_theme_font_size_override("font_size", ui_taille_police + 3)
+	_title.add_theme_color_override("font_color", Color(1, 1, 1, 0.98))
+
+	_sub.text = "F12 pour afficher/masquer"
+	_sub.add_theme_font_size_override("font_size", max(8, ui_taille_police - 2))
+	_sub.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+
+	for c in _panel.get_children():
+		_apply_font_recursive(c)
+
+func _apply_font_recursive(n: Node) -> void:
+	if n is Label:
+		var l := n as Label
+		if l != _title:
+			l.add_theme_font_size_override("font_size", ui_taille_police)
+			if not l.has_theme_color_override("font_color"):
+				l.add_theme_color_override("font_color", ui_couleur_texte)
+	for ch in n.get_children():
+		_apply_font_recursive(ch)
 
 func _attach_loot_signal() -> void:
 	if loot_ref == null or not is_instance_valid(loot_ref):
@@ -53,20 +163,23 @@ func _on_loot_change() -> void:
 		return
 	_refresh_ui()
 
+func _process(_dt: float) -> void:
+	if not actif or _panel == null or not _panel.visible:
+		return
+	_panel.position = ui_position
+
 func _refresh_ui() -> void:
 	if not actif:
 		return
 
+	_ensure_item_labels(ui_max_items_affiches)
+
 	if loot_ref == null or not is_instance_valid(loot_ref):
 		loot_ref = get_node_or_null(chemin_loot) as GestionnaireLoot
 		if loot_ref == null:
-			if lbl_loot:
-				lbl_loot.text = "Loot: (GestionnaireLoot introuvable)"
+			_set_lines(["Loot: (GestionnaireLoot introuvable)"])
 			return
 		_attach_loot_signal()
-
-	if lbl_loot == null or not is_instance_valid(lbl_loot):
-		return
 
 	var stats_src: Dictionary = {}
 	if loot_ref.has_method("get_stats_loot_affichage"):
@@ -95,9 +208,24 @@ func _refresh_ui() -> void:
 			lignes.append("Carburant stocké : " + str(snappedf(c, 0.1)))
 
 	for it in items:
+		if lignes.size() >= ui_max_items_affiches:
+			break
 		lignes.append("%s : %d" % [String(it["nom"]), int(it["q"])])
 
-	lbl_loot.text = "Aucun loot récupéré" if lignes.is_empty() else "\n".join(lignes)
+	if lignes.is_empty():
+		lignes.append("Aucun loot récupéré")
+
+	_set_lines(lignes)
+
+func _set_lines(lines: Array[String]) -> void:
+	for i in range(_items_labels.size()):
+		var l := _items_labels[i]
+		if i < lines.size():
+			l.text = lines[i]
+			l.visible = true
+		else:
+			l.text = ""
+			l.visible = false
 
 func _sort_items(a: Dictionary, b: Dictionary) -> bool:
 	var qa: int = int(a.get("q", 0))
@@ -117,14 +245,8 @@ func _nom_affiche(id_any) -> String:
 		return String(noms_par_id[sid])
 	return sid
 
-func set_ui_visible(v: bool) -> void:
-	_ui_visible = v
-	visible = v
-
-func get_ui_visible() -> bool:
-	return _ui_visible
-
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F12:
-			set_ui_visible(not _ui_visible)
+		if event.keycode == toggle_key:
+			ui_visible = not ui_visible
+			_dbg("toggle key=%s -> ui=%s" % [str(toggle_key), str(_ui_visible)])

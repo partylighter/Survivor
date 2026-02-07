@@ -17,7 +17,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="MaximumOverdrive Survivor"
 config/description="Survivor"
 config/version="0.1.2"
-run/main_scene="uid://bxhvsp0qy5nos"
+run/main_scene="uid://0182ilsqlcwo"
 config/features=PackedStringArray("4.6", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
 

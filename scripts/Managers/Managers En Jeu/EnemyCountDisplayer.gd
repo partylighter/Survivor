@@ -1,82 +1,188 @@
 extends CanvasLayer
 class_name EnemyCountDisplayer
 
-@export var ui_visible: bool = true:
-	set(v): _set_ui_visible(v)
-	get: return _ui_visible
-
 @export var actif: bool = true
+@export var debug_enabled: bool = false
+
+var _ui_visible: bool = true
+@export var ui_visible: bool = true:
+	set(v):
+		_ui_visible = v
+		_apply_ui_visible()
+	get:
+		return _ui_visible
 
 @export_node_path("GestionnaireEnnemis") var chemin_ennemis: NodePath
 
+@export_group("Perf")
 @export var maj_interval_frames: int = 6:
-	set(v): _set_maj_interval_frames(v)
+	set(v): _maj_interval_frames = max(v, 1)
 	get: return _maj_interval_frames
 
-@export var label_pos: Vector2 = Vector2(16, 16):
-	set(v): _set_label_pos(v)
-	get: return _label_pos
+@export_group("Affichage")
+@export var ui_position: Vector2 = Vector2(16, 16)
+@export var ui_largeur_min_px: float = 360.0
+@export_range(8, 64, 1) var ui_taille_police: int = 14
+@export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
+@export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
+@export_range(0, 64, 1) var ui_espace_lignes: int = 6
 
-@export var label_scale: Vector2 = Vector2.ONE:
-	set(v): _set_label_scale(v)
-	get: return _label_scale
+@export_group("Raccourci")
+@export var toggle_key: Key = KEY_F2
 
-@export var label_z_index: int = 200:
-	set(v): _set_label_z_index(v)
-	get: return _label_z_index
+var ennemis_ref: GestionnaireEnnemis
 
-@export var label_modulate: Color = Color(1, 1, 1, 1):
-	set(v): _set_label_modulate(v)
-	get: return _label_modulate
+var _panel: Panel
+var _margin: MarginContainer
+var _root: VBoxContainer
+var _stylebox: StyleBoxFlat
+var _title: Label
+var _sub: Label
+var _grid: GridContainer
+var _rows: Dictionary = {}
+var _cache: Dictionary = {}
 
-@export var label_name: StringName = &"EnemyCountLabel":
-	set(v): _set_label_name(v)
-	get: return _label_name
-
-var _ui_visible: bool = true
 var _maj_interval_frames: int = 6
-var _label_pos: Vector2 = Vector2(16, 16)
-var _label_scale: Vector2 = Vector2.ONE
-var _label_z_index: int = 200
-var _label_modulate: Color = Color(1, 1, 1, 1)
-var _label_name: StringName = &"EnemyCountLabel"
-
-@onready var ennemis_ref: GestionnaireEnnemis = get_node_or_null(chemin_ennemis) as GestionnaireEnnemis
-
-var lbl: Label
 var _frame: int = 0
 
 func _ready() -> void:
 	_ui_visible = ui_visible
-	_maj_interval_frames = max(maj_interval_frames, 1)
-	_label_pos = label_pos
-	_label_scale = label_scale
-	_label_z_index = label_z_index
-	_label_modulate = label_modulate
-	_label_name = label_name
+	ennemis_ref = get_node_or_null(chemin_ennemis) as GestionnaireEnnemis
+	_creer_ui()
+	_appliquer_style()
+	_apply_ui_visible()
 
-	_creer_label_si_besoin()
-	_appliquer_style_label()
-	_set_ui_visible(_ui_visible)
+func _dbg(msg: String) -> void:
+	if debug_enabled:
+		print("[EnemyCountDisplayer] ", msg)
+
+func _apply_ui_visible() -> void:
+	visible = _ui_visible
+	if _panel != null:
+		_panel.visible = _ui_visible
+	set_process(_ui_visible and actif)
+
+func _creer_ui() -> void:
+	_panel = Panel.new()
+	add_child(_panel)
+	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
+
+	_margin = MarginContainer.new()
+	_panel.add_child(_margin)
+	_margin.add_theme_constant_override("margin_left", 10)
+	_margin.add_theme_constant_override("margin_top", 10)
+	_margin.add_theme_constant_override("margin_right", 10)
+	_margin.add_theme_constant_override("margin_bottom", 10)
+
+	_root = VBoxContainer.new()
+	_margin.add_child(_root)
+	_root.add_theme_constant_override("separation", ui_espace_lignes)
+
+	var header := VBoxContainer.new()
+	_root.add_child(header)
+	header.add_theme_constant_override("separation", 2)
+
+	_title = Label.new()
+	_sub = Label.new()
+	header.add_child(_title)
+	header.add_child(_sub)
+
+	_root.add_child(HSeparator.new())
+
+	_grid = GridContainer.new()
+	_grid.columns = 2
+	_root.add_child(_grid)
+
+	_add_row("Total", "—")
+	_add_row("Invalid", "—")
+	_add_row("FULL (LOD0)", "—")
+	_add_row("LITE (LOD1)", "—")
+	_add_row("OFF  (LOD2)", "—")
+	_add_row("Full limit", "—")
+	_add_row("Lite limit", "—")
+	_add_row("Foule actifs", "—")
+	_add_row("Foule budget/frame", "—")
+
+func _add_row(k: String, v: String) -> void:
+	var lk := Label.new()
+	var lv := Label.new()
+	lk.text = k
+	lv.text = v
+	lk.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_grid.add_child(lk)
+	_grid.add_child(lv)
+	_rows[k] = lv
+
+func _appliquer_style() -> void:
+	if _stylebox == null:
+		_stylebox = StyleBoxFlat.new()
+
+	_stylebox.bg_color = ui_couleur_fond
+	_stylebox.border_color = Color(1, 1, 1, 0.22)
+	_stylebox.border_width_top = 1
+	_stylebox.border_width_bottom = 1
+	_stylebox.border_width_left = 1
+	_stylebox.border_width_right = 1
+	_stylebox.corner_radius_top_left = 8
+	_stylebox.corner_radius_top_right = 8
+	_stylebox.corner_radius_bottom_left = 8
+	_stylebox.corner_radius_bottom_right = 8
+	_stylebox.shadow_color = Color(0, 0, 0, 0.35)
+	_stylebox.shadow_size = 6
+
+	_panel.add_theme_stylebox_override("panel", _stylebox)
+
+	_title.text = "ENEMIS (LOD)"
+	_title.add_theme_font_size_override("font_size", ui_taille_police + 3)
+	_title.add_theme_color_override("font_color", Color(1, 1, 1, 0.98))
+
+	_sub.text = "F2 pour afficher/masquer"
+	_sub.add_theme_font_size_override("font_size", max(8, ui_taille_police - 2))
+	_sub.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+
+	for c in _grid.get_children():
+		if c is Label:
+			var l := c as Label
+			l.add_theme_font_size_override("font_size", ui_taille_police)
+			l.add_theme_color_override("font_color", ui_couleur_texte)
+
+func _set_val(k: String, v: String) -> void:
+	if _cache.get(k, "") == v:
+		return
+	_cache[k] = v
+	var lab := _rows.get(k, null) as Label
+	if lab != null:
+		lab.text = v
 
 func _process(_dt: float) -> void:
-	if not actif or not visible:
+	if not actif or _panel == null or not _panel.visible:
 		return
+
+	_panel.position = ui_position
 
 	_frame += 1
 	if _frame < _maj_interval_frames:
 		return
 	_frame = 0
 
-	if lbl == null:
-		return
-
-	if not is_instance_valid(ennemis_ref):
-		lbl.text = "EnemyCountDisplayer: GestionnaireEnnemis invalide"
-		return
+	if ennemis_ref == null or not is_instance_valid(ennemis_ref):
+		ennemis_ref = get_node_or_null(chemin_ennemis) as GestionnaireEnnemis
+		if ennemis_ref == null:
+			_set_val("Total", "—")
+			_set_val("Invalid", "—")
+			_set_val("FULL (LOD0)", "—")
+			_set_val("LITE (LOD1)", "—")
+			_set_val("OFF  (LOD2)", "—")
+			_set_val("Full limit", "—")
+			_set_val("Lite limit", "—")
+			_set_val("Foule actifs", "—")
+			_set_val("Foule budget/frame", "—")
+			return
 
 	var total: int = ennemis_ref.ennemis.size()
-
 	var full: int = 0
 	var lite: int = 0
 	var off: int = 0
@@ -107,68 +213,18 @@ func _process(_dt: float) -> void:
 	if ennemis_ref.foule_actif:
 		foule_actifs = ennemis_ref._foule_liste.size()
 
-	lbl.text = ""
-	lbl.text += "ENEMIS\n"
-	lbl.text += "Total: " + str(total) + "   Invalid: " + str(invalid) + "\n"
-	lbl.text += "FULL(LOD0): " + str(full) + " / " + str(full_limit) + "\n"
-	lbl.text += "LITE(LOD1): " + str(lite) + " / " + str(lite_limit) + "\n"
-	lbl.text += "OFF (LOD2): " + str(off) + "\n"
-	lbl.text += "Foule actifs: " + str(foule_actifs) + " / budget " + str(ennemis_ref.foule_budget_par_frame)
+	_set_val("Total", str(total))
+	_set_val("Invalid", str(invalid))
+	_set_val("FULL (LOD0)", "%d" % full)
+	_set_val("LITE (LOD1)", "%d" % lite)
+	_set_val("OFF  (LOD2)", "%d" % off)
+	_set_val("Full limit", str(full_limit))
+	_set_val("Lite limit", str(lite_limit))
+	_set_val("Foule actifs", str(foule_actifs))
+	_set_val("Foule budget/frame", str(int(ennemis_ref.foule_budget_par_frame)))
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_F2:
-			_set_ui_visible(!_ui_visible)
-
-func _creer_label_si_besoin() -> void:
-	lbl = null
-	if has_node(NodePath(String(_label_name))):
-		lbl = get_node(NodePath(String(_label_name))) as Label
-	if lbl == null:
-		lbl = Label.new()
-		lbl.name = String(_label_name)
-		add_child(lbl)
-
-func _appliquer_style_label() -> void:
-	if lbl == null:
-		return
-	lbl.position = _label_pos
-	lbl.scale = _label_scale
-	lbl.z_index = _label_z_index
-	lbl.modulate = _label_modulate
-	lbl.visible = _ui_visible
-
-func _set_ui_visible(v: bool) -> void:
-	_ui_visible = v
-	visible = v
-	if lbl != null:
-		lbl.visible = v
-
-func _set_maj_interval_frames(v: int) -> void:
-	_maj_interval_frames = max(v, 1)
-
-func _set_label_pos(v: Vector2) -> void:
-	_label_pos = v
-	if lbl != null:
-		lbl.position = v
-
-func _set_label_scale(v: Vector2) -> void:
-	_label_scale = v
-	if lbl != null:
-		lbl.scale = v
-
-func _set_label_z_index(v: int) -> void:
-	_label_z_index = v
-	if lbl != null:
-		lbl.z_index = v
-
-func _set_label_modulate(v: Color) -> void:
-	_label_modulate = v
-	if lbl != null:
-		lbl.modulate = v
-
-func _set_label_name(v: StringName) -> void:
-	_label_name = v
-	if is_inside_tree():
-		_creer_label_si_besoin()
-		_appliquer_style_label()
+		if event.keycode == toggle_key:
+			ui_visible = not ui_visible
+			_dbg("toggle key=%s -> ui=%s" % [str(toggle_key), str(_ui_visible)])

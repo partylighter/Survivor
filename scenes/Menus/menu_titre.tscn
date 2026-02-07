@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bxhvsp0qy5nos"]
+[gd_scene format=3 uid="uid://bxhvsp0qy5nos"]
 
 [ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/Menus/menu_titre.gd" id="1_b4npc"]
 [ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/autoloads/AutoloadsMenuing/GestionnaireMenuTitre.gd" id="2_ru77k"]
@@ -53,14 +53,14 @@ Button/styles/hover = SubResource("StyleBoxFlat_prkpd")
 Button/styles/normal = SubResource("StyleBoxFlat_3k1r1")
 Button/styles/pressed = SubResource("StyleBoxFlat_b06b5")
 
-[node name="MenuTitre" type="CanvasLayer"]
+[node name="MenuTitre" type="CanvasLayer" unique_id=115352017]
 script = ExtResource("1_b4npc")
 chemin_btn_jouer = NodePath("Root/VBoxContainer/btn_play")
 chemin_btn_parametres = NodePath("Root/VBoxContainer/btn_settings")
 chemin_btn_credits = NodePath("Root/VBoxContainer/btn_credits")
 chemin_btn_quitter = NodePath("Root/VBoxContainer/btn_quit")
 
-[node name="Root" type="Control" parent="."]
+[node name="Root" type="Control" parent="." unique_id=1465130667]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -68,7 +68,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="Root"]
+[node name="ColorRect" type="ColorRect" parent="Root" unique_id=1764704751]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,7 +77,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.717647)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Root" unique_id=2060812006]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -92,35 +92,35 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_ifyg5")
 
-[node name="btn_play" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_play" type="Button" parent="Root/VBoxContainer" unique_id=133041453]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Jouer"
 
-[node name="btn_settings" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_settings" type="Button" parent="Root/VBoxContainer" unique_id=954922166]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Parametres"
 
-[node name="btn_credits" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_credits" type="Button" parent="Root/VBoxContainer" unique_id=592713762]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Crédits"
 
-[node name="btn_quit" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_quit" type="Button" parent="Root/VBoxContainer" unique_id=2039364280]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Quitter
 "
 
-[node name="GestionnaireMenuTitre" type="Node" parent="."]
+[node name="GestionnaireMenuTitre" type="Node" parent="." unique_id=1408607463]
 script = ExtResource("2_ru77k")
 scene_jeu = ExtResource("3_iipul")
 scene_options = ExtResource("4_iipul")
 scene_credits = ExtResource("5_iipul")
 metadata/_custom_type_script = "uid://b7hstmkshyre5"
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=362785622]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
@@ -128,12 +128,12 @@ offset_top = -82.0
 offset_right = 242.0
 grow_vertical = 0
 
-[node name="Auteur" type="Label" parent="VBoxContainer"]
+[node name="Auteur" type="Label" parent="VBoxContainer" unique_id=928814093]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "By PARTYLIGHTER"
 
-[node name="Label Game Version" type="Label" parent="VBoxContainer"]
+[node name="Label Game Version" type="Label" parent="VBoxContainer" unique_id=1692201637]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
 text = "Version 0.1.2"

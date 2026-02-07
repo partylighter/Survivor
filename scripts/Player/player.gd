@@ -38,11 +38,45 @@ var dash_autorise: bool = true
 var base_vehicle: Node2D = null
 var _col_idx: int = 0
 
+var _mort: bool = false
+
 func _ready() -> void:
 	add_to_group("joueur_principal")
 	if stats != null and sante != null:
 		stats.set_sante_ref(sante)
 	base_vehicle = get_node_or_null(chemin_base_vehicle) as Node2D
+
+	if sante != null and not sante.died.is_connected(_on_sante_died):
+		sante.died.connect(_on_sante_died)
+
+func _on_sante_died() -> void:
+	mourir()
+
+func mourir() -> void:
+	if _mort:
+		return
+	_mort = true
+	get_tree().call_group("gestion_ennemis", "set_player_dead", true)
+
+	collision_ennemis_actif = false
+	velocity = Vector2.ZERO
+	set_physics_process(false)
+	set_process(false)
+	set_process_input(false)
+	set_process_unhandled_input(false)
+
+	for n in get_tree().get_nodes_in_group(&"inputs_jeu"):
+		if n != null and is_instance_valid(n):
+			n.set_process(false)
+			n.set_physics_process(false)
+			n.set_process_input(false)
+			n.set_process_unhandled_input(false)
+
+	var ds := get_tree().get_first_node_in_group("death_screen")
+	if ds != null and ds.has_method("show_auto"):
+		ds.call("show_auto")
+	else:
+		push_warning("DeathScreen introuvable ou pas de show_auto() (groupe 'death_screen')")
 
 func _physics_process(dt: float) -> void:
 	if gestion_deplacement:

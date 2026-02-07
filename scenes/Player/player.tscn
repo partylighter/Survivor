@@ -59,8 +59,7 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
-poids_collision = 20.0
-collision_push_mult = 0.01
+collision_ennemis_actif = false
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=417599169]
 script = ExtResource("2_wyey8")
@@ -166,9 +165,11 @@ texture = ExtResource("2_qhqgy")
 
 [node name="Santé" type="Node" parent="." unique_id=2029737781]
 script = ExtResource("3_qhqgy")
+max_pv = 9999999999999
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=655173724]
 script = ExtResource("9_7tfl1")
+pv_max_base = 9999999999
 vitesse_base = 1200.0
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
@@ -199,7 +200,7 @@ metadata/_custom_type_script = "uid://d2qt2wohmdfas"
 [node name="LootDisplayer" type="CanvasLayer" parent="." unique_id=1078718419]
 script = ExtResource("11_n7rn1")
 chemin_loot = NodePath("../GestionnaireLoot")
-position_loot_ui = Vector2(10, 450)
+ui_position = Vector2(16, 700)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=353504141]
@@ -207,7 +208,7 @@ script = ExtResource("13_jxtnq")
 chemin_stats = NodePath("../StatsJoueur")
 chemin_sante = NodePath("../Santé")
 chemin_player = NodePath("..")
-ui_position = Vector2(0, 200)
+ui_position = Vector2(16, 600)
 ui_couleur_fond = Color(0, 0, 0, 1)
 ui_couleur_texte = Color(1, 0, 1, 1)
 metadata/_custom_type_script = "uid://c3p8dtpg1k02r"

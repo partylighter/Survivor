@@ -30,6 +30,7 @@
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/Menus/labolo_menu.tscn" id="24_dwlrb"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/Managers/Managers En Jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 [ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/Managers/Managers En Jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
+[ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/Managers/Managers En Jeu/death_screen.gd" id="31_lougb"]
 
 [sub_resource type="Resource" id="Resource_b3mfv"]
 script = ExtResource("11_op4qr")
@@ -102,8 +103,7 @@ position = Vector2(63788, 45778)
 [node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("4_71j4m")])
-poids_types = [0.5, 0.5]
-max_ennemis = 2
+max_ennemis = 700
 ennemis_init = 10
 apparitions_par_sec = 150.0
 rayon_spawn_min = 4000.0
@@ -111,7 +111,7 @@ rayon_spawn_max = 5000.0
 rayon_simulation = 6000.0
 rayon_disparition = 6500.0
 lod_update_interval_frames = 50
-max_full_actifs = 500
+max_full_actifs = 200
 max_buffer_actifs = 1500
 rayon_engage = 50000.0
 vitesse_lointain = 5000.0
@@ -147,10 +147,6 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
-tirages_min_type_C = 7
-tirages_max_type_C = 7
-tirages_min_type_B = 8
-tirages_max_type_B = 8
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")
@@ -177,7 +173,10 @@ mod_degats = true
 degats = 15
 mod_duree_active_s = true
 mod_recul_force = true
-recul_force = 500.0
+recul_force = 1200.0
+mod_nb_balles = true
+mod_dispersion_deg = true
+dispersion_deg = 30.0
 mod_duree_vie_s = true
 duree_vie_s = 3.0
 mod_vitesse_px_s = true
@@ -207,7 +206,7 @@ metadata/_custom_type_script = "uid://do0yqbnnckvc0"
 [node name="EnemyCountDisplayer" type="CanvasLayer" parent="." unique_id=1270604926]
 script = ExtResource("20_g8on3")
 chemin_ennemis = NodePath("../Gestionnaire Enemies")
-label_pos = Vector2(250, 48)
+ui_position = Vector2(250, 150)
 metadata/_custom_type_script = "uid://kthfkdydc61t"
 
 [node name="StatsDisplayer" parent="." unique_id=285191055 instance=ExtResource("6_qfnet")]
@@ -215,7 +214,7 @@ chemin_stats = NodePath("../StatsVagues")
 chemin_ennemis = NodePath("../Gestionnaire Enemies")
 
 [node name="PerfDisplayer" parent="." unique_id=1367246842 instance=ExtResource("7_i7xtm")]
-margin = Vector2(8, 50)
+ui_position = Vector2(16, 150)
 
 [node name="LaboloMenu" parent="." unique_id=1988590845 instance=ExtResource("24_dwlrb")]
 visible = false
@@ -228,12 +227,18 @@ metadata/_custom_type_script = "uid://c3n45jyngklmv"
 script = ExtResource("29_ild1w")
 debug_enabled = true
 chemin_upgrades = NodePath("../GestioUpgArmeTir")
-ui_position = Vector2(1500, 550)
+ui_position = Vector2(1500, 400)
 metadata/_custom_type_script = "uid://fg6vtmeufp88"
 
 [node name="ArmContactStatsDisplayer" type="CanvasLayer" parent="." unique_id=198998267]
 script = ExtResource("30_vykxf")
 debug_enabled = true
 chemin_upgrades = NodePath("../GestionnaireUpgradesArmeContact")
-ui_position = Vector2(1700, 500)
+ui_position = Vector2(1500, 5)
 metadata/_custom_type_script = "uid://n1ib2janvwgn"
+
+[node name="DeathScreen" type="CanvasLayer" parent="." unique_id=515360058]
+script = ExtResource("31_lougb")
+debug_death = true
+chemin_stats_vagues = NodePath("../StatsVagues")
+chemin_gestionnaire_ennemis = NodePath("../Gestionnaire Enemies")

@@ -17,10 +17,10 @@ var _ui_visible: bool = true
 @export_group("Affichage")
 @export var ui_position: Vector2 = Vector2(16, 140)
 @export_range(8, 64, 1) var ui_taille_police: int = 14
-@export var ui_largeur_min_px: float = 320.0
-@export var ui_couleur_fond: Color = Color(0, 0, 0, 0.5)
-@export var ui_couleur_texte: Color = Color(1, 1, 1, 0.9)
-@export_range(0, 32, 1) var ui_espace_lignes: int = 2
+@export var ui_largeur_min_px: float = 360.0
+@export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
+@export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
+@export_range(0, 32, 1) var ui_espace_lignes: int = 6
 
 @export_group("Raccourci")
 @export var toggle_key: Key = KEY_F3
@@ -29,35 +29,26 @@ var arme: ArmeTir
 var upgrades: GestionnaireUpgradesArmeTir
 
 var _panel: Panel
-var _vbox: VBoxContainer
+var _margin: MarginContainer
+var _root: VBoxContainer
 var _stylebox: StyleBoxFlat
 
-var lbl_nom: Label
-var lbl_degats: Label
-var lbl_nb_balles: Label
-var lbl_dispersion: Label
-var lbl_cooldown: Label
-var lbl_duree_active: Label
-var lbl_recul: Label
-var lbl_hitscan: Label
-var lbl_tir_max: Label
-var lbl_portee: Label
-var lbl_mask: Label
+var _title: Label
+var _sub: Label
 
-var lbl_proj_vitesse: Label
-var lbl_proj_vie: Label
-var lbl_proj_mask: Label
-var lbl_proj_marge: Label
-var lbl_proj_largeur: Label
-var lbl_proj_rays: Label
-var lbl_proj_contacts: Label
-var lbl_proj_ignore: Label
+var _grid_arme: GridContainer
+var _grid_proj: GridContainer
+
+var _rows_arme: Dictionary = {}
+var _rows_proj: Dictionary = {}
 
 var _dbg_last_arme_id: int = 0
 var _dbg_last_upg_id: int = 0
 var _dbg_last_ui: bool = true
 var _dbg_missing_armed_printed: bool = false
 var _dbg_missing_upg_printed: bool = false
+
+var _cache: Dictionary = {}
 
 func _ready() -> void:
 	_ui_visible = ui_visible
@@ -83,94 +74,153 @@ func _creer_ui() -> void:
 	_panel = Panel.new()
 	add_child(_panel)
 	_panel.position = ui_position
+	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	_vbox = VBoxContainer.new()
-	_panel.add_child(_vbox)
-	_vbox.anchor_left = 0.0
-	_vbox.anchor_top = 0.0
-	_vbox.anchor_right = 1.0
-	_vbox.anchor_bottom = 1.0
-	_vbox.offset_left = 8
-	_vbox.offset_top = 8
-	_vbox.offset_right = -8
-	_vbox.offset_bottom = -8
-	_vbox.add_theme_constant_override("separation", ui_espace_lignes)
+	_margin = MarginContainer.new()
+	_panel.add_child(_margin)
+	_margin.anchor_left = 0.0
+	_margin.anchor_top = 0.0
+	_margin.anchor_right = 1.0
+	_margin.anchor_bottom = 1.0
+	_margin.offset_left = 10
+	_margin.offset_top = 10
+	_margin.offset_right = -10
+	_margin.offset_bottom = -10
 
-	lbl_nom = Label.new()
-	lbl_degats = Label.new()
-	lbl_nb_balles = Label.new()
-	lbl_dispersion = Label.new()
-	lbl_cooldown = Label.new()
-	lbl_duree_active = Label.new()
-	lbl_recul = Label.new()
-	lbl_hitscan = Label.new()
-	lbl_tir_max = Label.new()
-	lbl_portee = Label.new()
-	lbl_mask = Label.new()
+	_root = VBoxContainer.new()
+	_margin.add_child(_root)
+	_root.add_theme_constant_override("separation", ui_espace_lignes)
 
-	lbl_proj_vitesse = Label.new()
-	lbl_proj_vie = Label.new()
-	lbl_proj_mask = Label.new()
-	lbl_proj_marge = Label.new()
-	lbl_proj_largeur = Label.new()
-	lbl_proj_rays = Label.new()
-	lbl_proj_contacts = Label.new()
-	lbl_proj_ignore = Label.new()
+	var header := VBoxContainer.new()
+	_root.add_child(header)
+	header.add_theme_constant_override("separation", 2)
 
-	_vbox.add_child(lbl_nom)
-	_vbox.add_child(lbl_degats)
-	_vbox.add_child(lbl_nb_balles)
-	_vbox.add_child(lbl_dispersion)
-	_vbox.add_child(lbl_cooldown)
-	_vbox.add_child(lbl_duree_active)
-	_vbox.add_child(lbl_recul)
-	_vbox.add_child(lbl_hitscan)
-	_vbox.add_child(lbl_tir_max)
-	_vbox.add_child(lbl_portee)
-	_vbox.add_child(lbl_mask)
+	_title = Label.new()
+	_sub = Label.new()
+	header.add_child(_title)
+	header.add_child(_sub)
 
-	_vbox.add_child(HSeparator.new())
+	var sep1 := HSeparator.new()
+	_root.add_child(sep1)
 
-	_vbox.add_child(lbl_proj_vitesse)
-	_vbox.add_child(lbl_proj_vie)
-	_vbox.add_child(lbl_proj_mask)
-	_vbox.add_child(lbl_proj_marge)
-	_vbox.add_child(lbl_proj_largeur)
-	_vbox.add_child(lbl_proj_rays)
-	_vbox.add_child(lbl_proj_contacts)
-	_vbox.add_child(lbl_proj_ignore)
+	var section_arme := Label.new()
+	section_arme.text = "ARME"
+	_root.add_child(section_arme)
+
+	_grid_arme = GridContainer.new()
+	_grid_arme.columns = 2
+	_root.add_child(_grid_arme)
+
+	_add_row(_grid_arme, _rows_arme, "Nom", "—")
+	_add_row(_grid_arme, _rows_arme, "Dégâts", "—")
+	_add_row(_grid_arme, _rows_arme, "Nb balles", "—")
+	_add_row(_grid_arme, _rows_arme, "Dispersion", "—")
+	_add_row(_grid_arme, _rows_arme, "Cooldown", "—")
+	_add_row(_grid_arme, _rows_arme, "Durée active", "—")
+	_add_row(_grid_arme, _rows_arme, "Recul", "—")
+	_add_row(_grid_arme, _rows_arme, "Hitscan", "—")
+	_add_row(_grid_arme, _rows_arme, "Tir max/frame", "—")
+	_add_row(_grid_arme, _rows_arme, "Portée hitscan", "—")
+	_add_row(_grid_arme, _rows_arme, "Mask tir", "—")
+
+	var sep2 := HSeparator.new()
+	_root.add_child(sep2)
+
+	var section_proj := Label.new()
+	section_proj.text = "PROJECTILES (UPGRADES)"
+	_root.add_child(section_proj)
+
+	_grid_proj = GridContainer.new()
+	_grid_proj.columns = 2
+	_root.add_child(_grid_proj)
+
+	_add_row(_grid_proj, _rows_proj, "Vitesse", "—")
+	_add_row(_grid_proj, _rows_proj, "Vie", "—")
+	_add_row(_grid_proj, _rows_proj, "Mask", "—")
+	_add_row(_grid_proj, _rows_proj, "Marge ray", "—")
+	_add_row(_grid_proj, _rows_proj, "Largeur zone scan", "—")
+	_add_row(_grid_proj, _rows_proj, "Rays dans zone", "—")
+	_add_row(_grid_proj, _rows_proj, "Contacts avant destroy", "—")
+	_add_row(_grid_proj, _rows_proj, "Ignore même cible", "—")
+
+func _add_row(grid: GridContainer, map: Dictionary, k: String, v: String) -> void:
+	var lk := Label.new()
+	var lv := Label.new()
+	lk.text = k
+	lv.text = v
+	lk.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lv.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	grid.add_child(lk)
+	grid.add_child(lv)
+	map[k] = lv
 
 func _appliquer_style() -> void:
 	if _stylebox == null:
 		_stylebox = StyleBoxFlat.new()
 
 	_stylebox.bg_color = ui_couleur_fond
-	_stylebox.border_color = Color(1, 1, 1, 0.3)
+	_stylebox.border_color = Color(1, 1, 1, 0.22)
 	_stylebox.border_width_top = 1
 	_stylebox.border_width_bottom = 1
 	_stylebox.border_width_left = 1
 	_stylebox.border_width_right = 1
-	_stylebox.corner_radius_top_left = 4
-	_stylebox.corner_radius_top_right = 4
-	_stylebox.corner_radius_bottom_left = 4
-	_stylebox.corner_radius_bottom_right = 4
+	_stylebox.corner_radius_top_left = 8
+	_stylebox.corner_radius_top_right = 8
+	_stylebox.corner_radius_bottom_left = 8
+	_stylebox.corner_radius_bottom_right = 8
+	_stylebox.shadow_color = Color(0, 0, 0, 0.35)
+	_stylebox.shadow_size = 6
+	_stylebox.content_margin_left = 0
+	_stylebox.content_margin_right = 0
+	_stylebox.content_margin_top = 0
+	_stylebox.content_margin_bottom = 0
 
 	_panel.add_theme_stylebox_override("panel", _stylebox)
 	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
 	_panel.position = ui_position
 
-	var labels := [
-		lbl_nom, lbl_degats, lbl_nb_balles, lbl_dispersion, lbl_cooldown, lbl_duree_active,
-		lbl_recul, lbl_hitscan, lbl_tir_max, lbl_portee, lbl_mask,
-		lbl_proj_vitesse, lbl_proj_vie, lbl_proj_mask, lbl_proj_marge, lbl_proj_largeur,
-		lbl_proj_rays, lbl_proj_contacts, lbl_proj_ignore
-	]
-	for l in labels:
+	_title.text = "STATS ARME (TIR)"
+	_title.add_theme_font_size_override("font_size", ui_taille_police + 3)
+	_title.add_theme_color_override("font_color", Color(1, 1, 1, 0.98))
+
+	_sub.text = "F3 pour afficher/masquer"
+	_sub.add_theme_font_size_override("font_size", max(8, ui_taille_police - 2))
+	_sub.add_theme_color_override("font_color", Color(1, 1, 1, 0.55))
+
+	var all_labels: Array[Label] = []
+	all_labels.append(_sub)
+
+	for k in _rows_arme.keys():
+		all_labels.append(_rows_arme[k] as Label)
+	for k in _rows_proj.keys():
+		all_labels.append(_rows_proj[k] as Label)
+
+	for c in _grid_arme.get_children():
+		if c is Label:
+			all_labels.append(c as Label)
+	for c in _grid_proj.get_children():
+		if c is Label:
+			all_labels.append(c as Label)
+
+	for l in all_labels:
 		if l == null:
 			continue
-		l.add_theme_font_size_override("font_size", ui_taille_police)
-		l.add_theme_color_override("font_color", ui_couleur_texte)
+		if l != _title:
+			l.add_theme_font_size_override("font_size", ui_taille_police)
+			l.add_theme_color_override("font_color", ui_couleur_texte)
+
+func _set_val(section: String, key: String, value: String) -> void:
+	var cache_key := section + "::" + key
+	if _cache.get(cache_key, "") == value:
+		return
+	_cache[cache_key] = value
+
+	var dict := _rows_arme if section == "arme" else _rows_proj
+	var lab := dict.get(key, null) as Label
+	if lab != null:
+		lab.text = value
 
 func _process(_dt: float) -> void:
 	if not actif:
@@ -201,34 +251,28 @@ func _process(_dt: float) -> void:
 	var aid := arme.get_instance_id() if arme != null and is_instance_valid(arme) else 0
 	if aid != _dbg_last_arme_id:
 		_dbg_last_arme_id = aid
-		if aid == 0:
-			_dbg("arme=null")
-		else:
-			_dbg("arme trouvée id=%d nom=%s" % [aid, String(arme.nom_arme)])
+		_dbg("arme=%s" % ("null" if aid == 0 else "ok id=%d nom=%s" % [aid, String(arme.nom_arme)]))
 
 	var uid := upgrades.get_instance_id() if upgrades != null and is_instance_valid(upgrades) else 0
 	if uid != _dbg_last_upg_id:
 		_dbg_last_upg_id = uid
-		if uid == 0:
-			_dbg("upgrades=null")
-		else:
-			_dbg("upgrades trouvés id=%d" % uid)
+		_dbg("upgrades=%s" % ("null" if uid == 0 else "ok id=%d" % uid))
 
 	if arme == null:
-		lbl_nom.text = "ARME : (aucune)"
+		_set_val("arme", "Nom", "(aucune)")
 		return
 
-	lbl_nom.text = "ARME : %s" % String(arme.nom_arme)
-	lbl_degats.text = "Dégâts : %d" % int(arme.degats)
-	lbl_nb_balles.text = "Nb balles : %d" % int(arme.nb_balles)
-	lbl_dispersion.text = "Dispersion : %.1f°" % float(arme.dispersion_deg)
-	lbl_cooldown.text = "Cooldown : %.3fs" % float(arme.cooldown_s)
-	lbl_duree_active.text = "Durée active : %.3fs" % float(arme.duree_active_s)
-	lbl_recul.text = "Recul : %.1f" % float(arme.recul_force)
-	lbl_hitscan.text = "Hitscan : %s" % ("Oui" if arme.hitscan else "Non")
-	lbl_tir_max.text = "Tir max/frame : %d" % int(arme.tir_max_par_frame)
-	lbl_portee.text = "Portée hitscan : %.0fpx" % float(arme.portee_hitscan_px)
-	lbl_mask.text = "Mask tir : %d" % int(arme.mask_tir)
+	_set_val("arme", "Nom", String(arme.nom_arme))
+	_set_val("arme", "Dégâts", str(int(arme.degats)))
+	_set_val("arme", "Nb balles", str(int(arme.nb_balles)))
+	_set_val("arme", "Dispersion", "%.1f°" % float(arme.dispersion_deg))
+	_set_val("arme", "Cooldown", "%.3fs" % float(arme.cooldown_s))
+	_set_val("arme", "Durée active", "%.3fs" % float(arme.duree_active_s))
+	_set_val("arme", "Recul", "%.1f" % float(arme.recul_force))
+	_set_val("arme", "Hitscan", "Oui" if arme.hitscan else "Non")
+	_set_val("arme", "Tir max/frame", str(int(arme.tir_max_par_frame)))
+	_set_val("arme", "Portée hitscan", "%.0fpx" % float(arme.portee_hitscan_px))
+	_set_val("arme", "Mask tir", str(int(arme.mask_tir)))
 
 	var pv: float = 0.0
 	var vie: float = 0.0
@@ -249,14 +293,14 @@ func _process(_dt: float) -> void:
 		contacts = int(upgrades.contacts_avant_destruction)
 		ign = bool(upgrades.ignorer_meme_cible)
 
-	lbl_proj_vitesse.text = "Projectile vitesse : %.0f px/s" % pv
-	lbl_proj_vie.text = "Projectile vie : %.2fs" % vie
-	lbl_proj_mask.text = "Projectile mask : %d" % pmask
-	lbl_proj_marge.text = "Projectile marge ray : %.2fpx" % marge
-	lbl_proj_largeur.text = "Zone scan largeur : %.1fpx" % largeur
-	lbl_proj_rays.text = "Rays dans zone : %d" % rays
-	lbl_proj_contacts.text = "Contacts avant destroy : %d" % contacts
-	lbl_proj_ignore.text = "Ignore même cible : %s" % ("Oui" if ign else "Non")
+	_set_val("proj", "Vitesse", "%.0f px/s" % pv)
+	_set_val("proj", "Vie", "%.2fs" % vie)
+	_set_val("proj", "Mask", str(pmask))
+	_set_val("proj", "Marge ray", "%.2fpx" % marge)
+	_set_val("proj", "Largeur zone scan", "%.1fpx" % largeur)
+	_set_val("proj", "Rays dans zone", str(rays))
+	_set_val("proj", "Contacts avant destroy", str(contacts))
+	_set_val("proj", "Ignore même cible", "Oui" if ign else "Non")
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

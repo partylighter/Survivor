@@ -20,6 +20,8 @@ func _d(msg: String) -> void:
 		print("[StatsVagues]", Time.get_ticks_msec(), msg)
 
 func _ready() -> void:
+	add_to_group("stats_vagues")
+
 	if not is_instance_valid(manager):
 		push_warning("chemin_manager invalide")
 		return

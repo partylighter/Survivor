@@ -98,8 +98,11 @@ var _lod_frame: int = 0
 var ennemis_tues_total: int = 0
 var temps_total_s: float = 0.0
 var vagues_terminees: int = 0
+var joueur_mort: bool = false
 
 func _ready() -> void:
+	add_to_group("gestion_ennemis")
+
 	hasard.seed = graine
 
 	if not is_instance_valid(joueur):
@@ -136,6 +139,8 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	temps_total_s += dt
+	if joueur_mort:
+		return
 
 	if mode_vagues and _nb_vagues() > 0:
 		if en_interlude:
@@ -170,6 +175,13 @@ func _process(dt: float) -> void:
 			horde_visuelle.set_nombre_actif(horde_faux_voulus)
 
 	_maj_budget()
+func set_player_dead(v: bool) -> void:
+	joueur_mort = v
+	if joueur_mort:
+		for n: Node2D in ennemis:
+			var e := n as Enemy
+			if e != null and is_instance_valid(e):
+				e.set_combat_state(false, false)
 
 func _tick_vague(dt: float) -> void:
 	t_vague += dt

@@ -1,6 +1,6 @@
-[gd_scene load_steps=10 format=3 uid="uid://dseprihoygam8"]
+[gd_scene format=3 uid="uid://dseprihoygam8"]
 
-[ext_resource type="Script" uid="uid://vohoca1xd4fn" path="res://scenes/Menus/MenuGraphisme.gd" id="1_xoowx"]
+[ext_resource type="Script" uid="uid://vohoca1xd4fn" path="res://scripts/Menus/MenuGraphisme.gd" id="1_xoowx"]
 [ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="2_2d33v"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_h1g31"]
@@ -66,7 +66,7 @@ Button/styles/hover = SubResource("StyleBoxFlat_qldvp")
 Button/styles/normal = SubResource("StyleBoxFlat_sg86w")
 Button/styles/pressed = SubResource("StyleBoxFlat_gn0ho")
 
-[node name="Menu Graphisme" type="Control"]
+[node name="Menu Graphisme" type="Control" unique_id=560970897]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -79,7 +79,7 @@ chemin_btn_mode = NodePath("Root/VBoxContainer/btn_mode")
 chemin_btn_appliquer = NodePath("Root/HBoxContainer/appliquer")
 chemin_btn_reinitialiser = NodePath("Root/HBoxContainer/reinitialiser")
 
-[node name="Root" type="Control" parent="."]
+[node name="Root" type="Control" parent="." unique_id=972818513]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -87,7 +87,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Root" unique_id=1671200847]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -103,15 +103,15 @@ grow_vertical = 2
 theme = SubResource("Theme_2d33v")
 alignment = 1
 
-[node name="btn_res" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_res" type="Button" parent="Root/VBoxContainer" unique_id=134296872]
 layout_mode = 2
 text = "res_btn"
 
-[node name="btn_mode" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_mode" type="Button" parent="Root/VBoxContainer" unique_id=1042320154]
 layout_mode = 2
 text = "mode_btn"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Root"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Root" unique_id=2061830459]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -126,18 +126,18 @@ grow_vertical = 0
 theme = SubResource("Theme_er6t4")
 theme_override_constants/separation = 92
 
-[node name="BtnBack" type="Button" parent="Root/HBoxContainer"]
+[node name="BtnBack" type="Button" parent="Root/HBoxContainer" unique_id=400771603]
 layout_mode = 2
 theme = SubResource("Theme_awf0d")
 text = "Retour"
 script = ExtResource("2_2d33v")
 metadata/_custom_type_script = "uid://2fboxjeho0mu"
 
-[node name="reinitialiser" type="Button" parent="Root/HBoxContainer"]
+[node name="reinitialiser" type="Button" parent="Root/HBoxContainer" unique_id=776090745]
 layout_mode = 2
 text = "Réinitialiser"
 
-[node name="appliquer" type="Button" parent="Root/HBoxContainer"]
+[node name="appliquer" type="Button" parent="Root/HBoxContainer" unique_id=1183987547]
 layout_mode = 2
 text = "Appliquer
 "
