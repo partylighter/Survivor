@@ -1,0 +1,176 @@
+[gd_scene format=3 uid="uid://ddpgd7hdchpih"]
+
+[ext_resource type="Shader" uid="uid://cnfl77mhytpr1" path="res://outline_pulse.gdshader" id="1_8m7yj"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_ri7y5"]
+[ext_resource type="Shader" uid="uid://cvt3gxuf1plrb" path="res://Shaders/bruit flou + symétrie miroir + “heatmap” (couleurs par seuil) + animation lente.gdshader" id="3_bn3yp"]
+[ext_resource type="Shader" uid="uid://bvscfen3yn3fo" path="res://Shaders/Glitch + Embrasement.gdshader" id="4_yo67s"]
+[ext_resource type="Texture2D" uid="uid://nx5so8lh4iq4" path="res://Logo bg MAXIMUM.png" id="5_hygs3"]
+[ext_resource type="Texture2D" uid="uid://cxg5cnki3yh7y" path="res://Logo bg overdrive.png" id="6_x0hvn"]
+[ext_resource type="Texture2D" uid="uid://bg1i1yrh8hjvt" path="res://BY PARTYLIGHTER.png" id="7_sfdgw"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hheg7"]
+shader = ExtResource("1_8m7yj")
+shader_parameter/aura_color = Color(0.2, 0.7, 1, 1)
+shader_parameter/outline_px = 6.0
+shader_parameter/alpha_base = 0.85
+shader_parameter/pulse_speed = 2.0
+shader_parameter/pulse_amount = 0.35
+shader_parameter/wave_strength_px = 3.0
+shader_parameter/wave_freq = 8.0
+shader_parameter/wave_speed = 2.5
+shader_parameter/noise_scale = 6.0
+shader_parameter/noise_speed = 0.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vcxvf"]
+shader = ExtResource("3_bn3yp")
+shader_parameter/vitesse = 0.335
+shader_parameter/echelle = 4.255
+shader_parameter/contraste = 0.495
+shader_parameter/pixels_x = 60
+shader_parameter/pixels_y = 105
+shader_parameter/sym_mix = 1.41
+shader_parameter/skull_scale = -1.575
+shader_parameter/skull_soft = 0.08
+shader_parameter/skull_fill = 1.0
+shader_parameter/skull_glow = 2.02
+shader_parameter/c_froid = Color(0.23, 0.17, 0.1, 1)
+shader_parameter/c_chaud = Color(0.96, 0.55, 0.12, 1)
+shader_parameter/c_rouge = Color(0.78, 0.12, 0.06, 1)
+shader_parameter/c_jaune = Color(0.7977378, 0.31711304, 0, 1)
+shader_parameter/c_vert = Color(0.4072413, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_n80xv"]
+shader = ExtResource("4_yo67s")
+shader_parameter/tex = ExtResource("5_hygs3")
+shader_parameter/glitch_amount = 0.055
+shader_parameter/glitch_speed = 1.34
+shader_parameter/band_count = 28.0
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/burn_amount = 0.0
+shader_parameter/burn_width = 0.08
+shader_parameter/burn_noise_scale = 8.0
+shader_parameter/burn_flicker = 1.8
+shader_parameter/alpha_cutoff = 0.02
+shader_parameter/burn_color_inner = Color(1, 0.95, 0.25, 1)
+shader_parameter/burn_color_outer = Color(1, 0.25, 0.05, 1)
+shader_parameter/burn_pixels_x = 160
+shader_parameter/burn_pixels_y = 90
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_gisgf"]
+shader = ExtResource("4_yo67s")
+shader_parameter/tex = ExtResource("6_x0hvn")
+shader_parameter/glitch_amount = -0.175
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 28.0
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/burn_amount = 0.0
+shader_parameter/burn_width = 0.08
+shader_parameter/burn_noise_scale = 8.0
+shader_parameter/burn_flicker = 1.8
+shader_parameter/alpha_cutoff = 0.02
+shader_parameter/burn_color_inner = Color(1, 0.95, 0.25, 1)
+shader_parameter/burn_color_outer = Color(1, 0.25, 0.05, 1)
+shader_parameter/burn_pixels_x = 160
+shader_parameter/burn_pixels_y = 90
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wjhli"]
+shader = ExtResource("4_yo67s")
+shader_parameter/tex = ExtResource("7_sfdgw")
+shader_parameter/glitch_amount = -0.15
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 27.415
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/burn_amount = 0.29
+shader_parameter/burn_width = 0.305
+shader_parameter/burn_noise_scale = 17.67
+shader_parameter/burn_flicker = 1.8
+shader_parameter/alpha_cutoff = 0.02
+shader_parameter/burn_color_inner = Color(1, 0.95, 0.25, 1)
+shader_parameter/burn_color_outer = Color(1, 0.25, 0.05, 1)
+shader_parameter/burn_pixels_x = 160
+shader_parameter/burn_pixels_y = 90
+
+[node name="test du shader outline pulse" type="Node2D" unique_id=1234806767]
+
+[node name="Icon" type="Sprite2D" parent="." unique_id=853617332]
+material = SubResource("ShaderMaterial_hheg7")
+position = Vector2(399, 217)
+texture = ExtResource("2_ri7y5")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1556916825]
+
+[node name="Control" type="Control" parent="CanvasLayer" unique_id=496556782]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer/Control" unique_id=625737216]
+material = SubResource("ShaderMaterial_vcxvf")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 648.0
+offset_bottom = 648.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1, -1)
+
+[node name="LogoBgMaximum" type="Sprite2D" parent="CanvasLayer/Control" unique_id=908217307]
+material = SubResource("ShaderMaterial_n80xv")
+position = Vector2(599.58, 308.7875)
+scale = Vector2(6.135, 6.135)
+texture = ExtResource("5_hygs3")
+
+[node name="LogoBgOverdrive" type="Sprite2D" parent="CanvasLayer/Control" unique_id=1037929517]
+material = SubResource("ShaderMaterial_gisgf")
+position = Vector2(768, 299)
+scale = Vector2(6.135, 6.135)
+texture = ExtResource("6_x0hvn")
+
+[node name="ColorRect2" type="ColorRect" parent="CanvasLayer/Control" unique_id=1919761663]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 70.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect3" type="ColorRect" parent="CanvasLayer/Control" unique_id=1829333415]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect4" type="ColorRect" parent="CanvasLayer/Control" unique_id=583073581]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 19.0
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect5" type="ColorRect" parent="CanvasLayer/Control" unique_id=832621676]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -19.0
+grow_horizontal = 0
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ByPartylighter" type="Sprite2D" parent="CanvasLayer/Control" unique_id=1683076915]
+material = SubResource("ShaderMaterial_wjhli")
+position = Vector2(886.00006, 515)
+scale = Vector2(1.8, 1.8)
+texture = ExtResource("7_sfdgw")
