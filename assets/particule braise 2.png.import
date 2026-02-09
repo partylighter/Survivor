@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxg5cnki3yh7y"
-path="res://.godot/imported/Logo bg overdrive.png-529e8ddb0906a29a98965e385fbb5193.ctex"
+uid="uid://bwu6mk2ayk577"
+path="res://.godot/imported/particule braise 2.png-b4485e80c8728f12d1cd4e85480c206b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Logo bg overdrive.png"
-dest_files=["res://.godot/imported/Logo bg overdrive.png-529e8ddb0906a29a98965e385fbb5193.ctex"]
+source_file="res://assets/particule braise 2.png"
+dest_files=["res://.godot/imported/particule braise 2.png-b4485e80c8728f12d1cd4e85480c206b.ctex"]
 
 [params]
 

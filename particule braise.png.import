@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bg1i1yrh8hjvt"
-path="res://.godot/imported/BY PARTYLIGHTER.png-6369d9710a18212b2798c3c9621293af.ctex"
+uid="uid://diubig1nxmse8"
+path="res://.godot/imported/particule braise.png-e4fa2a2c1063f2387287844d204c87cd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://BY PARTYLIGHTER.png"
-dest_files=["res://.godot/imported/BY PARTYLIGHTER.png-6369d9710a18212b2798c3c9621293af.ctex"]
+source_file="res://particule braise.png"
+dest_files=["res://.godot/imported/particule braise.png-e4fa2a2c1063f2387287844d204c87cd.ctex"]
 
 [params]
 

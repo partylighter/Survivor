@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://nx5so8lh4iq4"
-path="res://.godot/imported/Logo bg MAXIMUM.png-2f7cf0707f70f1300f730836fdeaf0de.ctex"
+uid="uid://bg1i1yrh8hjvt"
+path="res://.godot/imported/BY PARTYLIGHTER.png-1b9205e5c882d9ec1f199bb47ffad0bd.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Logo bg MAXIMUM.png"
-dest_files=["res://.godot/imported/Logo bg MAXIMUM.png-2f7cf0707f70f1300f730836fdeaf0de.ctex"]
+source_file="res://assets/BY PARTYLIGHTER.png"
+dest_files=["res://.godot/imported/BY PARTYLIGHTER.png-1b9205e5c882d9ec1f199bb47ffad0bd.ctex"]
 
 [params]
 
