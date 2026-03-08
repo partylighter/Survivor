@@ -19,6 +19,12 @@ class_name Player
 @export var collision_iterations: int = 2
 @export var collision_push_mult: float = 0.8
 
+@export_group("Barriere mathematique")
+@export var barriere_actif: bool = true
+@export var limite_haut: float = -600.0
+@export var limite_bas: float = 600.0
+@export var rayon_barriere_joueur: float = 12.0
+
 @export_group("Dash state")
 var dash_charges_actuelles: int = 0
 var dash_cooldown_s: float = 1.0
@@ -129,9 +135,25 @@ func collision_ennemis_pre(dt: float) -> void:
 	velocity = (p - p0) / dt
 
 func collision_ennemis_post(dt: float) -> void:
-	if not collision_ennemis_actif:
-		return
-	global_position = _resoudre_collisions_ennemis(global_position, dt, true)
+	var pos_finale: Vector2 = global_position
+
+	if collision_ennemis_actif:
+		pos_finale = _resoudre_collisions_ennemis(pos_finale, dt, true)
+
+	pos_finale = _resoudre_barriere_verticale(pos_finale)
+	global_position = pos_finale
+
+func _resoudre_barriere_verticale(pos: Vector2) -> Vector2:
+	if not barriere_actif:
+		return pos
+
+	pos.y = clamp(
+		pos.y,
+		limite_haut + rayon_barriere_joueur,
+		limite_bas - rayon_barriere_joueur
+	)
+
+	return pos
 
 func _resoudre_collisions_ennemis(p: Vector2, dt: float, pousser_ennemi: bool) -> Vector2:
 	var enemies: Array = _get_enemies_for_collision()

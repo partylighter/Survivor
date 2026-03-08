@@ -16,8 +16,21 @@ signal limite_atteinte()
 @export var max_ennemis: int = 500
 @export var ennemis_init: int = 25
 @export var apparitions_par_sec: float = 5.0
+
+# Ces deux valeurs ne servent plus à créer un cercle.
+# Elles servent maintenant à définir la distance horizontale
+# minimale et maximale depuis le joueur.
 @export var rayon_spawn_min: float = 600.0
 @export var rayon_spawn_max: float = 900.0
+
+# Nouvelle variable :
+# définit la demi-hauteur de la bande de spawn.
+# Exemple :
+# - 100 = bande étroite, ennemis presque alignés
+# - 250 = bande moyenne
+# - 500 = bande large
+@export var demi_hauteur_bande_spawn: float = 250.0
+
 @export var rayon_simulation: float = 1400.0
 @export var rayon_disparition: float = 2000.0
 @export var lod_update_interval_frames: int = 3
@@ -175,6 +188,7 @@ func _process(dt: float) -> void:
 			horde_visuelle.set_nombre_actif(horde_faux_voulus)
 
 	_maj_budget()
+
 func set_player_dead(v: bool) -> void:
 	joueur_mort = v
 	if joueur_mort:
@@ -315,7 +329,6 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 
 	emit_signal("ennemi_cree", e)
 	return e
-
 
 func _rendre_a_pool(e: Node2D) -> void:
 	if not is_instance_valid(e):
@@ -579,7 +592,7 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	if d2 <= r2_disp:
 		_activer_ennemi(e, false)
 		if e is Enemy:
-			(e as Enemy).set_combat_state(false, false) # coupe monitorable + contact
+			(e as Enemy).set_combat_state(false, false)
 		if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
 			_tick_lointain(e)
 		return false
@@ -603,9 +616,36 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 	return true
 
 func _position_spawn_rayon(rmin: float, rmax: float) -> Vector2:
-	var a: float = hasard.randf_range(0.0, TAU)
-	var r: float = hasard.randf_range(rmin, rmax)
-	return joueur.global_position + Vector2(cos(a), sin(a)) * r
+	# Ancienne logique supprimée :
+	# on ne choisit plus un angle dans un cercle.
+	#
+	# Nouvelle logique :
+	# 1. on choisit un côté : gauche ou droite
+	# 2. on choisit une distance horizontale entre rmin et rmax
+	# 3. on choisit une variation verticale dans une bande
+	#
+	# Résultat :
+	# les ennemis n'apparaissent plus tout autour du joueur,
+	# mais seulement depuis les côtés.
+
+	# -1 = gauche
+	#  1 = droite
+	var cote: int = -1 if hasard.randf() < 0.5 else 1
+
+	# Position horizontale.
+	# Si cote = -1, l'ennemi apparaît à gauche.
+	# Si cote = 1, l'ennemi apparaît à droite.
+	var x: float = joueur.global_position.x + cote * hasard.randf_range(rmin, rmax)
+
+	# Position verticale.
+	# On garde une petite liberté sur l'axe Y
+	# pour former une bande et non une ligne parfaite.
+	var y: float = joueur.global_position.y + hasard.randf_range(
+		-demi_hauteur_bande_spawn,
+		demi_hauteur_bande_spawn
+	)
+
+	return Vector2(x, y)
 
 func _choisir_type() -> int:
 	if poids_types.is_empty() or poids_types.size() != scenes_ennemis.size():

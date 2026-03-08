@@ -69,9 +69,9 @@ mouse_look_conduite_px = 500.0
 mouse_deadzone = 0.27
 mouse_influence_y = 1.0
 offset_speed = 7.0
-zoom_sol = 0.7000000000000001
+zoom_sol = 0.31
 zoom_conduite = 0.7000000000000001
-zoom_move_sol = 0.48
+zoom_move_sol = 0.5
 zoom_move_conduite = 0.5
 zoom_speed = 4.0
 zoom_in_delay_s = 6.0
@@ -154,12 +154,14 @@ metadata/_custom_type_script = "uid://ca27wv5y28koq"
 position = Vector2(-155, 0)
 
 [node name="Sprite2D" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=829007635]
+visible = false
 texture = ExtResource("2_qhqgy")
 
 [node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=77895239]
 position = Vector2(148, 0)
 
 [node name="Sprite2D2" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=788168865]
+visible = false
 position = Vector2(-1, 0)
 texture = ExtResource("2_qhqgy")
 

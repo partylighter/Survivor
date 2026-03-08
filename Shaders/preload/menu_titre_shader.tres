@@ -1,0 +1,21 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://brldkbrto6kg7"]
+
+[ext_resource type="Shader" uid="uid://cvt3gxuf1plrb" path="res://Shaders/bruit flou + symétrie miroir + “heatmap” (couleurs par seuil) + animation lente.gdshader" id="1_22fef"]
+
+[resource]
+shader = ExtResource("1_22fef")
+shader_parameter/vitesse = 0.12
+shader_parameter/echelle = 5.63
+shader_parameter/contraste = 0.27
+shader_parameter/pixels_x = 85
+shader_parameter/pixels_y = 68
+shader_parameter/sym_mix = 81.345
+shader_parameter/skull_scale = 40.71
+shader_parameter/skull_soft = 11.945
+shader_parameter/skull_fill = 16.475
+shader_parameter/skull_glow = 17.14
+shader_parameter/c_froid = Color(0.23, 0.17, 0.1, 1)
+shader_parameter/c_chaud = Color(0.96, 0.55, 0.12, 1)
+shader_parameter/c_rouge = Color(0.78, 0.12, 0.06, 1)
+shader_parameter/c_jaune = Color(1, 0.92, 0.25, 1)
+shader_parameter/c_vert = Color(0.42, 0.66, 0.22, 1)

@@ -6,10 +6,10 @@ signal demande_parametres
 signal demande_credits
 signal demande_quitter
 
-@export_node_path("Button") var chemin_btn_jouer: NodePath
-@export_node_path("Button") var chemin_btn_parametres: NodePath
-@export_node_path("Button") var chemin_btn_credits: NodePath
-@export_node_path("Button") var chemin_btn_quitter: NodePath
+@export_node_path("TextureButton") var chemin_btn_jouer: NodePath
+@export_node_path("TextureButton") var chemin_btn_parametres: NodePath
+@export_node_path("TextureButton") var chemin_btn_credits: NodePath
+@export_node_path("TextureButton") var chemin_btn_quitter: NodePath
 
 var btn_jouer: Button
 var btn_parametres: Button

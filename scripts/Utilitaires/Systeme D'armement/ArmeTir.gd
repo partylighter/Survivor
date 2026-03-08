@@ -124,6 +124,9 @@ func attaquer() -> void:
 			if p != null:
 				var src: Node2D = (porteur as Node2D) if porteur is Node2D else self
 				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src)
+	if effets:
+		var intensite = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
+		effets.kick_tir(dir0, intensite)
 
 func _tir_hitscan(from: Vector2, dir: Vector2) -> void:
 	var to: Vector2 = from + dir * portee_hitscan_px

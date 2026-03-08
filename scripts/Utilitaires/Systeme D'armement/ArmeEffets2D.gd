@@ -46,6 +46,18 @@ class_name ArmeEffets2D
 @export var jet_rebond_rot_deg: float = 4.0
 @export var jet_rebond_scale_amp: float = 0.03
 
+@export_group("Tir: recoil + shake")
+@export var tir_actif: bool = true
+@export var tir_recul_px: float = 10.0
+@export var tir_lift_px: float = 2.0
+@export var tir_rot_deg: float = 4.0
+@export var tir_kick_reactivite: float = 38.0
+@export var tir_retour: float = 22.0
+@export var tir_stack_max: float = 1.2
+@export var tir_shake_pos_px: float = 2.4
+@export var tir_shake_rot_deg: float = 1.2
+@export var tir_shake_fade: float = 18.0
+
 var cible: Node2D
 var est_au_sol_prec: bool = false
 var flottement_actif: bool = false
@@ -73,10 +85,25 @@ var rebond_rot_cur: float = 0.0
 var rebond_scale_cur: float = 0.0
 var rebond_total: int = 0
 
+var _tir_dir: Vector2 = Vector2.RIGHT
+var _tir_t: float = 0.0
+var _tir_shake: float = 0.0
+
+# ✅ base “sans recoil” + offsets recoil (sinon ça cumule à l’infini)
+var _base_pos: Vector2 = Vector2.ZERO
+var _base_rot: float = 0.0
+var _tir_pos_off: Vector2 = Vector2.ZERO
+var _tir_rot_off: float = 0.0
+
 func set_cible(n: Node2D) -> void:
 	cible = n
 	if cible:
 		base_y = cible.position.y
+		_base_pos = cible.position
+		_base_rot = cible.rotation_degrees
+		_tir_pos_off = Vector2.ZERO
+		_tir_rot_off = 0.0
+
 
 func stop_drop() -> void:
 	if cible == null:
@@ -84,6 +111,10 @@ func stop_drop() -> void:
 	etat = ETAT_IDLE
 	flottement_actif = false
 	est_au_sol_prec = false
+	_tir_t = 0.0
+	_tir_shake = 0.0
+	_tir_pos_off = Vector2.ZERO
+	_tir_rot_off = 0.0
 	if cible:
 		cible.rotation_degrees = 0.0
 		cible.scale = Vector2.ONE
@@ -91,10 +122,17 @@ func stop_drop() -> void:
 func tick(now: float, est_au_sol: bool) -> void:
 	if cible == null:
 		return
+
+	# retirer l'overlay du frame précédent pour éviter la dérive
+	if tir_actif:
+		cible.position -= _tir_pos_off
+		cible.rotation_degrees -= _tir_rot_off
+
 	if etat == ETAT_IDLE and est_au_sol and not est_au_sol_prec:
 		var d0: Vector2 = cible.get_global_mouse_position() - cible.global_position
 		var dir: Vector2 = (d0.normalized() if d0.length() > 0.001 else Vector2.RIGHT)
 		entrer_drop(dir)
+
 	match etat:
 		ETAT_DROP:
 			maj_drop(now)
@@ -104,6 +142,12 @@ func tick(now: float, est_au_sol: bool) -> void:
 			maj_rebond(now)
 		_:
 			maj_idle(now, est_au_sol)
+
+	# base "propre" (sans recoil)
+	_base_pos = cible.position
+	_base_rot = cible.rotation_degrees
+
+	_appliquer_tir_overlay(now)
 	est_au_sol_prec = est_au_sol
 
 func entrer_drop(dir: Vector2) -> void:
@@ -226,3 +270,65 @@ func jeter_vers_souris() -> void:
 		return
 	var d: Vector2 = cible.get_global_mouse_position() - cible.global_position
 	entrer_jet(d, jet_distance_px)
+
+func kick_tir(dir: Vector2, intensite: float = 1.0) -> void:
+	if cible == null or not tir_actif:
+		return
+	var d := dir.normalized() if dir.length() > 0.001 else Vector2.RIGHT
+	_tir_dir = d
+	intensite = clamp(intensite, 0.0, 3.0)
+	_tir_t = min(_tir_t + intensite, tir_stack_max)
+	_tir_shake = min(_tir_shake + intensite, 3.0)
+
+func _retirer_tir_overlay() -> void:
+	if cible == null or not tir_actif:
+		return
+	cible.position -= _tir_pos_off
+	cible.rotation_degrees -= _tir_rot_off
+
+func _appliquer_tir_overlay(now: float) -> void:
+	if cible == null or not tir_actif:
+		return
+
+	var dt: float = get_process_delta_time()
+	dt = max(dt, 0.000001)
+
+	var a_kick: float = 1.0 - exp(-tir_kick_reactivite * dt)
+	var a_ret: float = 1.0 - exp(-tir_retour * dt)
+
+	if _tir_t > 0.0001:
+		_tir_t = lerp(_tir_t, 0.0, a_ret)
+	else:
+		_tir_t = 0.0
+
+	if _tir_shake > 0.0001:
+		_tir_shake = lerp(_tir_shake, 0.0, 1.0 - exp(-tir_shake_fade * dt))
+	else:
+		_tir_shake = 0.0
+
+	var cible_off_pos: Vector2 = Vector2.ZERO
+	var cible_off_rot: float = 0.0
+
+	if _tir_t > 0.0:
+		var recul: Vector2 = (-_tir_dir * tir_recul_px) + (Vector2.UP * tir_lift_px)
+		cible_off_pos += recul * _tir_t
+		cible_off_rot += tir_rot_deg * _tir_t
+
+	if _tir_shake > 0.0:
+		var n1: float = sin(now * 47.3) + sin(now * 91.7) * 0.5
+		var n2: float = cos(now * 53.1) + cos(now * 79.9) * 0.5
+		var v := Vector2(n1, n2)
+		if v.length() > 0.0001:
+			v = v.normalized()
+		cible_off_pos += v * tir_shake_pos_px * _tir_shake
+		cible_off_rot += sin(now * 63.2) * tir_shake_rot_deg * _tir_shake
+
+	_tir_pos_off = _tir_pos_off.lerp(cible_off_pos, a_kick)
+	_tir_rot_off = lerp(_tir_rot_off, cible_off_rot, a_kick)
+
+	if _tir_t <= 0.0 and _tir_shake <= 0.0:
+		_tir_pos_off = _tir_pos_off.lerp(Vector2.ZERO, a_ret)
+		_tir_rot_off = lerp(_tir_rot_off, 0.0, a_ret)
+
+	cible.position += _tir_pos_off
+	cible.rotation_degrees += _tir_rot_off
