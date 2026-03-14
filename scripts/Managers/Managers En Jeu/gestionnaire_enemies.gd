@@ -48,6 +48,11 @@ signal limite_atteinte()
 @export var vitesse_lointain: float = 40.0
 @export var freq_lointain_frames: int = 6
 
+@export_group("LOD écran")
+@export var marge_visible_ecran_px: float = 120.0
+@export var marge_buffer_ecran_px: float = 350.0
+
+@export_group("Vagues")
 @export var mode_vagues: bool = true
 @export var interlude_s: float = 4.0
 @export var vagues_infinies: bool = false
@@ -253,7 +258,7 @@ func _prochaine_vague() -> void:
 	else:
 		if vagues_infinies:
 			cycle_vagues += 1
-			_demarrer_vague(0)
+			_demarrer_vague(_nb_vagues() - 1)
 		else:
 			en_interlude = true
 			timer_interlude = 999999.0
@@ -306,7 +311,6 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 		add_child(e)
 
 	_activer_ennemi(e, true)
-	e.show()
 
 	if not ennemis.has(e):
 		ennemis.append(e)
@@ -326,6 +330,8 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 		var cbp: Callable = Callable(self, "_sur_pret_pour_pool").bind(e)
 		if not e.is_connected("pret_pour_pool", cbp):
 			e.connect("pret_pour_pool", cbp)
+
+	_appliquer_lod_immediat_sur_ennemi(e)
 
 	emit_signal("ennemi_cree", e)
 	return e
@@ -382,7 +388,6 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 		add_child(e)
 
 	_activer_ennemi(e, true)
-	e.show()
 
 	if not ennemis.has(e):
 		ennemis.append(e)
@@ -399,6 +404,8 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 		var cbp: Callable = Callable(self, "_sur_pret_pour_pool").bind(e)
 		if not e.is_connected("pret_pour_pool", cbp):
 			e.connect("pret_pour_pool", cbp)
+
+	_appliquer_lod_immediat_sur_ennemi(e)
 
 	emit_signal("ennemi_cree", e)
 	return e
@@ -447,11 +454,45 @@ func _activer_ennemi(e: Node2D, actif: bool) -> void:
 			co.collision_layer = 0
 			co.collision_mask = 0
 
+func _get_camera_active() -> Camera2D:
+	return get_viewport().get_camera_2d()
+
+func _get_rect_camera_monde(marge: float = 0.0) -> Rect2:
+	var cam: Camera2D = _get_camera_active()
+	if cam == null:
+		return Rect2()
+
+	var taille_viewport: Vector2 = get_viewport_rect().size
+	var demi_taille: Vector2 = (taille_viewport * 0.5) * cam.zoom
+	var centre: Vector2 = cam.get_screen_center_position()
+	var pos: Vector2 = centre - demi_taille
+	var taille: Vector2 = demi_taille * 2.0
+
+	return Rect2(
+		pos - Vector2(marge, marge),
+		taille + Vector2(marge * 2.0, marge * 2.0)
+	)
+
+func _est_dans_rect(rect: Rect2, p: Vector2) -> bool:
+	return (
+		p.x >= rect.position.x
+		and p.y >= rect.position.y
+		and p.x <= rect.position.x + rect.size.x
+		and p.y <= rect.position.y + rect.size.y
+	)
+
 func _tick_lointain(e: Node2D) -> void:
 	if not is_instance_valid(joueur):
 		return
+
 	var dir: Vector2 = (joueur.global_position - e.global_position).normalized()
-	e.global_position += dir * vitesse_lointain * 0.1
+	var nouvelle_pos: Vector2 = e.global_position + dir * vitesse_lointain * 0.1
+	var rect_interdit: Rect2 = _get_rect_camera_monde(marge_buffer_ecran_px)
+
+	if _est_dans_rect(rect_interdit, nouvelle_pos):
+		return
+
+	e.global_position = nouvelle_pos
 
 func _cmp_proches(a: Dictionary, b: Dictionary) -> bool:
 	return float(a.get("d2", 0.0)) < float(b.get("d2", 0.0))
@@ -475,30 +516,51 @@ func _set_enemy_mode(e: Node2D, mode: int) -> void:
 
 	match mode:
 		0:
+			e.show()
 			_activer_ennemi(e, true)
 			var en: Enemy = e as Enemy
 			if en != null:
 				en.set_combat_state(true, true)
 		1:
+			e.hide()
 			_activer_ennemi(e, true)
 			var en2: Enemy = e as Enemy
 			if en2 != null:
 				en2.set_combat_state(false, true)
 		2:
+			e.hide()
 			_activer_ennemi(e, false)
 			var en3: Enemy = e as Enemy
 			if en3 != null:
 				en3.set_combat_state(false, false)
 
+func _appliquer_lod_immediat_sur_ennemi(e: Node2D) -> void:
+	if not is_instance_valid(e):
+		return
+
+	var rect_visible: Rect2 = _get_rect_camera_monde(marge_visible_ecran_px)
+	var rect_buffer: Rect2 = _get_rect_camera_monde(marge_buffer_ecran_px)
+	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
+	var r2_disp: float = rayon_disparition * rayon_disparition
+
+	if d2 > r2_disp:
+		_set_lod_mode_si_change(e, 2)
+		return
+
+	if _est_dans_rect(rect_visible, e.global_position):
+		_set_lod_mode_si_change(e, 0)
+	elif _est_dans_rect(rect_buffer, e.global_position):
+		_set_lod_mode_si_change(e, 1)
+	else:
+		_set_lod_mode_si_change(e, 2)
+
 func _appliquer_lod() -> void:
 	if ennemis.is_empty() or not is_instance_valid(joueur):
 		return
 
-	var r2_sim: float = rayon_simulation * rayon_simulation
-	var r2_engage: float = rayon_engage * rayon_engage
-
-	var proches: Array[Dictionary] = []
-	var reste: Array[Dictionary] = []
+	var rect_visible: Rect2 = _get_rect_camera_monde(marge_visible_ecran_px)
+	var rect_buffer: Rect2 = _get_rect_camera_monde(marge_buffer_ecran_px)
+	var r2_disp: float = rayon_disparition * rayon_disparition
 
 	for e: Node2D in ennemis:
 		if not is_instance_valid(e):
@@ -506,46 +568,16 @@ func _appliquer_lod() -> void:
 
 		var d2: float = joueur.global_position.distance_squared_to(e.global_position)
 
-		if d2 > r2_sim:
+		if d2 > r2_disp:
 			_set_lod_mode_si_change(e, 2)
 			continue
 
-		if d2 <= r2_engage:
-			proches.append({"d2": d2, "e": e})
+		if _est_dans_rect(rect_visible, e.global_position):
+			_set_lod_mode_si_change(e, 0)
+		elif _est_dans_rect(rect_buffer, e.global_position):
+			_set_lod_mode_si_change(e, 1)
 		else:
-			reste.append({"d2": d2, "e": e})
-
-	proches.sort_custom(Callable(self, "_cmp_proches"))
-	reste.sort_custom(Callable(self, "_cmp_proches"))
-
-	var full_limit: int = max(max_full_actifs, 0)
-	var buffer_limit: int = max(max_buffer_actifs, full_limit)
-
-	var used: int = 0
-
-	for item_p: Dictionary in proches:
-		var ep: Node2D = item_p.get("e") as Node2D
-		if ep == null:
-			continue
-		var mode_p: int = 2
-		if used < full_limit:
-			mode_p = 0
-		elif used < buffer_limit:
-			mode_p = 1
-		_set_lod_mode_si_change(ep, mode_p)
-		used += 1
-
-	for item_r: Dictionary in reste:
-		var er: Node2D = item_r.get("e") as Node2D
-		if er == null:
-			continue
-		var mode_r: int = 2
-		if used < full_limit:
-			mode_r = 0
-		elif used < buffer_limit:
-			mode_r = 1
-		_set_lod_mode_si_change(er, mode_r)
-		used += 1
+			_set_lod_mode_si_change(e, 2)
 
 func _maj_budget() -> void:
 	if ennemis.is_empty() or not is_instance_valid(joueur):
@@ -593,6 +625,7 @@ func _eval_ou_supprime(i: int, r2_sim: float, r2_disp: float) -> bool:
 		_activer_ennemi(e, false)
 		if e is Enemy:
 			(e as Enemy).set_combat_state(false, false)
+		e.hide()
 		if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
 			_tick_lointain(e)
 		return false
@@ -628,24 +661,34 @@ func _position_spawn_rayon(rmin: float, rmax: float) -> Vector2:
 	# les ennemis n'apparaissent plus tout autour du joueur,
 	# mais seulement depuis les côtés.
 
-	# -1 = gauche
-	#  1 = droite
-	var cote: int = -1 if hasard.randf() < 0.5 else 1
+	var rect_interdit: Rect2 = _get_rect_camera_monde(marge_buffer_ecran_px)
 
-	# Position horizontale.
-	# Si cote = -1, l'ennemi apparaît à gauche.
-	# Si cote = 1, l'ennemi apparaît à droite.
-	var x: float = joueur.global_position.x + cote * hasard.randf_range(rmin, rmax)
+	for _i: int in range(24):
+		# -1 = gauche
+		#  1 = droite
+		var cote: int = -1 if hasard.randf() < 0.5 else 1
 
-	# Position verticale.
-	# On garde une petite liberté sur l'axe Y
-	# pour former une bande et non une ligne parfaite.
-	var y: float = joueur.global_position.y + hasard.randf_range(
-		-demi_hauteur_bande_spawn,
-		demi_hauteur_bande_spawn
-	)
+		# Position horizontale.
+		# Si cote = -1, l'ennemi apparaît à gauche.
+		# Si cote = 1, l'ennemi apparaît à droite.
+		var x: float = joueur.global_position.x + cote * hasard.randf_range(rmin, rmax)
 
-	return Vector2(x, y)
+		# Position verticale.
+		# On garde une petite liberté sur l'axe Y
+		# pour former une bande et non une ligne parfaite.
+		var y: float = joueur.global_position.y + hasard.randf_range(
+			-demi_hauteur_bande_spawn,
+			demi_hauteur_bande_spawn
+		)
+
+		var p: Vector2 = Vector2(x, y)
+
+		if not _est_dans_rect(rect_interdit, p):
+			return p
+
+	var fallback_x: float = joueur.global_position.x + rmax
+	var fallback_y: float = joueur.global_position.y
+	return Vector2(fallback_x, fallback_y)
 
 func _choisir_type() -> int:
 	if poids_types.is_empty() or poids_types.size() != scenes_ennemis.size():
