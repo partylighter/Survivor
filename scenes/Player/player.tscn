@@ -76,18 +76,7 @@ chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
-chemin_base_vehicle = null
 collision_ennemis_actif = false
-rayon_collision_px = null
-poids_collision = null
-collision_range_px = null
-collision_budget_par_frame = null
-collision_iterations = null
-collision_push_mult = null
-barriere_actif = null
-limite_haut = null
-limite_bas = null
-rayon_barriere_joueur = null
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true

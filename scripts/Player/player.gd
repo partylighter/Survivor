@@ -7,7 +7,8 @@ class_name Player
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 @export_node_path("Soif") var chemin_soif: NodePath
-@export var can_die_of_soif : bool = true
+@export var can_die_of_soif : bool = false
+
 @export_group("Vehicule")
 @export var chemin_base_vehicle: NodePath
 
