@@ -6,7 +6,8 @@ class_name Player
 @export_node_path("Sante") var chemin_sante: NodePath
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
-
+@export_node_path("Soif") var chemin_soif: NodePath
+@export var can_die_of_soif : bool = true
 @export_group("Vehicule")
 @export var chemin_base_vehicle: NodePath
 
@@ -40,6 +41,7 @@ var dash_autorise: bool = true
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
 @onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
+@onready var soif: Soif = get_node_or_null(chemin_soif) as Soif
 
 var base_vehicle: Node2D = null
 var _col_idx: int = 0
@@ -48,16 +50,23 @@ var _mort: bool = false
 
 func _ready() -> void:
 	add_to_group("joueur_principal")
+	if soif != null and not soif.died_of_thirst.is_connected(_on_soif_died):
+		soif.died_of_thirst.connect(_on_soif_died)
+	
 	if stats != null and sante != null:
 		stats.set_sante_ref(sante)
 	base_vehicle = get_node_or_null(chemin_base_vehicle) as Node2D
 
 	if sante != null and not sante.died.is_connected(_on_sante_died):
 		sante.died.connect(_on_sante_died)
-
+	
 func _on_sante_died() -> void:
 	mourir()
-
+func _on_soif_died() -> void:
+	if can_die_of_soif == true:
+		mourir()
+	else:
+		return
 func mourir() -> void:
 	if _mort:
 		return

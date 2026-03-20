@@ -14,6 +14,7 @@ var _ui_visible: bool = true
 
 @export_node_path("StatsJoueur") var chemin_stats: NodePath
 @export_node_path("Sante") var chemin_sante: NodePath
+@export_node_path("Soif") var chemin_soif: NodePath
 @export_node_path("Player") var chemin_player: NodePath
 
 @export_group("Affichage")
@@ -29,6 +30,7 @@ var _ui_visible: bool = true
 
 var stats: StatsJoueur
 var sante: Sante
+var soif: Soif
 var joueur: Player
 
 var _panel: Panel
@@ -46,6 +48,7 @@ func _ready() -> void:
 	_ui_visible = ui_visible
 	stats = get_node_or_null(chemin_stats) as StatsJoueur
 	sante = get_node_or_null(chemin_sante) as Sante
+	soif = get_node_or_null(chemin_soif) as Soif
 	joueur = get_node_or_null(chemin_player) as Player
 	_creer_ui()
 	_appliquer_style()
@@ -95,6 +98,7 @@ func _creer_ui() -> void:
 	_row.add_theme_constant_override("separation", ui_espace_px)
 
 	_add_pair("PV", "—")
+	_add_pair("Soif", "—")
 	_add_pair("Vitesse", "—")
 	_add_pair("Chance", "—")
 	_add_pair("Dash", "—")
@@ -177,6 +181,8 @@ func _process(_dt: float) -> void:
 		stats = get_node_or_null(chemin_stats) as StatsJoueur
 	if sante == null or not is_instance_valid(sante):
 		sante = get_node_or_null(chemin_sante) as Sante
+	if soif == null or not is_instance_valid(soif):
+		soif = get_node_or_null(chemin_soif) as Soif
 	if joueur == null or not is_instance_valid(joueur):
 		joueur = get_node_or_null(chemin_player) as Player
 
@@ -192,6 +198,13 @@ func _refresh() -> void:
 		pv_max = int(sante.max_pv)
 		if sante.has_method("get_overheal"):
 			overheal_now = float(sante.get_overheal())
+
+	var soif_now: float = 0.0
+	var soif_max: float = 0.0
+
+	if soif != null and is_instance_valid(soif):
+		soif_now = float(soif.soif)
+		soif_max = float(soif.soif_max)
 
 	var vitesse_now: float = 0.0
 	var chance_now: float = 0.0
@@ -213,7 +226,10 @@ func _refresh() -> void:
 	if overheal_now > 0.0:
 		txt_pv += "  (+%.0f)" % overheal_now
 
+	var txt_soif := "%.0f / %.0f" % [soif_now, soif_max]
+
 	_set_val("PV", txt_pv)
+	_set_val("Soif", txt_soif)
 	_set_val("Vitesse", "%.0f" % vitesse_now)
 	_set_val("Chance", "%.1f%%" % chance_now)
 	_set_val("Dash", "%d / %d" % [dash_actuel, dash_max])

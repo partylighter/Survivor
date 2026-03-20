@@ -6,6 +6,8 @@
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/Utilitaires/hurtbox.gd" id="4_dqkch"]
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/Utilitaires/bar_pv.gd" id="6_tuyoq"]
 [ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/Managers/Managers En Jeu/GestionnaireArme.gd" id="7_a06cl"]
+[ext_resource type="Script" uid="uid://cjws7v4t0wqu7" path="res://scripts/Utilitaires/BarSoif.gd" id="7_wyey8"]
+[ext_resource type="Script" uid="uid://cutwnejqju7sh" path="res://scripts/Utilitaires/Soif.gd" id="8_1bwnf"]
 [ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/Managers/Managers En Jeu/ZoneRamassage.gd" id="8_dl1wr"]
 [ext_resource type="Script" uid="uid://chnxmpb8md2vh" path="res://scripts/Player/StatsJoueur.gd" id="9_7tfl1"]
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/Utilitaires/Systeme D'armement/ControleAttaquesArmes.gd" id="9_wwtew"]
@@ -44,6 +46,21 @@ bg_color = Color(0.768627, 0, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y4r1p"]
 bg_color = Color(0.768627, 0, 0, 1)
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tayva"]
+bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_x8khf"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_aciub"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hk2ix"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_43ckd"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dqkch"]
 size = Vector2(131, 131)
 
@@ -58,7 +75,19 @@ chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
+chemin_soif = NodePath("Soif")
+chemin_base_vehicle = null
 collision_ennemis_actif = false
+rayon_collision_px = null
+poids_collision = null
+collision_range_px = null
+collision_budget_par_frame = null
+collision_iterations = null
+collision_push_mult = null
+barriere_actif = null
+limite_haut = null
+limite_bas = null
+rayon_barriere_joueur = null
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true
@@ -84,6 +113,18 @@ theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_fjrip")
 theme_override_styles/grabber = SubResource("StyleBoxFlat_smehm")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_ur7pv")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_y4r1p")
+page = 100.0
+
+[node name="HScrollBarSoif" type="HScrollBar" parent="." unique_id=1526689620]
+offset_left = -61.0
+offset_top = -139.0
+offset_right = 201.0
+offset_bottom = -108.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_tayva")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_x8khf")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_aciub")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_hk2ix")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_43ckd")
 page = 100.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1989065735]
@@ -149,6 +190,17 @@ visible = false
 position = Vector2(-1, 0)
 texture = ExtResource("2_qhqgy")
 
+[node name="BarSoif" type="Node" parent="." unique_id=486784793]
+script = ExtResource("7_wyey8")
+chemin_hote = NodePath("..")
+chemin_bar = NodePath("../HScrollBarSoif")
+chemin_soif = NodePath("../Soif")
+offset = Vector2(-120, -200)
+toujours_visible = true
+
+[node name="Soif" type="Node" parent="." unique_id=367496937]
+script = ExtResource("8_1bwnf")
+
 [node name="Santé" type="Node" parent="." unique_id=2029737781]
 script = ExtResource("3_qhqgy")
 max_pv = 9999999999999
@@ -193,6 +245,7 @@ metadata/_custom_type_script = "uid://ss27awahkq0s"
 script = ExtResource("13_jxtnq")
 chemin_stats = NodePath("../StatsJoueur")
 chemin_sante = NodePath("../Santé")
+chemin_soif = NodePath("../Soif")
 chemin_player = NodePath("..")
 ui_position = Vector2(16, 450)
 ui_couleur_fond = Color(0, 0, 0, 1)

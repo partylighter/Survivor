@@ -8,6 +8,10 @@ class_name GestionDeplacementJoueur
 @export var seuil_arret_px_s: float = 25.0
 @export var zone_morte: float = 0.10
 
+@export_group("Soif")
+@export var distance_par_point_soif: float = 150.0
+@export var cout_soif_dash: float = 4.0
+
 @export_group("Elan au depart")
 @export var elan_depart_actif: bool = true
 @export var elan_depart_impulsion_px_s: float = 120.0
@@ -67,6 +71,11 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 			direction_dash = _derniere_direction
 
 		if direction_dash.length_squared() > 0.0001:
+			if joueur is Player:
+				var player_dash := joueur as Player
+				if player_dash.soif != null and is_instance_valid(player_dash.soif):
+					player_dash.soif.perdre_soif(cout_soif_dash)
+
 			if not joueur.dash_infini_actif:
 				joueur.dash_charges_actuelles -= 1
 			joueur.dash_t_restant_s = dash_duree_s
@@ -115,7 +124,15 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if joueur is Player:
 		(joueur as Player).collision_ennemis_pre(dt)
 
+	var pos_avant: Vector2 = joueur.global_position
 	joueur.move_and_slide()
+	var distance_parcourue: float = joueur.global_position.distance_to(pos_avant)
+
+	if joueur is Player:
+		var player_move := joueur as Player
+		if player_move.soif != null and is_instance_valid(player_move.soif):
+			var perte_soif: float = distance_parcourue / distance_par_point_soif
+			player_move.soif.perdre_soif(perte_soif)
 
 	if joueur is Player:
 		(joueur as Player).collision_ennemis_post(dt)
