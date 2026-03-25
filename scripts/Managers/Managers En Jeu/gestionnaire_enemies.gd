@@ -301,11 +301,10 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 		if e == null:
 			return null
 		e.set_meta("type_idx", idx)
-	else:
-		if e.has_method("reactiver_apres_pool"):
-			e.call("reactiver_apres_pool")
 
 	e.global_position = pos
+	if e.has_method("reactiver_apres_pool"):
+		e.call("reactiver_apres_pool")
 
 	if e.get_parent() != self:
 		add_child(e)
@@ -349,8 +348,6 @@ func _rendre_a_pool(e: Node2D) -> void:
 		(e as Enemy).set_combat_state(false, false)
 	_activer_ennemi(e, false)
 
-	e.hide()
-
 	if e.get_parent() == self:
 		remove_child(e)
 
@@ -378,11 +375,11 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 		if e == null:
 			return null
 		e.set_meta("type_idx", idx)
-	else:
-		if e.has_method("reactiver_apres_pool"):
-			e.call("reactiver_apres_pool")
 
 	e.global_position = _position_spawn_rayon(rmin, rmax)
+
+	if e.has_method("reactiver_apres_pool"):
+		e.call("reactiver_apres_pool")
 
 	if e.get_parent() != self:
 		add_child(e)

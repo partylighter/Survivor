@@ -20,6 +20,9 @@ var index_vsync_initial: int = 0
 var index_ticks_initial: int = 0
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_WHEN_PAUSED
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
 	_initialiser_depuis_parametres()
 	_mettre_a_jour_affichage()
 	_mettre_visibilite_bouton_appliquer()
@@ -32,15 +35,15 @@ func _ready() -> void:
 func _enter_tree() -> void:
 	add_to_group("g_options_menu")
 
-
 func _on_close_button_pressed() -> void:
 	emit_signal("closed")
 	queue_free()
+	print("close")
 
 func close_from_pause() -> void:
 	emit_signal("closed")
 	queue_free()
-
+	print("close from pause")
 func _initialiser_depuis_parametres() -> void:
 	index_fps = fps_possibles.find(AutoFps.fps_cible)
 	if index_fps == -1:
@@ -60,17 +63,17 @@ func _quand_bouton_fps() -> void:
 	index_fps = (index_fps + 1) % fps_possibles.size()
 	_mettre_a_jour_affichage()
 	_mettre_visibilite_bouton_appliquer()
-
+	print("fps")
 func _quand_bouton_vsync() -> void:
 	index_vsync = (index_vsync + 1) % 3
 	_mettre_a_jour_affichage()
 	_mettre_visibilite_bouton_appliquer()
-
+	print("vsync")
 func _quand_bouton_ticks() -> void:
 	index_ticks = (index_ticks + 1) % ticks_physique_possibles.size()
 	_mettre_a_jour_affichage()
 	_mettre_visibilite_bouton_appliquer()
-
+	print("tick")
 func _quand_bouton_appliquer() -> void:
 	_appliquer_changements()
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://dfhm7tju5pnm"]
+[gd_scene format=3 uid="uid://dfhm7tju5pnm"]
 
 [ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/Enemies/enemy.gd" id="1_1s2vv"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_2h33x"]
@@ -24,38 +24,40 @@ bg_color = Color(0.760784, 0.180392, 0, 1)
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3rc1j"]
 bg_color = Color(0.760784, 0.180392, 0, 1)
 
-[node name="Enemy Class C" type="CharacterBody2D"]
+[node name="Enemy Class C" type="CharacterBody2D" unique_id=1172467792]
 collision_layer = 64
 collision_mask = 97
 script = ExtResource("1_1s2vv")
-speed = 60.0
 chemin_sante = NodePath("Sante")
+speed = 60.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1349043086]
 modulate = Color(1, 1, 0, 1)
 texture = ExtResource("2_2h33x")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1081690727]
+visible = false
 shape = SubResource("CircleShape2D_20ep0")
 
-[node name="Sante" type="Node" parent="."]
+[node name="Sante" type="Node" parent="." unique_id=760261338]
 script = ExtResource("3_bkncl")
 max_pv = 2
 metadata/_custom_type_script = "uid://dckl6i06hmi3g"
 
-[node name="HurtBox" type="Area2D" parent="."]
+[node name="HurtBox" type="Area2D" parent="." unique_id=1720120515]
 collision_layer = 64
 collision_mask = 0
 script = ExtResource("4_nkvc5")
 chemin_sante = NodePath("../Sante")
 metadata/_custom_type_script = "uid://cp87fy13f23lc"
 
-[node name="CollisionShape2D2" type="CollisionShape2D" parent="HurtBox"]
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="HurtBox" unique_id=1063086641]
+visible = false
 shape = SubResource("CircleShape2D_20ep0")
 debug_color = Color(1, 1, 1, 0)
 
-[node name="BarPV" type="Node" parent="."]
+[node name="BarPV" type="Node" parent="." unique_id=1737469276]
 script = ExtResource("5_exp4v")
 chemin_hote = NodePath("..")
 chemin_bar = NodePath("../HScrollBar")
@@ -63,7 +65,7 @@ chemin_sante = NodePath("../Sante")
 offset = Vector2(-40, -90)
 metadata/_custom_type_script = "uid://dpi5p5c57vicx"
 
-[node name="HScrollBar" type="HScrollBar" parent="."]
+[node name="HScrollBar" type="HScrollBar" parent="." unique_id=847204104]
 offset_left = -63.0
 offset_top = -103.0
 offset_right = 72.0

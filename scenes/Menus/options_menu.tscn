@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b4vof4sahscqd"]
+[gd_scene format=3 uid="uid://b4vof4sahscqd"]
 
 [ext_resource type="Script" uid="uid://2fboxjeho0mu" path="res://scripts/Menus/btn_back.gd" id="1_h1g31"]
 [ext_resource type="Script" uid="uid://b4qyicp56tjej" path="res://scripts/Menus/options_menu.gd" id="1_qldvp"]
@@ -50,10 +50,11 @@ Button/styles/hover = SubResource("StyleBoxFlat_f71jj")
 Button/styles/normal = SubResource("StyleBoxFlat_cf8an")
 Button/styles/pressed = SubResource("StyleBoxFlat_otqhu")
 
-[node name="OptionsMenu" type="CanvasLayer"]
+[node name="OptionsMenu" type="CanvasLayer" unique_id=2071769885]
+layer = 1000
 script = ExtResource("1_qldvp")
 
-[node name="Root" type="Control" parent="."]
+[node name="Root" type="Control" parent="." unique_id=1120300390]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -61,7 +62,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="Root"]
+[node name="ColorRect" type="ColorRect" parent="Root" unique_id=708907997]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -70,7 +71,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.658824)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Root"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Root" unique_id=1216773267]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -85,28 +86,28 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_qldvp")
 
-[node name="btn_FPS" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_FPS" type="Button" parent="Root/VBoxContainer" unique_id=1899782050]
 unique_name_in_owner = true
 layout_mode = 2
 text = "FPS"
 
-[node name="btn_VSync" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_VSync" type="Button" parent="Root/VBoxContainer" unique_id=24217486]
 unique_name_in_owner = true
 layout_mode = 2
 text = "VSync
 "
 
-[node name="btn_Thicks" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_Thicks" type="Button" parent="Root/VBoxContainer" unique_id=36081588]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Thicks"
 
-[node name="btn_appliquer" type="Button" parent="Root/VBoxContainer"]
+[node name="btn_appliquer" type="Button" parent="Root/VBoxContainer" unique_id=904150223]
 unique_name_in_owner = true
 layout_mode = 2
 text = "Apliquer"
 
-[node name="BtnBack" type="Button" parent="Root/VBoxContainer"]
+[node name="BtnBack" type="Button" parent="Root/VBoxContainer" unique_id=2033902721]
 layout_mode = 2
 text = "Retour
 "

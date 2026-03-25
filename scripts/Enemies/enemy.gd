@@ -5,134 +5,197 @@ signal mort
 signal reapparu
 signal pret_pour_pool
 
+# ---------------------------------------------------------------------------
+# Types
+# ---------------------------------------------------------------------------
+
 enum TypeEnnemi { C, B, A, S, BOSS }
+
+enum State {
+	ALIVE,    # IA active, peut être blessé
+	STUNNED,  # recul / bousculade bloque la chasse (transitoire)
+	DYING,    # mort déclenchée, délai avant pool
+	DEAD      # hors jeu, en attente de réactivation
+}
+
+# ---------------------------------------------------------------------------
+# Exports — Type & Score
+# ---------------------------------------------------------------------------
 
 @export_group("Type")
 @export_enum("C","B","A","S","BOSS") var type_ennemi: int = TypeEnnemi.C
 @export var valeur_score: int = 10
 
-@export_group("Refs")
-@export_node_path("Node") var chemin_sante: NodePath
-@export_node_path("Sprite2D") var chemin_sprite: NodePath = NodePath()
+# ---------------------------------------------------------------------------
+# Exports — Références
+# ---------------------------------------------------------------------------
 
-@export_group("Collision math")
+@export_group("Refs")
+@export_node_path("Node")     var chemin_sante:  NodePath
+@export_node_path("Sprite2D") var chemin_sprite:  NodePath = NodePath()
+
+# ---------------------------------------------------------------------------
+# Exports — Collision
+# ---------------------------------------------------------------------------
+
+@export_group("Collision")
 @export var rayon_collision_px: float = 14.0
-@export var poids_collision: float = 1.0
+@export var poids_collision:    float = 1.0
+
+# ---------------------------------------------------------------------------
+# Exports — Déplacement
+# ---------------------------------------------------------------------------
 
 @export_group("Déplacement")
-@export var speed: float = 120.0
-@export var acceleration_px_s2: float = 1400.0
-@export var deceleration_px_s2: float = 1800.0
-@export var vitesse_rotation_rad_s: float = 10.0
-@export var wobble_angle_rad: float = 0.12
-@export var wobble_freq_hz: float = 1.3
+@export var speed:                    float = 120.0
+@export var acceleration_px_s2:       float = 1400.0
+@export var deceleration_px_s2:       float = 1800.0
+@export var vitesse_rotation_rad_s:   float = 10.0
+@export var wobble_angle_rad:         float = 0.12
+@export var wobble_freq_hz:           float = 1.3
 
-@export_group("Recul")
-@export var recul_force_par_degats: float = 18.0
-@export var recul_force_min: float = 0.0
-@export var recul_force_max: float = 220.0
-@export var recul_amorti: float = 18.0
-@export var recul_max: float = 500.0
-@export var recul_bloque_chase: bool = true
-@export var recul_bloque_chase_duree_s: float = 0.12
-@export var recul_seuil_blocage_px: float = 8.0
-@export var recul_reset_vitesse_mouvement: bool = true
-@export var recul_deceleration_mult: float = 4.0
+# ---------------------------------------------------------------------------
+# Exports — Impact  (recul + bousculade regroupés)
+# ---------------------------------------------------------------------------
 
-@export_group("Bousculade (foule / collisions)")
-@export var pousse_amorti: float = 26.0
-@export var pousse_max: float = 260.0
-@export var pousse_bloque_chase_duree_s: float = 0.07
-@export var pousse_seuil_blocage_px: float = 14.0
-@export var pousse_deceleration_mult: float = 2.2
+@export_group("Impact")
+@export var recul_force_par_degats:        float = 18.0
+@export var recul_force_min:               float = 0.0
+@export var recul_force_max:               float = 220.0
+@export var recul_amorti:                  float = 18.0
+@export var recul_max:                     float = 500.0
+@export var recul_bloque_chase:            bool  = true
+@export var recul_bloque_chase_duree_s:    float = 0.12
+@export var recul_seuil_blocage_px:        float = 8.0
+@export var recul_reset_vitesse_mouvement: bool  = true
+@export var recul_deceleration_mult:       float = 4.0
 
-@export_group("Secousse visuelle")
-@export var secousse_force_px: float = 4.0
-@export var secousse_duree_s: float = 0.12
+@export var pousse_amorti:                 float = 26.0
+@export var pousse_max:                    float = 260.0
+@export var pousse_bloque_chase_duree_s:   float = 0.07
+@export var pousse_seuil_blocage_px:       float = 14.0
+@export var pousse_deceleration_mult:      float = 2.2
+
+# ---------------------------------------------------------------------------
+# Exports — Effets visuels  (secousse + scale impact regroupés)
+# ---------------------------------------------------------------------------
+
+@export_group("Effets visuels")
+@export var secousse_force_px:      float   = 4.0
+@export var secousse_duree_s:       float   = 0.12
 @export var secousse_scale_impulse: Vector2 = Vector2(0.22, -0.18)
-@export var secousse_scale_spring: float = 120.0
-@export var secousse_scale_damping: float = 18.0
-@export var secousse_scale_max: float = 0.35
+@export var secousse_scale_spring:  float   = 120.0
+@export var secousse_scale_damping: float   = 18.0
+@export var secousse_scale_max:     float   = 0.35
 
-@export_group("Distances joueur")
-@export var distance_arret_joueur_px: float = 70.0
+# ---------------------------------------------------------------------------
+# Exports — Distance joueur
+# ---------------------------------------------------------------------------
+
+@export_group("Distance joueur")
+@export var distance_arret_joueur_px:    float = 70.0
 @export var distance_ralentir_joueur_px: float = 120.0
-@export var facteur_vitesse_min_proche: float = 0.12
+@export var facteur_vitesse_min_proche:  float = 0.12
+
+# ---------------------------------------------------------------------------
+# Exports — Cible dynamique
+# ---------------------------------------------------------------------------
 
 @export_group("Cible dynamique")
-@export var offset_cible_max_px: float = 45.0
+@export var offset_cible_max_px:    float = 45.0
 @export var offset_cible_refresh_s: float = 0.35
-@export var offset_cible_lissage: float = 12.0
+@export var offset_cible_lissage:   float = 12.0
 
-@export_group("Base véhicule (anti-entrée)")
-@export var base_actif: bool = true
+# ---------------------------------------------------------------------------
+# Exports — Base véhicule
+# ---------------------------------------------------------------------------
+
+@export_group("Base véhicule")
+@export var base_actif:    bool  = true
 @export var base_rayon_px: float = 220.0
 @export var base_marge_px: float = 8.0
 
+# ---------------------------------------------------------------------------
+# Exports — Mort / pool
+# ---------------------------------------------------------------------------
 
 @export_group("Mort")
 @export var mort_delai_pool_s: float = 0.18
+@export var recul_amorti_mort: float = 8.0  # plus élevé = arrêt plus rapide
+# ---------------------------------------------------------------------------
+# État interne
+# ---------------------------------------------------------------------------
 
-var _mort_t: float = 0.0
-var _sprite_modulate_neutre: Color = Color(1, 1, 1, 1)
+var _state: State = State.ALIVE
 
+# Recul & bousculade
+var recul:         Vector2 = Vector2.ZERO
+var pousse:        Vector2 = Vector2.ZERO
+var _recul_lock_t: float   = 0.0
+var _pousse_lock_t: float  = 0.0
 
-static var _base_cache: Node2D = null
-static var _base_cache_prev_pos: Vector2 = Vector2.ZERO
-static var _base_cache_vel: Vector2 = Vector2.ZERO
-static var _base_cache_inited: bool = false
-static var _base_cache_frame: int = -1
-
-var base_refuge: Node2D = null
-var _base_vel: Vector2 = Vector2.ZERO
-
-var _recul_lock_t: float = 0.0
-var recul: Vector2 = Vector2.ZERO
-
-var _pousse_lock_t: float = 0.0
-var pousse: Vector2 = Vector2.ZERO
-
+# Déplacement
+var _vel_mouvement:      Vector2 = Vector2.ZERO
 var _dir_to_player_last: Vector2 = Vector2.RIGHT
 var _dir_mouvement_last: Vector2 = Vector2.RIGHT
-var _vel_mouvement: Vector2 = Vector2.ZERO
 
-var _offset_cible: Vector2 = Vector2.ZERO
+# Cible dynamique
+var _offset_cible:       Vector2 = Vector2.ZERO
 var _offset_cible_voulu: Vector2 = Vector2.ZERO
-var _t_offset: float = 0.0
+var _t_offset:           float   = 0.0
 
-var _wobble_t: float = 0.0
+# Wobble
+var _wobble_t:     float = 0.0
 var _wobble_phase: float = 0.0
-var _wobble_sign: float = 1.0
+var _wobble_sign:  float = 1.0
 
-var _bloc_actif_prev: bool = false
+# Effets visuels
+var _secousse_t:             float   = 0.0
+var _sprite_pos_neutre:      Vector2 = Vector2.ZERO
+var _sprite_scale_neutre:    Vector2 = Vector2.ONE
+var _sprite_modulate_neutre: Color   = Color(1, 1, 1, 1)
+var _scale_offset:           Vector2 = Vector2.ZERO
+var _scale_vel:              Vector2 = Vector2.ZERO
 
-var _secousse_t: float = 0.0
-var _sprite_pos_neutre: Vector2 = Vector2.ZERO
+# Base / véhicule (cache statique partagé entre toutes les instances)
+var base_refuge: Node2D  = null
+var _base_vel:   Vector2 = Vector2.ZERO
 
-var deja_mort: bool = false
-var _doit_emit_reapparu_next_frame: bool = false
+static var _base_cache:          Node2D  = null
+static var _base_cache_prev_pos: Vector2 = Vector2.ZERO
+static var _base_cache_vel:      Vector2 = Vector2.ZERO
+static var _base_cache_inited:   bool    = false
+static var _base_cache_frame:    int     = -1
 
+# Collision — sauvegarde pour restauration
 var _layer_orig: int = -1
-var _mask_orig: int = -1
+var _mask_orig:  int = -1
 
-var _sprite_scale_neutre: Vector2 = Vector2.ONE
-var _scale_offset: Vector2 = Vector2.ZERO
-var _scale_vel: Vector2 = Vector2.ZERO
+# Divers
+var _bloc_actif_prev:               bool = false
+var _doit_emit_reapparu_next_frame: bool = false
+var _mort_t:                        float = 0.0
 
-var _ai_enabled: bool = true
+# ---------------------------------------------------------------------------
+# Nœuds @onready
+# ---------------------------------------------------------------------------
 
-@onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
-@onready var target: Player = _find_player(get_tree().current_scene)
-@onready var sprite: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
-@onready var hurtbox: HurtBox = get_node_or_null("HurtBox") as HurtBox
+@onready var sante:          Sante         = get_node_or_null(chemin_sante)   as Sante
+@onready var target:         Player        = _find_player(get_tree().current_scene)
+@onready var sprite:         Sprite2D      = get_node_or_null(chemin_sprite)  as Sprite2D
+@onready var hurtbox:        HurtBox       = get_node_or_null("HurtBox")      as HurtBox
 @onready var contact_damage: ContactDamage = get_node_or_null("ContactDamage") as ContactDamage
+
+# ===========================================================================
+# Initialisation
+# ===========================================================================
 
 func _ready() -> void:
 	add_to_group("enemy")
 
 	if sprite != null:
-		_sprite_pos_neutre = sprite.position
-		_sprite_scale_neutre = sprite.scale
+		_sprite_pos_neutre      = sprite.position
+		_sprite_scale_neutre    = sprite.scale
 		_sprite_modulate_neutre = sprite.modulate
 
 	if sante != null:
@@ -140,28 +203,29 @@ func _ready() -> void:
 		sante.damaged.connect(_on_damaged)
 
 	_layer_orig = collision_layer
-	_mask_orig = collision_mask
+	_mask_orig  = collision_mask
 
 	_regen_offset(_dir_to_player_last)
 	_offset_cible = _offset_cible_voulu
-	_t_offset = randf_range(0.0, max(offset_cible_refresh_s, 0.001))
+	_t_offset     = randf_range(0.0, max(offset_cible_refresh_s, 0.001))
 
 	_wobble_phase = randf() * TAU
-	_wobble_sign = -1.0 if randf() < 0.5 else 1.0
-	_wobble_t = randf() * 10.0
+	_wobble_sign  = -1.0 if randf() < 0.5 else 1.0
+	_wobble_t     = randf() * 10.0
 
+# ===========================================================================
+# API publique
+# ===========================================================================
 
-func get_type_id() -> int:
-	return type_ennemi
+func get_type_id()  -> int:        return type_ennemi
+func get_type_nom() -> StringName: return StringName(TypeEnnemi.find_key(type_ennemi))
+func get_score()    -> int:        return valeur_score
+func hit_radius()   -> float:      return max(rayon_collision_px, 0.0)
 
-func get_type_nom() -> StringName:
-	return StringName(TypeEnnemi.find_key(type_ennemi))
-
-func get_score() -> int:
-	return valeur_score
+func is_alive() -> bool: return _state == State.ALIVE or _state == State.STUNNED
 
 func set_poussee_foule(v: Vector2) -> void:
-	if deja_mort:
+	if _state == State.DYING or _state == State.DEAD:
 		return
 	appliquer_pousse(v, 0.0)
 
@@ -170,10 +234,7 @@ func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
 	var m: float = pousse.length()
 	if m > pousse_max:
 		pousse = pousse * (pousse_max / m)
-
-	var ls: float = pousse_bloque_chase_duree_s
-	if lock_s >= 0.0:
-		ls = lock_s
+	var ls: float = pousse_bloque_chase_duree_s if lock_s < 0.0 else lock_s
 	_pousse_lock_t = max(_pousse_lock_t, max(ls, 0.0))
 
 func appliquer_recul(direction: Vector2, force: float) -> void:
@@ -181,232 +242,184 @@ func appliquer_recul(direction: Vector2, force: float) -> void:
 	var m: float = recul.length()
 	if m > recul_max:
 		recul = recul * (recul_max / m)
-
 	_recul_lock_t = max(_recul_lock_t, max(recul_bloque_chase_duree_s, 0.0))
-
 	if recul_reset_vitesse_mouvement:
 		_vel_mouvement = Vector2.ZERO
-
 	_prendre_coup_visuel()
 
 func appliquer_recul_depuis(source: Node2D, force: float) -> void:
-	var dir: Vector2 = global_position - source.global_position
-	appliquer_recul(dir, force)
+	appliquer_recul(global_position - source.global_position, force)
 
-func _prendre_coup_visuel() -> void:
-	_secousse_t = secousse_duree_s
-	_scale_vel += secousse_scale_impulse
-
-func _on_damaged(amount: int, source: Node) -> void:
-	if not (source is Node2D):
+func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
+	if _state == State.DYING or _state == State.DEAD:
 		return
-	var f: float = clamp(float(amount) * max(recul_force_par_degats, 0.0), recul_force_min, recul_force_max)
-	if f <= 0.0:
-		return
-	appliquer_recul_depuis(source as Node2D, f)
-
-func _regen_offset(dir_to_player: Vector2) -> void:
-	var s: float = max(offset_cible_max_px, 0.0)
-	if s <= 0.0:
-		_offset_cible_voulu = Vector2.ZERO
-		return
-
-	var d0: Vector2 = dir_to_player
-	if d0.length_squared() < 0.0001:
-		d0 = Vector2.RIGHT
-
-	var tangent: Vector2 = Vector2(-d0.y, d0.x)
-	if tangent.length_squared() < 0.0001:
-		tangent = Vector2.RIGHT
-	tangent = tangent.normalized()
-
-	_offset_cible_voulu = tangent * randf_range(-s, s)
-
-func _tick_scale_impact(dt: float) -> void:
-	if sprite == null:
-		return
-
-	var k: float = max(secousse_scale_spring, 0.0)
-	if k <= 0.0:
-		if sprite.scale != _sprite_scale_neutre:
-			sprite.scale = _sprite_scale_neutre
-		return
-
-	var d: float = max(secousse_scale_damping, 0.0)
-
-	_scale_vel += (-_scale_offset * k - _scale_vel * d) * dt
-	_scale_offset += _scale_vel * dt
-
-	var m: float = max(secousse_scale_max, 0.0)
-	if m > 0.0:
-		_scale_offset.x = clamp(_scale_offset.x, -m, m)
-		_scale_offset.y = clamp(_scale_offset.y, -m, m)
-
-	if _scale_offset.length_squared() < 0.000001 and _scale_vel.length_squared() < 0.000001:
-		_scale_offset = Vector2.ZERO
-		_scale_vel = Vector2.ZERO
-		if sprite.scale != _sprite_scale_neutre:
-			sprite.scale = _sprite_scale_neutre
-		return
-
-	var s: Vector2 = _sprite_scale_neutre + _scale_offset
-	s.x = max(s.x, 0.05)
-	s.y = max(s.y, 0.05)
-	sprite.scale = s
-
-func _update_base_shared(dt: float) -> void:
-	var frame: int = Engine.get_physics_frames()
-	if _base_cache_frame == frame:
-		return
-	_base_cache_frame = frame
-
-	if not is_instance_valid(_base_cache):
-		var n := get_tree().get_first_node_in_group("base_vehicle")
-		_base_cache = n as Node2D
-		_base_cache_inited = false
-		_base_cache_prev_pos = Vector2.ZERO
-		_base_cache_vel = Vector2.ZERO
-
-	if _base_cache == null:
-		_base_cache_inited = false
-		_base_cache_vel = Vector2.ZERO
-		return
-
-	var pos: Vector2 = _base_cache.global_position
-	if not _base_cache_inited:
-		_base_cache_inited = true
-		_base_cache_prev_pos = pos
-		_base_cache_vel = Vector2.ZERO
-		return
-
-	if dt > 0.0:
-		_base_cache_vel = (pos - _base_cache_prev_pos) / dt
+	if actif_moteur:
+		_set_state(State.ALIVE)
 	else:
-		_base_cache_vel = Vector2.ZERO
-	_base_cache_prev_pos = pos
+		_set_physics_and_process(false)
+		if hurtbox        != null: hurtbox.set_actif(false)
+		if contact_damage != null: contact_damage.set_physics_process(false)
+		collision_layer = 0
+		collision_mask  = 0
 
-func _maj_base_vel(dt: float) -> void:
-	_update_base_shared(dt)
-	base_refuge = _base_cache
-	_base_vel = _base_cache_vel
+func reactiver_apres_pool() -> void:
+	_set_state(State.ALIVE)
 
-func _bloquer_entree_base(dt: float) -> void:
-	if not base_actif or base_refuge == null:
-		return
+# ===========================================================================
+# Machine d'états — transition centrale
+# ===========================================================================
 
-	var c: Vector2 = base_refuge.global_position
-	var from_center: Vector2 = global_position - c
+func _set_state(new_state: State) -> void:
+	_state = new_state
+	match new_state:
 
-	var r: float = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
-	if r <= 0.0:
-		return
+		State.ALIVE:
+			if not is_in_group("enemy"):
+				add_to_group("enemy")
+			if sante != null:
+				sante.pv = float(sante.max_pv)
+			if sprite != null:
+				sprite.modulate = _sprite_modulate_neutre
+			velocity       = Vector2.ZERO
+			_vel_mouvement = Vector2.ZERO
+			recul          = Vector2.ZERO
+			pousse         = Vector2.ZERO
+			if hurtbox        != null: hurtbox.set_actif(true)
+			if contact_damage != null: contact_damage.set_physics_process(true)
+			_set_physics_and_process(true)
+			_restore_collision()
+			_reset_visual_state()
+			# Révélation du sprite en dernier — position déjà au neutre,
+			# le joueur ne verra jamais le sprite à l'ancienne position.
+			if sprite != null:
+				sprite.visible = true
+			_doit_emit_reapparu_next_frame = true
 
-	var r2: float = r * r
-	var d2: float = from_center.length_squared()
-	var inv_dist: float = 1.0 / sqrt(max(d2, 0.0001))
-	var dist: float = 1.0 / inv_dist
+		State.DYING:
+			if is_in_group("enemy"):
+				remove_from_group("enemy")
+			if not has_meta("sl"): set_meta("sl", _layer_orig)
+			if not has_meta("sm"): set_meta("sm", _mask_orig)
+			if hurtbox        != null: hurtbox.set_actif(false)
+			if contact_damage != null: contact_damage.set_physics_process(false)
+			velocity        = Vector2.ZERO  # ← ajouter
+			recul           = Vector2.ZERO  # ← ajouter
+			pousse          = Vector2.ZERO  # ← ajouter
+			_vel_mouvement  = Vector2.ZERO
+			collision_layer = 0
+			collision_mask  = 0
+			set_process(false)
+			set_physics_process(true)
+			emit_signal("mort")
 
-	var v_rel: Vector2 = velocity - _base_vel
+		State.DEAD:
+			# On cache uniquement le sprite — pas le nœud racine.
+			# Les autres systèmes (shadow, hitbox, pool) ne voient
+			# pas de changement de visibilité sur le parent.
+			if sprite != null:
+				sprite.visible = false
+			velocity        = Vector2.ZERO
+			_vel_mouvement  = Vector2.ZERO
+			recul           = Vector2.ZERO
+			pousse          = Vector2.ZERO
+			collision_layer = 0
+			collision_mask  = 0
+			_set_physics_and_process(false)
+			emit_signal("pret_pour_pool")
 
-	if d2 < r2:
-		var n_out: Vector2 = from_center * inv_dist
-		global_position = c + n_out * r
-
-		var toward_center: float = v_rel.dot(-n_out)
-		if toward_center > 0.0:
-			v_rel += n_out * toward_center
-
-		velocity = v_rel + _base_vel
-		return
-
-	var n_in: Vector2 = (-from_center) * inv_dist
-	var inward: float = v_rel.dot(n_in)
-	if inward > 0.0 and (dist - inward * dt) < r:
-		v_rel -= n_in * inward
-
-	velocity = v_rel + _base_vel
+# ===========================================================================
+# Boucle physique principale
+# ===========================================================================
 
 func _physics_process(dt: float) -> void:
 	if _doit_emit_reapparu_next_frame:
 		_doit_emit_reapparu_next_frame = false
 		emit_signal("reapparu")
 
-	if deja_mort:
-		_mort_t = max(_mort_t - dt, 0.0)
+	match _state:
+		State.ALIVE, State.STUNNED:
+			_tick_ia(dt)
+			_tick_physics_commun(dt)
+		State.DYING:
+			_tick_physics_commun(dt)
+			if _mort_t <= 0.0:
+				_set_state(State.DEAD)
 
-	if not _ai_enabled and not deja_mort:
-		return
+# ===========================================================================
+# IA (uniquement en ALIVE / STUNNED)
+# ===========================================================================
 
-	var dist_player: float = 999999.0
+func _tick_ia(dt: float) -> void:
+	var dist_player:  float  = 999999.0
 	var dir_to_player: Vector2 = _dir_to_player_last
 
-	if not deja_mort and target != null and is_instance_valid(target):
+	if target != null and is_instance_valid(target):
 		var tp: Vector2 = target.global_position - global_position
-		var d2p: float = tp.length_squared()
+		var d2p: float  = tp.length_squared()
 		if d2p > 0.0001:
 			var invp: float = 1.0 / sqrt(d2p)
-			dist_player = 1.0 / invp
-			dir_to_player = tp * invp
+			dist_player    = 1.0 / invp
+			dir_to_player  = tp * invp
 			_dir_to_player_last = dir_to_player
 
-	_recul_lock_t = max(_recul_lock_t - dt, 0.0)
+	_recul_lock_t  = max(_recul_lock_t  - dt, 0.0)
 	_pousse_lock_t = max(_pousse_lock_t - dt, 0.0)
 
-	var dist_arret: float = max(distance_arret_joueur_px, 0.0)
+	var dist_arret:   float = max(distance_arret_joueur_px, 0.0)
 	var dist_ralenti: float = max(distance_ralentir_joueur_px, dist_arret + 1.0)
 
-	var seuil_r: float = max(recul_seuil_blocage_px, 0.0)
-	var recul_actif: bool = recul_bloque_chase and (_recul_lock_t > 0.0 or recul.length_squared() >= (seuil_r * seuil_r))
-
-	var seuil_p: float = max(pousse_seuil_blocage_px, 0.0)
-	var pousse_actif: bool = (_pousse_lock_t > 0.0 or pousse.length_squared() >= (seuil_p * seuil_p))
-
+	var recul_actif: bool = recul_bloque_chase and (
+		_recul_lock_t > 0.0 or recul.length_squared() >= recul_seuil_blocage_px * recul_seuil_blocage_px)
+	var pousse_actif: bool = (
+		_pousse_lock_t > 0.0 or pousse.length_squared() >= pousse_seuil_blocage_px * pousse_seuil_blocage_px)
 	var bloc_actif: bool = recul_actif or pousse_actif
 
 	if bloc_actif and not _bloc_actif_prev and recul_reset_vitesse_mouvement:
 		_vel_mouvement = Vector2.ZERO
 	_bloc_actif_prev = bloc_actif
 
-	var desired_speed: float = 0.0
-	var desired_dir: Vector2 = _dir_mouvement_last
+	# Transition ALIVE <-> STUNNED : légère, ne passe pas par _set_state.
+	# Protégée contre un écrasement de DYING/DEAD déclenché dans la même frame.
+	if bloc_actif:
+		if _state == State.ALIVE:
+			_state = State.STUNNED
+	else:
+		if _state == State.STUNNED:
+			_state = State.ALIVE
 
-	if not deja_mort and target != null and is_instance_valid(target) and not bloc_actif:
+	var desired_speed: float   = 0.0
+	var desired_dir:   Vector2 = _dir_mouvement_last
+
+	if target != null and is_instance_valid(target) and not bloc_actif:
 		_t_offset -= dt
 		if _t_offset <= 0.0:
 			_t_offset = max(offset_cible_refresh_s, 0.001)
 			_regen_offset(dir_to_player)
-
 		var l: float = clamp(max(offset_cible_lissage, 0.0) * dt, 0.0, 1.0)
 		_offset_cible = _offset_cible.lerp(_offset_cible_voulu, l)
 
-		if dist_player <= dist_arret:
-			desired_speed = 0.0
-			desired_dir = _dir_mouvement_last
-		else:
+		if dist_player > dist_arret:
 			var to: Vector2 = (target.global_position + _offset_cible) - global_position
 			var d2to: float = to.length_squared()
-
-			if d2to > 0.0001:
-				desired_dir = to * (1.0 / sqrt(d2to))
-			else:
-				desired_dir = dir_to_player
+			desired_dir     = (to * (1.0 / sqrt(d2to))) if d2to > 0.0001 else dir_to_player
 
 			var sp: float = speed
 			if dist_player < dist_ralenti:
 				var t: float = (dist_player - dist_arret) / (dist_ralenti - dist_arret)
-				t = clamp(t, 0.0, 1.0)
-				t = t * t * (3.0 - 2.0 * t)
-				sp *= t
-				sp = max(sp, speed * clamp(facteur_vitesse_min_proche, 0.0, 1.0))
-
+				t  = clamp(t, 0.0, 1.0)
+				t  = t * t * (3.0 - 2.0 * t)
+				sp = max(sp * t, speed * clamp(facteur_vitesse_min_proche, 0.0, 1.0))
 			desired_speed = sp
 
+	# Wobble
 	_wobble_t += dt
-	var wobble_rate: float = max(wobble_freq_hz, 0.0) * TAU
-	var wobble_angle: float = sin(_wobble_phase + _wobble_t * wobble_rate) * max(wobble_angle_rad, 0.0) * _wobble_sign
+	var wobble_rate:  float = max(wobble_freq_hz, 0.0) * TAU
+	var wobble_angle: float = sin(_wobble_phase + _wobble_t * wobble_rate) \
+		* max(wobble_angle_rad, 0.0) * _wobble_sign
 	if desired_speed > 0.001 and desired_dir.length_squared() > 0.0001:
 		desired_dir = desired_dir.rotated(wobble_angle)
 
+	# Rotation progressive de la direction
 	if desired_dir.length_squared() > 0.0001:
 		if vitesse_rotation_rad_s <= 0.0:
 			_dir_mouvement_last = desired_dir.normalized()
@@ -419,136 +432,239 @@ func _physics_process(dt: float) -> void:
 			if _dir_mouvement_last.length_squared() > 0.0001:
 				_dir_mouvement_last = _dir_mouvement_last.normalized()
 
+	# Accélération / décélération
 	var desired_vel: Vector2 = _dir_mouvement_last * desired_speed
-
 	var acc: float = max(acceleration_px_s2, 0.0)
 	var dec: float = max(deceleration_px_s2, 0.0)
-	var max_delta: float = acc * dt
-	if desired_vel.length_squared() < _vel_mouvement.length_squared():
-		max_delta = dec * dt
+	var max_delta: float = (acc if desired_vel.length_squared() >= _vel_mouvement.length_squared() else dec) * dt
 
-	var decel_mult: float = 1.0
-	if recul_actif:
-		decel_mult = max(decel_mult, max(recul_deceleration_mult, 1.0))
-	if pousse_actif:
-		decel_mult = max(decel_mult, max(pousse_deceleration_mult, 1.0))
-	max_delta *= decel_mult
+	if recul_actif:  max_delta *= max(recul_deceleration_mult,  1.0)
+	if pousse_actif: max_delta *= max(pousse_deceleration_mult, 1.0)
 
 	_vel_mouvement = _vel_mouvement.move_toward(desired_vel, max_delta)
 	velocity = _vel_mouvement
 
-	velocity += recul
-	var alpha_r: float = clamp(recul_amorti * dt, 0.0, 0.95)
-	recul = recul.lerp(Vector2.ZERO, alpha_r)
-	if recul.length_squared() < 1.0:
-		recul = Vector2.ZERO
-
-	velocity += pousse
-	var alpha_p: float = clamp(pousse_amorti * dt, 0.0, 0.95)
-	pousse = pousse.lerp(Vector2.ZERO, alpha_p)
-	if pousse.length_squared() < 1.0:
-		pousse = Vector2.ZERO
-
-	if not deja_mort and target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
+	# Contrainte de vitesse approche-joueur
+	if target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
 			var inward0: float = velocity.dot(dir_to_player)
 			if inward0 > 0.0:
 				velocity -= dir_to_player * inward0
 		elif dist_player < dist_ralenti:
-			var t2: float = (dist_player - dist_arret) / (dist_ralenti - dist_arret)
-			t2 = clamp(t2, 0.0, 1.0)
-			var max_in: float = speed * t2
+			var t2: float = clamp((dist_player - dist_arret) / (dist_ralenti - dist_arret), 0.0, 1.0)
 			var inward: float = velocity.dot(dir_to_player)
-			if inward > max_in:
-				velocity -= dir_to_player * (inward - max_in)
+			if inward > speed * t2:
+				velocity -= dir_to_player * (inward - speed * t2)
 
-	if sprite != null:
-		if _secousse_t > 0.0:
-			_secousse_t -= dt
-			var ratio: float = 0.0
-			if secousse_duree_s > 0.0001:
-				ratio = _secousse_t / secousse_duree_s
-			ratio = clamp(ratio, 0.0, 1.0)
-			var ox: float = randf_range(-1.0, 1.0)
-			var oy: float = randf_range(-1.0, 1.0)
-			var offset: Vector2 = Vector2(ox, oy) * secousse_force_px * ratio
-			sprite.position = _sprite_pos_neutre + offset
-		else:
-			if sprite.position != _sprite_pos_neutre:
-				sprite.position = _sprite_pos_neutre
+# ===========================================================================
+# Tick commun — recul, pousse, effets visuels, base, move_and_slide
+# ===========================================================================
 
-		if _scale_offset.length_squared() > 0.000001 or _scale_vel.length_squared() > 0.000001:
-			_tick_scale_impact(dt)
-		else:
-			if sprite.scale != _sprite_scale_neutre:
-				sprite.scale = _sprite_scale_neutre
-
-	_maj_base_vel(dt)
-	_bloquer_entree_base(dt)
-
-	move_and_slide()
-
-	if deja_mort and _mort_t <= 0.0:
-		_finir_mort()
-
-func _tick_mort(dt: float) -> void:
-	_mort_t = max(_mort_t - dt, 0.0)
-
+func _tick_physics_commun(dt: float) -> void:
+	# Recul
 	velocity += recul
-	var alpha_r: float = clamp(recul_amorti * dt, 0.0, 0.95)
-	recul = recul.lerp(Vector2.ZERO, alpha_r)
+	recul = recul.lerp(Vector2.ZERO, clamp(recul_amorti * dt, 0.0, 0.95))
 	if recul.length_squared() < 1.0:
 		recul = Vector2.ZERO
 
+	# Bousculade
 	velocity += pousse
-	var alpha_p: float = clamp(pousse_amorti * dt, 0.0, 0.95)
-	pousse = pousse.lerp(Vector2.ZERO, alpha_p)
+	pousse = pousse.lerp(Vector2.ZERO, clamp(pousse_amorti * dt, 0.0, 0.95))
 	if pousse.length_squared() < 1.0:
 		pousse = Vector2.ZERO
 
-	if sprite != null:
-		if _secousse_t > 0.0:
-			_secousse_t -= dt
-			var ratio: float = 0.0
-			if secousse_duree_s > 0.0001:
-				ratio = _secousse_t / secousse_duree_s
-			ratio = clamp(ratio, 0.0, 1.0)
-			var ox: float = randf_range(-1.0, 1.0)
-			var oy: float = randf_range(-1.0, 1.0)
-			var offset: Vector2 = Vector2(ox, oy) * secousse_force_px * ratio
-			sprite.position = _sprite_pos_neutre + offset
-		else:
-			if sprite.position != _sprite_pos_neutre:
-				sprite.position = _sprite_pos_neutre
+	# Effets sprite
+	if sprite != null and _state != State.DYING:
+		_tick_sprite_secousse(dt)
+		_tick_scale_impact(dt)
 
-		if _scale_offset.length_squared() > 0.000001 or _scale_vel.length_squared() > 0.000001:
-			_tick_scale_impact(dt)
-		else:
-			if sprite.scale != _sprite_scale_neutre:
-				sprite.scale = _sprite_scale_neutre
-
+	# Base véhicule
 	_maj_base_vel(dt)
 	_bloquer_entree_base(dt)
 
+	# Décélération mort — en dernier, après tout le reste
+	if _state == State.DYING:
+		velocity = velocity.lerp(Vector2.ZERO, clamp(recul_amorti_mort * dt, 0.0, 1.0))
+
 	move_and_slide()
 
-	if _mort_t <= 0.0:
-		_finir_mort()
+	if _state == State.DYING:
+		_mort_t = max(_mort_t - dt, 0.0)
+# ===========================================================================
+# Effets visuels
+# ===========================================================================
 
-func _finir_mort() -> void:
-	visible = false
-	velocity = Vector2.ZERO
-	_vel_mouvement = Vector2.ZERO
-	recul = Vector2.ZERO
-	pousse = Vector2.ZERO
+func _prendre_coup_visuel() -> void:
+	_secousse_t  = secousse_duree_s
+	_scale_vel  += secousse_scale_impulse
 
-	collision_layer = 0
-	collision_mask = 0
+func _tick_sprite_secousse(dt: float) -> void:
+	if _secousse_t > 0.0:
+		_secousse_t -= dt
+		var ratio: float = clamp(_secousse_t / max(secousse_duree_s, 0.0001), 0.0, 1.0)
+		sprite.position = _sprite_pos_neutre + Vector2(
+			randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
+	else:
+		if sprite.position != _sprite_pos_neutre:
+			sprite.position = _sprite_pos_neutre
 
-	set_physics_process(false)
-	set_process(false)
+func _tick_scale_impact(dt: float) -> void:
+	var k: float = max(secousse_scale_spring, 0.0)
+	if k <= 0.0:
+		if sprite.scale != _sprite_scale_neutre:
+			sprite.scale = _sprite_scale_neutre
+		return
 
-	emit_signal("pret_pour_pool")
+	if _scale_offset.length_squared() < 0.000001 and _scale_vel.length_squared() < 0.000001:
+		_scale_offset = Vector2.ZERO
+		_scale_vel    = Vector2.ZERO
+		if sprite.scale != _sprite_scale_neutre:
+			sprite.scale = _sprite_scale_neutre
+		return
+
+	var d: float = max(secousse_scale_damping, 0.0)
+	_scale_vel    += (-_scale_offset * k - _scale_vel * d) * dt
+	_scale_offset += _scale_vel * dt
+
+	var m: float = max(secousse_scale_max, 0.0)
+	if m > 0.0:
+		_scale_offset.x = clamp(_scale_offset.x, -m, m)
+		_scale_offset.y = clamp(_scale_offset.y, -m, m)
+
+	var s: Vector2 = _sprite_scale_neutre + _scale_offset
+	sprite.scale = Vector2(max(s.x, 0.05), max(s.y, 0.05))
+
+# ===========================================================================
+# Cible dynamique
+# ===========================================================================
+
+func _regen_offset(dir_to_player: Vector2) -> void:
+	var s: float = max(offset_cible_max_px, 0.0)
+	if s <= 0.0:
+		_offset_cible_voulu = Vector2.ZERO
+		return
+	var d0: Vector2 = dir_to_player if dir_to_player.length_squared() >= 0.0001 else Vector2.RIGHT
+	var tangent: Vector2 = Vector2(-d0.y, d0.x).normalized()
+	_offset_cible_voulu = tangent * randf_range(-s, s)
+
+# ===========================================================================
+# Base véhicule (cache statique mutualisé)
+# ===========================================================================
+
+func _update_base_shared(dt: float) -> void:
+	var frame: int = Engine.get_physics_frames()
+	if _base_cache_frame == frame:
+		return
+	_base_cache_frame = frame
+
+	if not is_instance_valid(_base_cache):
+		_base_cache          = get_tree().get_first_node_in_group("base_vehicle") as Node2D
+		_base_cache_inited   = false
+		_base_cache_prev_pos = Vector2.ZERO
+		_base_cache_vel      = Vector2.ZERO
+
+	if _base_cache == null:
+		_base_cache_inited = false
+		_base_cache_vel    = Vector2.ZERO
+		return
+
+	var pos: Vector2 = _base_cache.global_position
+	if not _base_cache_inited:
+		_base_cache_inited   = true
+		_base_cache_prev_pos = pos
+		_base_cache_vel      = Vector2.ZERO
+		return
+
+	_base_cache_vel      = (pos - _base_cache_prev_pos) / dt if dt > 0.0 else Vector2.ZERO
+	_base_cache_prev_pos = pos
+
+func _maj_base_vel(dt: float) -> void:
+	_update_base_shared(dt)
+	base_refuge = _base_cache
+	_base_vel   = _base_cache_vel
+
+func _bloquer_entree_base(dt: float) -> void:
+	if not base_actif or base_refuge == null:
+		return
+
+	var c: Vector2          = base_refuge.global_position
+	var from_center: Vector2 = global_position - c
+	var r: float            = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
+	if r <= 0.0:
+		return
+
+	var d2: float       = from_center.length_squared()
+	var inv_dist: float = 1.0 / sqrt(max(d2, 0.0001))
+	var dist: float     = 1.0 / inv_dist
+	var v_rel: Vector2  = velocity - _base_vel
+
+	if d2 < r * r:
+		var n_out: Vector2       = from_center * inv_dist
+		global_position          = c + n_out * r
+		var toward_center: float = v_rel.dot(-n_out)
+		if toward_center > 0.0:
+			v_rel += n_out * toward_center
+		velocity = v_rel + _base_vel
+		return
+
+	var n_in: Vector2   = (-from_center) * inv_dist
+	var inward: float   = v_rel.dot(n_in)
+	if inward > 0.0 and (dist - inward * dt) < r:
+		v_rel -= n_in * inward
+	velocity = v_rel + _base_vel
+
+# ===========================================================================
+# Callbacks dommages / mort
+# ===========================================================================
+
+func _on_damaged(amount: int, source: Node) -> void:
+	if not (source is Node2D):
+		return
+	var f: float = clamp(
+		float(amount) * max(recul_force_par_degats, 0.0),
+		recul_force_min, recul_force_max)
+	if f > 0.0:
+		appliquer_recul_depuis(source as Node2D, f)
+
+func _on_mort() -> void:
+	if _state == State.DYING or _state == State.DEAD:
+		return
+	_mort_t = max(mort_delai_pool_s, 0.0)
+	_set_state(State.DYING)
+
+# ===========================================================================
+# Utilitaires internes
+# ===========================================================================
+
+func _set_physics_and_process(active: bool) -> void:
+	set_physics_process(active)
+	set_process(active)
+
+func _restore_collision() -> void:
+	if has_meta("sl"):
+		collision_layer = int(get_meta("sl"))
+	elif _layer_orig >= 0:
+		collision_layer = _layer_orig
+	if has_meta("sm"):
+		collision_mask = int(get_meta("sm"))
+	elif _mask_orig >= 0:
+		collision_mask = _mask_orig
+
+func _reset_visual_state() -> void:
+	_secousse_t      = 0.0
+	_scale_offset    = Vector2.ZERO
+	_scale_vel       = Vector2.ZERO
+	_bloc_actif_prev = false
+	_base_vel        = Vector2.ZERO
+	if sprite != null:
+		sprite.scale    = _sprite_scale_neutre
+		sprite.position = _sprite_pos_neutre
+	_regen_offset(_dir_to_player_last)
+	_offset_cible = _offset_cible_voulu
+	_t_offset     = randf_range(0.0, max(offset_cible_refresh_s, 0.001))
+	_wobble_phase = randf() * TAU
+	_wobble_sign  = -1.0 if randf() < 0.5 else 1.0
+	_wobble_t     = randf() * 10.0
 
 func _find_player(n: Node) -> Player:
 	if n is Player:
@@ -558,118 +674,3 @@ func _find_player(n: Node) -> Player:
 		if p:
 			return p
 	return null
-
-func _on_mort() -> void:
-	if deja_mort:
-		return
-	deja_mort = true
-
-	if is_in_group("enemy"):
-		remove_from_group("enemy")
-
-	if _layer_orig < 0:
-		_layer_orig = collision_layer
-	if _mask_orig < 0:
-		_mask_orig = collision_mask
-
-	if not has_meta("sl"):
-		set_meta("sl", _layer_orig)
-	if not has_meta("sm"):
-		set_meta("sm", _mask_orig)
-
-	if hurtbox != null:
-		hurtbox.set_actif(false)
-
-	if contact_damage != null:
-		contact_damage.set_physics_process(false)
-
-	_ai_enabled = false
-	set_process(false)
-	set_physics_process(true)
-
-	collision_layer = 0
-	collision_mask = 0
-
-	_vel_mouvement = Vector2.ZERO
-
-	_mort_t = max(mort_delai_pool_s, 0.0)
-
-	emit_signal("mort")
-
-func reactiver_apres_pool() -> void:
-	deja_mort = false
-
-	if not is_in_group("enemy"):
-		add_to_group("enemy")
-
-	if sante != null:
-		sante.pv = float(sante.max_pv)
-
-	if sprite != null:
-		sprite.modulate = _sprite_modulate_neutre
-
-	visible = true
-	velocity = Vector2.ZERO
-	_vel_mouvement = Vector2.ZERO
-	recul = Vector2.ZERO
-	pousse = Vector2.ZERO
-
-	if hurtbox != null:
-		hurtbox.set_actif(true)
-
-	if contact_damage != null:
-		contact_damage.set_physics_process(true)
-
-	set_physics_process(true)
-	set_process(true)
-
-	_ai_enabled = true
-
-	_doit_emit_reapparu_next_frame = true
-	_secousse_t = 0.0
-
-	_scale_offset = Vector2.ZERO
-	_scale_vel = Vector2.ZERO
-
-	if sprite != null:
-		sprite.scale = _sprite_scale_neutre
-		sprite.position = _sprite_pos_neutre
-
-	_regen_offset(_dir_to_player_last)
-	_offset_cible = _offset_cible_voulu
-	_t_offset = randf_range(0.0, max(offset_cible_refresh_s, 0.001))
-
-	_wobble_phase = randf() * TAU
-	_wobble_sign = -1.0 if randf() < 0.5 else 1.0
-	_wobble_t = randf() * 10.0
-
-	_bloc_actif_prev = false
-	_base_vel = Vector2.ZERO
-
-func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
-	if deja_mort:
-		return
-
-	_ai_enabled = actif_moteur
-	set_physics_process(actif_moteur)
-	set_process(actif_moteur)
-
-	if hurtbox != null:
-		hurtbox.set_actif(actif_moteur)
-
-	if contact_damage != null:
-		contact_damage.set_physics_process(actif_moteur)
-
-	if actif_moteur:
-		if has_meta("sl"):
-			collision_layer = int(get_meta("sl"))
-		elif _layer_orig >= 0:
-			collision_layer = _layer_orig
-
-		if has_meta("sm"):
-			collision_mask = int(get_meta("sm"))
-		elif _mask_orig >= 0:
-			collision_mask = _mask_orig
-
-func hit_radius() -> float:
-	return max(rayon_collision_px, 0.0)
