@@ -30,12 +30,21 @@ var _pos_base: Vector2 = Vector2.ZERO
 var _modulate_base: Color = Color(1, 1, 1, 1)
 
 var _tw_punch: Tween = null
-var _tw_collect: Tween = null
 
-@onready var visuel: Node2D = get_node_or_null(chemin_visuel) as Node2D
-@onready var particules_aimant: Node = get_node_or_null(chemin_particules_aimant)
-@onready var particules_collecte: Node = get_node_or_null(chemin_particules_collecte)
-@onready var son_collecte: Node = get_node_or_null(chemin_son_collecte)
+# Animation collecte manuelle — remplace le Tween pour éviter
+# les N Tweens simultanés lors d'une vague de collectes
+var _collecte_active:    bool     = false
+var _collecte_t:         float    = 0.0
+var _collecte_duree:     float    = 0.1
+var _collecte_pos_debut: Vector2  = Vector2.ZERO
+var _collecte_pos_fin:   Vector2  = Vector2.ZERO
+var _collecte_fin:       Callable = Callable()
+var _collecte_loot:      Node2D   = null
+
+@onready var visuel:              Node2D = get_node_or_null(chemin_visuel)             as Node2D
+@onready var particules_aimant:   Node   = get_node_or_null(chemin_particules_aimant)
+@onready var particules_collecte: Node   = get_node_or_null(chemin_particules_collecte)
+@onready var son_collecte:        Node   = get_node_or_null(chemin_son_collecte)
 
 func _ready() -> void:
 	_graine = randf() * TAU
@@ -50,27 +59,70 @@ func _ready() -> void:
 			ci.set_instance_shader_parameter(&"seed", _graine)
 
 	_scale_base = visuel.scale
-	_pos_base = visuel.position
+	_pos_base   = visuel.position
 
+	set_process(false)
 	reset_etat()
 
 func reset_etat() -> void:
-	_t_idle = 0.0
+	_t_idle          = 0.0
+	_collecte_active = false
+	_collecte_t      = 0.0
+	_collecte_fin    = Callable()
+	_collecte_loot   = null
 
 	if _tw_punch != null and is_instance_valid(_tw_punch):
 		_tw_punch.kill()
 		_tw_punch = null
 
+	set_process(false)
+
 	if visuel == null:
 		return
 
 	visuel.position = _pos_base
-	visuel.scale = _scale_base
+	visuel.scale    = _scale_base
 	visuel.rotation = 0.0
 
 	var ci := visuel as CanvasItem
 	if ci != null:
 		ci.modulate = _modulate_base
+
+func _process(dt: float) -> void:
+	if not _collecte_active:
+		set_process(false)
+		return
+
+	_collecte_t += dt
+	var r: float = clamp(_collecte_t / _collecte_duree, 0.0, 1.0)
+
+	# Ease out expo — reproduit le comportement du Tween TRANS_EXPO EASE_OUT
+	var t: float
+	if r >= 1.0:
+		t = 1.0
+	else:
+		t = 1.0 - pow(2.0, -10.0 * r)
+
+	# Déplacement du nœud loot parent
+	if _collecte_loot != null and is_instance_valid(_collecte_loot):
+		_collecte_loot.global_position = _collecte_pos_debut.lerp(_collecte_pos_fin, t)
+
+	# Fondu alpha et scale à zéro
+	var ci := visuel as CanvasItem
+	if ci != null:
+		var c: Color = _modulate_base
+		c.a = 1.0 - t
+		ci.modulate = c
+
+	visuel.scale = _scale_base * (1.0 - t)
+
+	if r >= 1.0:
+		_collecte_active = false
+		set_process(false)
+		if _collecte_fin.is_valid():
+			_collecte_fin.call()
+		_collecte_fin  = Callable()
+		_collecte_loot = null
 
 func maj_idle(delta: float) -> void:
 	if idle_gpu:
@@ -128,23 +180,18 @@ func jouer_collecte(noeud_loot: Node2D, pos_fin: Vector2, duree_s: float, fin: C
 	if son_collecte != null and son_collecte.has_method("play"):
 		son_collecte.call("play")
 
-	if _tw_collect != null and is_instance_valid(_tw_collect):
-		_tw_collect.kill()
+	# Tue le Tween punch s'il est actif — libère la ressource
+	if _tw_punch != null and is_instance_valid(_tw_punch):
+		_tw_punch.kill()
+		_tw_punch = null
 
-	_tw_collect = create_tween()
-	_tw_collect.set_parallel(true)
-	_tw_collect.set_trans(Tween.TRANS_EXPO)
-	_tw_collect.set_ease(Tween.EASE_OUT)
+	# Animation manuelle — pas de Tween créé ici
+	_collecte_active    = true
+	_collecte_t         = 0.0
+	_collecte_duree     = maxf(duree_s, 0.001)
+	_collecte_pos_debut = noeud_loot.global_position
+	_collecte_pos_fin   = pos_fin
+	_collecte_fin       = fin
+	_collecte_loot      = noeud_loot
 
-	_tw_collect.tween_property(noeud_loot, "global_position", pos_fin, duree_s)
-
-	var ci := visuel as CanvasItem
-	if ci != null:
-		var c: Color = _modulate_base
-		c.a = 0.0
-		_tw_collect.tween_property(ci, "modulate", c, duree_s)
-
-	_tw_collect.tween_property(visuel, "scale", Vector2.ZERO, duree_s)
-
-	if fin.is_valid():
-		_tw_collect.finished.connect(fin)
+	set_process(true)

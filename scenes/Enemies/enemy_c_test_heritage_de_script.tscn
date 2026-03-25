@@ -19,7 +19,7 @@ recul_max = 1500.0
 secousse_force_px = 30.0
 base_marge_px = 1000.0
 mort_delai_pool_s = 0.5
-recul_amorti_mort = 50.0
+recul_amorti_mort = 20.0
 metadata/_custom_type_script = "uid://6ee8vsr2lwdm"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1843789176]

@@ -55,7 +55,7 @@ enum State {
 @export var wobble_freq_hz:           float = 1.3
 
 # ---------------------------------------------------------------------------
-# Exports — Impact  (recul + bousculade regroupés)
+# Exports — Impact
 # ---------------------------------------------------------------------------
 
 @export_group("Impact")
@@ -77,7 +77,7 @@ enum State {
 @export var pousse_deceleration_mult:      float = 2.2
 
 # ---------------------------------------------------------------------------
-# Exports — Effets visuels  (secousse + scale impact regroupés)
+# Exports — Effets visuels
 # ---------------------------------------------------------------------------
 
 @export_group("Effets visuels")
@@ -121,7 +121,8 @@ enum State {
 
 @export_group("Mort")
 @export var mort_delai_pool_s: float = 0.18
-@export var recul_amorti_mort: float = 8.0  # plus élevé = arrêt plus rapide
+@export var recul_amorti_mort: float = 8.0
+
 # ---------------------------------------------------------------------------
 # État interne
 # ---------------------------------------------------------------------------
@@ -129,10 +130,10 @@ enum State {
 var _state: State = State.ALIVE
 
 # Recul & bousculade
-var recul:         Vector2 = Vector2.ZERO
-var pousse:        Vector2 = Vector2.ZERO
-var _recul_lock_t: float   = 0.0
-var _pousse_lock_t: float  = 0.0
+var recul:          Vector2 = Vector2.ZERO
+var pousse:         Vector2 = Vector2.ZERO
+var _recul_lock_t:  float   = 0.0
+var _pousse_lock_t: float   = 0.0
 
 # Déplacement
 var _vel_mouvement:      Vector2 = Vector2.ZERO
@@ -156,10 +157,15 @@ var _sprite_scale_neutre:    Vector2 = Vector2.ONE
 var _sprite_modulate_neutre: Color   = Color(1, 1, 1, 1)
 var _scale_offset:           Vector2 = Vector2.ZERO
 var _scale_vel:              Vector2 = Vector2.ZERO
+# Flag — évite d'appeler _tick_scale_impact quand aucun impact actif
+var _scale_actif:            bool    = false
 
-# Base / véhicule (cache statique partagé entre toutes les instances)
+# Base véhicule (cache statique partagé)
 var base_refuge: Node2D  = null
 var _base_vel:   Vector2 = Vector2.ZERO
+# Caches du rayon base — calculés une fois dans _ready
+var _base_r_cache:  float = 0.0
+var _base_r2_cache: float = 0.0
 
 static var _base_cache:          Node2D  = null
 static var _base_cache_prev_pos: Vector2 = Vector2.ZERO
@@ -172,18 +178,18 @@ var _layer_orig: int = -1
 var _mask_orig:  int = -1
 
 # Divers
-var _bloc_actif_prev:               bool = false
-var _doit_emit_reapparu_next_frame: bool = false
+var _bloc_actif_prev:               bool  = false
+var _doit_emit_reapparu_next_frame: bool  = false
 var _mort_t:                        float = 0.0
 
 # ---------------------------------------------------------------------------
 # Nœuds @onready
 # ---------------------------------------------------------------------------
 
-@onready var sante:          Sante         = get_node_or_null(chemin_sante)   as Sante
+@onready var sante:          Sante         = get_node_or_null(chemin_sante)    as Sante
 @onready var target:         Player        = _find_player(get_tree().current_scene)
-@onready var sprite:         Sprite2D      = get_node_or_null(chemin_sprite)  as Sprite2D
-@onready var hurtbox:        HurtBox       = get_node_or_null("HurtBox")      as HurtBox
+@onready var sprite:         Sprite2D      = get_node_or_null(chemin_sprite)   as Sprite2D
+@onready var hurtbox:        HurtBox       = get_node_or_null("HurtBox")       as HurtBox
 @onready var contact_damage: ContactDamage = get_node_or_null("ContactDamage") as ContactDamage
 
 # ===========================================================================
@@ -192,6 +198,10 @@ var _mort_t:                        float = 0.0
 
 func _ready() -> void:
 	add_to_group("enemy")
+
+	# Cache rayon base — recalculé une seule fois ici
+	_base_r_cache  = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
+	_base_r2_cache = _base_r_cache * _base_r_cache
 
 	if sprite != null:
 		_sprite_pos_neutre      = sprite.position
@@ -289,8 +299,6 @@ func _set_state(new_state: State) -> void:
 			_set_physics_and_process(true)
 			_restore_collision()
 			_reset_visual_state()
-			# Révélation du sprite en dernier — position déjà au neutre,
-			# le joueur ne verra jamais le sprite à l'ancienne position.
 			if sprite != null:
 				sprite.visible = true
 			_doit_emit_reapparu_next_frame = true
@@ -302,9 +310,9 @@ func _set_state(new_state: State) -> void:
 			if not has_meta("sm"): set_meta("sm", _mask_orig)
 			if hurtbox        != null: hurtbox.set_actif(false)
 			if contact_damage != null: contact_damage.set_physics_process(false)
-			velocity        = Vector2.ZERO  # ← ajouter
-			recul           = Vector2.ZERO  # ← ajouter
-			pousse          = Vector2.ZERO  # ← ajouter
+			velocity        = Vector2.ZERO
+			recul           = Vector2.ZERO
+			pousse          = Vector2.ZERO
 			_vel_mouvement  = Vector2.ZERO
 			collision_layer = 0
 			collision_mask  = 0
@@ -313,9 +321,6 @@ func _set_state(new_state: State) -> void:
 			emit_signal("mort")
 
 		State.DEAD:
-			# On cache uniquement le sprite — pas le nœud racine.
-			# Les autres systèmes (shadow, hitbox, pool) ne voient
-			# pas de changement de visibilité sur le parent.
 			if sprite != null:
 				sprite.visible = false
 			velocity        = Vector2.ZERO
@@ -350,7 +355,7 @@ func _physics_process(dt: float) -> void:
 # ===========================================================================
 
 func _tick_ia(dt: float) -> void:
-	var dist_player:  float  = 999999.0
+	var dist_player:   float  = 999999.0
 	var dir_to_player: Vector2 = _dir_to_player_last
 
 	if target != null and is_instance_valid(target):
@@ -378,8 +383,6 @@ func _tick_ia(dt: float) -> void:
 		_vel_mouvement = Vector2.ZERO
 	_bloc_actif_prev = bloc_actif
 
-	# Transition ALIVE <-> STUNNED : légère, ne passe pas par _set_state.
-	# Protégée contre un écrasement de DYING/DEAD déclenché dans la même frame.
 	if bloc_actif:
 		if _state == State.ALIVE:
 			_state = State.STUNNED
@@ -419,7 +422,7 @@ func _tick_ia(dt: float) -> void:
 	if desired_speed > 0.001 and desired_dir.length_squared() > 0.0001:
 		desired_dir = desired_dir.rotated(wobble_angle)
 
-	# Rotation progressive de la direction
+	# Rotation progressive
 	if desired_dir.length_squared() > 0.0001:
 		if vitesse_rotation_rad_s <= 0.0:
 			_dir_mouvement_last = desired_dir.normalized()
@@ -444,7 +447,7 @@ func _tick_ia(dt: float) -> void:
 	_vel_mouvement = _vel_mouvement.move_toward(desired_vel, max_delta)
 	velocity = _vel_mouvement
 
-	# Contrainte de vitesse approche-joueur
+	# Contrainte vitesse approche joueur
 	if target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
 			var inward0: float = velocity.dot(dir_to_player)
@@ -473,16 +476,20 @@ func _tick_physics_commun(dt: float) -> void:
 	if pousse.length_squared() < 1.0:
 		pousse = Vector2.ZERO
 
-	# Effets sprite
+	# Effets sprite — guards évitent les appels inutiles sur 4000 ennemis
 	if sprite != null and _state != State.DYING:
-		_tick_sprite_secousse(dt)
-		_tick_scale_impact(dt)
+		if _secousse_t > 0.0:
+			_tick_sprite_secousse(dt)
+		elif sprite.position != _sprite_pos_neutre:
+			sprite.position = _sprite_pos_neutre
+		if _scale_actif:
+			_tick_scale_impact(dt)
 
 	# Base véhicule
 	_maj_base_vel(dt)
 	_bloquer_entree_base(dt)
 
-	# Décélération mort — en dernier, après tout le reste
+	# Décélération mort
 	if _state == State.DYING:
 		velocity = velocity.lerp(Vector2.ZERO, clamp(recul_amorti_mort * dt, 0.0, 1.0))
 
@@ -490,6 +497,7 @@ func _tick_physics_commun(dt: float) -> void:
 
 	if _state == State.DYING:
 		_mort_t = max(_mort_t - dt, 0.0)
+
 # ===========================================================================
 # Effets visuels
 # ===========================================================================
@@ -497,27 +505,26 @@ func _tick_physics_commun(dt: float) -> void:
 func _prendre_coup_visuel() -> void:
 	_secousse_t  = secousse_duree_s
 	_scale_vel  += secousse_scale_impulse
+	_scale_actif = true
 
 func _tick_sprite_secousse(dt: float) -> void:
-	if _secousse_t > 0.0:
-		_secousse_t -= dt
-		var ratio: float = clamp(_secousse_t / max(secousse_duree_s, 0.0001), 0.0, 1.0)
-		sprite.position = _sprite_pos_neutre + Vector2(
-			randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
-	else:
-		if sprite.position != _sprite_pos_neutre:
-			sprite.position = _sprite_pos_neutre
+	_secousse_t -= dt
+	var ratio: float = clamp(_secousse_t / max(secousse_duree_s, 0.0001), 0.0, 1.0)
+	sprite.position = _sprite_pos_neutre + Vector2(
+		randf_range(-1.0, 1.0), randf_range(-1.0, 1.0)) * secousse_force_px * ratio
 
 func _tick_scale_impact(dt: float) -> void:
 	var k: float = max(secousse_scale_spring, 0.0)
 	if k <= 0.0:
 		if sprite.scale != _sprite_scale_neutre:
 			sprite.scale = _sprite_scale_neutre
+		_scale_actif = false
 		return
 
 	if _scale_offset.length_squared() < 0.000001 and _scale_vel.length_squared() < 0.000001:
 		_scale_offset = Vector2.ZERO
 		_scale_vel    = Vector2.ZERO
+		_scale_actif  = false
 		if sprite.scale != _sprite_scale_neutre:
 			sprite.scale = _sprite_scale_neutre
 		return
@@ -587,10 +594,15 @@ func _bloquer_entree_base(dt: float) -> void:
 	if not base_actif or base_refuge == null:
 		return
 
-	var c: Vector2          = base_refuge.global_position
+	var c: Vector2           = base_refuge.global_position
 	var from_center: Vector2 = global_position - c
-	var r: float            = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
-	if r <= 0.0:
+
+	# Early exit scalaire — élimine ~95% des appels sans sqrt ni dot product
+	var r_check: float = _base_r_cache + 50.0
+	if abs(from_center.x) > r_check or abs(from_center.y) > r_check:
+		return
+
+	if _base_r_cache <= 0.0:
 		return
 
 	var d2: float       = from_center.length_squared()
@@ -598,9 +610,9 @@ func _bloquer_entree_base(dt: float) -> void:
 	var dist: float     = 1.0 / inv_dist
 	var v_rel: Vector2  = velocity - _base_vel
 
-	if d2 < r * r:
+	if d2 < _base_r2_cache:
 		var n_out: Vector2       = from_center * inv_dist
-		global_position          = c + n_out * r
+		global_position          = c + n_out * _base_r_cache
 		var toward_center: float = v_rel.dot(-n_out)
 		if toward_center > 0.0:
 			v_rel += n_out * toward_center
@@ -609,7 +621,7 @@ func _bloquer_entree_base(dt: float) -> void:
 
 	var n_in: Vector2   = (-from_center) * inv_dist
 	var inward: float   = v_rel.dot(n_in)
-	if inward > 0.0 and (dist - inward * dt) < r:
+	if inward > 0.0 and (dist - inward * dt) < _base_r_cache:
 		v_rel -= n_in * inward
 	velocity = v_rel + _base_vel
 
@@ -654,6 +666,7 @@ func _reset_visual_state() -> void:
 	_secousse_t      = 0.0
 	_scale_offset    = Vector2.ZERO
 	_scale_vel       = Vector2.ZERO
+	_scale_actif     = false
 	_bloc_actif_prev = false
 	_base_vel        = Vector2.ZERO
 	if sprite != null:

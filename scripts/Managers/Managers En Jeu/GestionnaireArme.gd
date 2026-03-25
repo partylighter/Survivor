@@ -44,6 +44,11 @@ enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
 @export_group("Switch armes")
 @export var switch_actif: bool = true
 @export var action_switch_mains: StringName = &"switch_mains"
+@export var action_mode_joint: StringName = &"mode_joint_armes"
+
+@export_group("Mode joint")
+@export_range(0.0, PI, 0.01) var mode_joint_decalage_rad: float = 0.15
+@export_range(0.1, 60.0, 0.1) var mode_joint_lissage_hz: float = 12.0
 
 var zone: ZoneRamassage = null
 
@@ -72,6 +77,9 @@ var _has_pivot: bool = false
 var _main_principale_active: bool = true
 var _main_secondaire_active: bool = true
 
+var _mode_joint: bool = false
+var _offset_joint_affiche: float = 0.0
+
 const GROUPE_EQUIPEE := "__arme_equipee__"
 
 func _ready() -> void:
@@ -93,6 +101,8 @@ func _ready() -> void:
 	_angle_secondaire_affiche = 0.0
 	_fusion_t = 0.0
 	_offset_secondaire_affiche = PI
+	_mode_joint = false
+	_offset_joint_affiche = 0.0
 
 	set_process(false)
 	set_physics_process(true)
@@ -188,7 +198,20 @@ func _mettre_a_jour_sockets_step(dt: float, mouse_raw: Vector2) -> void:
 	var fusion_cible: float = _calculer_fusion_depuis_distance(dist)
 	_fusion_t = lerp(_fusion_t, fusion_cible, a)
 
-	var offset_target_raw: float = _calculer_offset_continu(dist)
+	# Calcul de l'offset cible selon le mode
+	var offset_target_raw: float
+	var a_joint: float = _alpha_from_hz(mode_joint_lissage_hz, dt)
+	if _mode_joint:
+		# Mode joint — secondaire converge vers principale + léger décalage
+		_offset_joint_affiche = lerpf(_offset_joint_affiche, mode_joint_decalage_rad, a_joint)
+		offset_target_raw = _offset_joint_affiche
+	else:
+		# Mode libre — offset_joint_affiche suit l'offset libre pour
+		# que la transition retour soit lissée depuis la bonne valeur
+		var offset_libre: float = _calculer_offset_continu(dist)
+		_offset_joint_affiche = lerpf(_offset_joint_affiche, offset_libre, a_joint)
+		offset_target_raw = offset_libre
+
 	var max_step: float = vitesse_offset_max_rad_s * dt
 	var delta_off: float = wrapf(offset_target_raw - _offset_secondaire_affiche, -PI, PI)
 	delta_off = clampf(delta_off, -max_step, max_step)
@@ -465,6 +488,8 @@ func _handle_inputs() -> void:
 		_jeter(false)
 	if switch_actif and Input.is_action_just_pressed(action_switch_mains):
 		_switch_mains()
+	if Input.is_action_just_pressed(action_mode_joint):
+		_mode_joint = not _mode_joint
 
 func _switch_mains() -> void:
 	if _socket_principale == null or _socket_secondaire == null:

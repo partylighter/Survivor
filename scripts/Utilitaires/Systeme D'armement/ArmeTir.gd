@@ -97,10 +97,10 @@ func attaquer() -> void:
 	if not peut_attaquer():
 		return
 
+	# Upgrades appliqués une seule fois par tir — pas une fois par projectile
 	_trouver_upgrades()
 	if upgrades and upgrades.actif:
 		upgrades.re_appliquer_sur_arme(self)
-
 
 	if not hitscan and scene_projectile == null:
 		return
@@ -110,22 +110,27 @@ func attaquer() -> void:
 	_pret = false
 	_cooldown_fin_s = now + cooldown_s
 
-	var from: Vector2 = _muzzle_pos()
-	var dir0: Vector2 = _forward_dir()
-	var n: int = min(nb_balles, tir_max_par_frame)
+	var from: Vector2    = _muzzle_pos()
+	var dir0: Vector2    = _forward_dir()
+	var n: int           = min(nb_balles, tir_max_par_frame)
 	var spread_rad: float = deg_to_rad(dispersion_deg)
+	var src: Node2D      = (porteur as Node2D) if porteur is Node2D else self
 
 	for i: int in range(n):
 		var dir_i: Vector2 = dir0.rotated(_offset_eventail(i, n, spread_rad))
 		if hitscan:
 			_tir_hitscan(from, dir_i)
 		else:
-			var p: Projectile = _prendre_projectile()
+			# _prendre_projectile_brut — sans appel upgrades à l'intérieur
+			var p: Projectile = _prendre_projectile_brut()
 			if p != null:
-				var src: Node2D = (porteur as Node2D) if porteur is Node2D else self
+				# Upgrades sur le projectile appliqués ici, une fois par projectile
+				if upgrades and upgrades.actif:
+					upgrades.appliquer_sur_projectile(p)
 				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src)
+
 	if effets:
-		var intensite = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
+		var intensite: float = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
 		effets.kick_tir(dir0, intensite)
 
 func _tir_hitscan(from: Vector2, dir: Vector2) -> void:
@@ -144,7 +149,7 @@ func _tir_hitscan(from: Vector2, dir: Vector2) -> void:
 	_appliquer_impact_commum(collider, degats, recul_force)
 
 func _appliquer_impact_commum(collider: Object, dmg: int, force: float) -> void:
-	var hb: HurtBox = _resolve_hurtbox_commune(collider)
+	var hb: HurtBox = _resolve_hurtbox(collider)
 	var src: Node2D = (porteur as Node2D) if porteur is Node2D else self
 
 	if hb != null:
@@ -154,7 +159,9 @@ func _appliquer_impact_commum(collider: Object, dmg: int, force: float) -> void:
 		collider.call("tek_it", dmg, src)
 		_appliquer_recul_commune(collider, src, force)
 
-func _resolve_hurtbox_commune(o: Object) -> HurtBox:
+# Résolution HurtBox — identique à celle de Projectile,
+# centralisée ici pour éviter la duplication.
+func _resolve_hurtbox(o: Object) -> HurtBox:
 	var n: Node = o as Node
 	if n == null:
 		return null
@@ -179,7 +186,9 @@ func _appliquer_recul_commune(target: Object, origine: Node2D, force: float) -> 
 			return
 		n = n.get_parent()
 
-func _prendre_projectile() -> Projectile:
+# Récupère un projectile depuis le pool ou en crée un nouveau —
+# sans appliquer les upgrades (géré dans attaquer()).
+func _prendre_projectile_brut() -> Projectile:
 	var p: Projectile = null
 	while not _pool.is_empty() and p == null:
 		var cand: Projectile = _pool.pop_back()
@@ -194,11 +203,6 @@ func _prendre_projectile() -> Projectile:
 			p.set_physics_process(false)
 			p.connect("expired", Callable(self, "_recycler_projectile"))
 			_root_proj.add_child(p)
-
-	_trouver_upgrades()
-	if upgrades and upgrades.actif and p != null:
-		upgrades.re_appliquer() # applique manuel + registry sur l'arme ET sur pool/actifs
-		upgrades.appliquer_sur_projectile(p) # garde le manuel sur le projectile en plus
 
 	return p
 

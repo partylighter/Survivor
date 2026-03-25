@@ -62,6 +62,7 @@ const ID_CARB_3: StringName = &"carburant_3"
 
 var carburant_stocke: float = 0.0
 var _vehicule_actuel: Node = null
+var _carburant_base_cache: CarburantBase = null
 
 var joueur: Player = null
 var stats: StatsJoueur = null
@@ -83,26 +84,45 @@ var rage_dash_infini: bool = false
 
 var _nom_par_id: Dictionary = {}
 
+# Flag — évite de vérifier les refs à chaque frame une fois établies
+var _refs_ok: bool = false
+
 func _ready() -> void:
 	add_to_group("gestionnaire_loot")
 	joueur = get_parent() as Player
-	#_debug_remplir_loot_test()
-	set_process(true)
+	_ensure_refs()
+	# _process désactivé par défaut — activé uniquement quand un effet est actif
+	set_process(false)
 
 func _exit_tree() -> void:
 	remove_from_group(&"gestionnaire_loot")
 
-#func _debug_remplir_loot_test() -> void:
-	#stats_loot[&"upgrade_test_degats"] = 3 # OK car "upgrade_" commence bien par "upgrade_"
-	#stats_loot[&"upg_test_vitesse"] = 1    # OK car "upg_" commence bien par "upg_"
-	#_nom_par_id[&"upgrade_test_degats"] = "Upgrade dégâts"
-	#_nom_par_id[&"upg_test_vitesse"] = "Upg vitesse"
-
 func _process(delta: float) -> void:
-	_ensure_refs()
+	if not _refs_ok:
+		_ensure_refs()
 	_tick_regen(delta)
 	_tick_invincible(delta)
 	_tick_rage(delta)
+	# Désactive _process quand plus rien n'est actif
+	if not _tick_actifs():
+		set_process(false)
+
+func _tick_actifs() -> bool:
+	return regen_time_left > 0.0 or invincible_time_left > 0.0 or rage_time_left > 0.0
+
+func _ensure_refs() -> void:
+	if joueur == null or not is_instance_valid(joueur):
+		joueur = get_parent() as Player
+		_refs_ok = false
+
+	if joueur != null and (stats == null or not is_instance_valid(stats)):
+		stats = joueur.stats
+	if joueur != null and (sante == null or not is_instance_valid(sante)):
+		sante = joueur.sante
+		if sante != null and not sante.damaged.is_connected(_on_player_damaged):
+			sante.damaged.connect(_on_player_damaged)
+
+	_refs_ok = (joueur != null and stats != null and sante != null)
 
 func get_quantite_loot(id_item: StringName) -> int:
 	return int(stats_loot.get(id_item, 0))
@@ -131,17 +151,6 @@ func consommer_loot(id_item: StringName, quantite: int) -> int:
 	emit_signal("loot_change")
 	return q_pris
 
-func _ensure_refs() -> void:
-	if joueur == null or not is_instance_valid(joueur):
-		joueur = get_parent() as Player
-
-	if joueur != null and (stats == null or not is_instance_valid(stats)):
-		stats = joueur.stats
-	if joueur != null and (sante == null or not is_instance_valid(sante)):
-		sante = joueur.sante
-		if sante != null and not sante.damaged.is_connected(_on_player_damaged):
-			sante.damaged.connect(_on_player_damaged)
-
 func get_nom_affiche_pour_id(id_any) -> String:
 	var sid := StringName(String(id_any))
 	if _nom_par_id.has(sid):
@@ -165,14 +174,15 @@ func get_carburant_stocke() -> float:
 	return carburant_stocke
 
 func on_loot_collecte(payload: Dictionary) -> void:
-	_ensure_refs()
+	if not _refs_ok:
+		_ensure_refs()
 	if joueur == null:
 		return
 
-	var type_item: int = payload.get("type_item", Loot.TypeItem.CONSO)
-	var rarete: int = payload.get("type_loot", Loot.TypeLoot.C)
+	var type_item: int       = payload.get("type_item", Loot.TypeItem.CONSO)
+	var rarete: int          = payload.get("type_loot", Loot.TypeLoot.C)
 	var identifiant: StringName = payload.get("id", payload.get("item_id", &""))
-	var quantite: int = payload.get("quantite", 1)
+	var quantite: int        = payload.get("quantite", 1)
 	var scene_contenu: PackedScene = payload.get("scene", null)
 
 	var nom := String(payload.get("nom_affiche", "")).strip_edges()
@@ -239,27 +249,27 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 			_d_loot("[Loot] consommable inconnu : %s x%d" % [id, quantite])
 
 func _conso_heal(quantite: int) -> void:
-	_ensure_refs()
+	if not _refs_ok: _ensure_refs()
 	if sante == null or joueur == null:
 		return
 	var heal_par_item: int = int(float(sante.max_pv) * float(conso_heal_amount) / 100.0)
-	var total_heal: int = heal_par_item * quantite
-	var manque: int = maxi(0, int(ceil(float(sante.max_pv) - sante.pv)))
-	var heal_reel: int = mini(total_heal, manque)
+	var total_heal: int    = heal_par_item * quantite
+	var manque: int        = maxi(0, int(ceil(float(sante.max_pv) - sante.pv)))
+	var heal_reel: int     = mini(total_heal, manque)
 	if heal_reel > 0:
 		joueur.soigner(heal_reel)
 
 func _conso_regen(quantite: int, duree: float, total_heal: float) -> void:
-	_ensure_refs()
+	if not _refs_ok: _ensure_refs()
 	if sante == null or duree <= 0.0 or total_heal <= 0.0:
 		return
-	var heal_total := total_heal * float(quantite)
-	regen_time_left = duree
-	regen_heal_per_sec = heal_total / duree
-	regen_accum = 0.0
+	regen_time_left    = duree
+	regen_heal_per_sec = (total_heal * float(quantite)) / duree
+	regen_accum        = 0.0
+	set_process(true)
 
 func _conso_overheal(quantite: int, amount: float) -> void:
-	_ensure_refs()
+	if not _refs_ok: _ensure_refs()
 	if sante == null or amount <= 0.0:
 		return
 	sante.set_full_pv()
@@ -268,26 +278,27 @@ func _conso_overheal(quantite: int, amount: float) -> void:
 func _conso_invincibilite(quantite: int, duree: float) -> void:
 	if duree <= 0.0:
 		return
-	var total := duree * float(quantite)
+	var total: float = duree * float(quantite)
 	if invincible_time_left < total:
 		invincible_time_left = total
+	set_process(true)
 
 func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: float, dash_bonus: int, dash_infini: bool) -> void:
-	_ensure_refs()
+	if not _refs_ok: _ensure_refs()
 	if stats == null or duree <= 0.0:
 		return
 
-	var d := duree * float(quantite)
-	var s_bonus := speed_bonus * float(quantite)
-	var c_bonus := chance_bonus * float(quantite)
-	var dash_b := dash_bonus * quantite
+	var d: float      = duree * float(quantite)
+	var s_bonus: float = speed_bonus * float(quantite)
+	var c_bonus: float = chance_bonus * float(quantite)
+	var dash_b: int   = dash_bonus * quantite
 
 	if rage_time_left <= 0.0:
-		rage_time_left = d
-		rage_speed_bonus_add = s_bonus
+		rage_time_left        = d
+		rage_speed_bonus_add  = s_bonus
 		rage_chance_bonus_add = c_bonus
-		rage_dash_bonus_add = dash_b
-		rage_dash_infini = dash_infini
+		rage_dash_bonus_add   = dash_b
+		rage_dash_infini      = dash_infini
 
 		if rage_speed_bonus_add != 0.0:
 			stats.ajouter_vitesse_add(rage_speed_bonus_add)
@@ -297,7 +308,6 @@ func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: 
 			stats.ajouter_dash_max_add(rage_dash_bonus_add)
 		if dash_infini and joueur and joueur.has_method("set_dash_infini"):
 			joueur.set_dash_infini(true)
-
 		if joueur and stats:
 			joueur.dash_charges_actuelles = stats.get_dash_max_effectif()
 	else:
@@ -305,19 +315,16 @@ func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: 
 			rage_time_left = d
 
 		if s_bonus > rage_speed_bonus_add:
-			var diff_s := s_bonus - rage_speed_bonus_add
+			stats.ajouter_vitesse_add(s_bonus - rage_speed_bonus_add)
 			rage_speed_bonus_add = s_bonus
-			stats.ajouter_vitesse_add(diff_s)
 
 		if c_bonus > rage_chance_bonus_add:
-			var diff_c := c_bonus - rage_chance_bonus_add
+			stats.ajouter_chance(c_bonus - rage_chance_bonus_add)
 			rage_chance_bonus_add = c_bonus
-			stats.ajouter_chance(diff_c)
 
 		if dash_b > rage_dash_bonus_add:
-			var diff_dash := dash_b - rage_dash_bonus_add
+			stats.ajouter_dash_max_add(dash_b - rage_dash_bonus_add)
 			rage_dash_bonus_add = dash_b
-			stats.ajouter_dash_max_add(diff_dash)
 
 		if dash_infini and not rage_dash_infini:
 			rage_dash_infini = true
@@ -331,8 +338,10 @@ func _conso_rage(quantite: int, duree: float, speed_bonus: float, chance_bonus: 
 			str(rage_dash_infini)
 		])
 
+	set_process(true)
+
 func _fin_rage() -> void:
-	_ensure_refs()
+	if not _refs_ok: _ensure_refs()
 	if stats:
 		if rage_speed_bonus_add != 0.0:
 			stats.ajouter_vitesse_add(-rage_speed_bonus_add)
@@ -344,18 +353,17 @@ func _fin_rage() -> void:
 	if joueur and joueur.has_method("set_dash_infini") and rage_dash_infini:
 		joueur.set_dash_infini(false)
 
-	rage_speed_bonus_add = 0.0
+	rage_speed_bonus_add  = 0.0
 	rage_chance_bonus_add = 0.0
-	rage_dash_bonus_add = 0
-	rage_dash_infini = false
-	rage_time_left = 0.0
+	rage_dash_bonus_add   = 0
+	rage_dash_infini      = false
+	rage_time_left        = 0.0
 
 func _tick_regen(dt: float) -> void:
 	if regen_time_left <= 0.0 or sante == null or sante.is_dead():
 		return
 	regen_time_left = maxf(0.0, regen_time_left - dt)
-	var to_heal: float = regen_heal_per_sec * dt
-	regen_accum += to_heal
+	regen_accum    += regen_heal_per_sec * dt
 	var heal_int: int = int(regen_accum)
 	if heal_int > 0 and joueur != null:
 		joueur.soigner(heal_int)
@@ -374,7 +382,6 @@ func _tick_rage(dt: float) -> void:
 		_fin_rage()
 
 func _on_player_damaged(amount: int, _source: Node) -> void:
-	_ensure_refs()
 	if sante == null:
 		return
 	if invincible_time_left > 0.0 and amount > 0:
@@ -402,13 +409,13 @@ func ajouter_carburant_stock(niveau: int, quantite: int) -> void:
 		transferer_carburant_vers_vehicule(_vehicule_actuel)
 	elif _vehicule_actuel != null:
 		_vehicule_actuel = null
+		_carburant_base_cache = null
 
 func _trouver_carburant_base(vehicule: Node) -> CarburantBase:
 	if vehicule == null or not is_instance_valid(vehicule):
 		return null
 	if vehicule is CarburantBase:
 		return vehicule as CarburantBase
-
 	var arr: Array = vehicule.find_children("*", "CarburantBase", true, false)
 	for n in arr:
 		if n is CarburantBase:
@@ -419,7 +426,12 @@ func transferer_carburant_vers_vehicule(vehicule: Node) -> void:
 	if carburant_stocke <= 0.0:
 		return
 
-	var carb: CarburantBase = _trouver_carburant_base(vehicule)
+	# Utilise le cache — find_children appelé une seule fois par véhicule
+	var carb: CarburantBase = _carburant_base_cache
+	if carb == null or not is_instance_valid(carb):
+		carb = _trouver_carburant_base(vehicule)
+		_carburant_base_cache = carb
+
 	if carb == null:
 		_d_loot("[Carburant] pas de CarburantBase sur le véhicule")
 		return
@@ -428,7 +440,7 @@ func transferer_carburant_vers_vehicule(vehicule: Node) -> void:
 		return
 
 	var max_res: float = maxf(carb.stats.reserve_energie_max, 0.0)
-	var dispo: float = maxf(max_res - carb.reserve, 0.0)
+	var dispo: float   = maxf(max_res - carb.reserve, 0.0)
 	if dispo <= 0.0:
 		_d_loot("[Carburant] réservoir plein (reserve=%.1f/%.1f)" % [carb.reserve, max_res])
 		return
@@ -443,11 +455,13 @@ func transferer_carburant_vers_vehicule(vehicule: Node) -> void:
 	_d_loot("[Carburant] transfert %.1f -> stock=%.1f (reservoir=%.1f/%.1f)" % [send, carburant_stocke, carb.reserve, max_res])
 
 func on_entree_vehicule(vehicule: Node) -> void:
-	_vehicule_actuel = vehicule
+	_vehicule_actuel      = vehicule
+	_carburant_base_cache = _trouver_carburant_base(vehicule)
 	transferer_carburant_vers_vehicule(vehicule)
 
 func on_sortie_vehicule() -> void:
-	_vehicule_actuel = null
+	_vehicule_actuel      = null
+	_carburant_base_cache = null
 
 func _appliquer_amelioration(identifiant: StringName, quantite: int) -> void:
 	match identifiant:

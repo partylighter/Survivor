@@ -53,14 +53,27 @@ var _lm_liste: int = -1
 @warning_ignore("unused_private_class_variable")
 var _lm_index: int = -1
 
+# Cache visuel — calculé une fois dans _ready, jamais recalculé
+var _sprite_cache: Sprite2D = null
+var _label_cache:  Label    = null
+
 @onready var anim: LootAnim = get_node_or_null(anim_path) as LootAnim
 
 func _ready() -> void:
 	set_physics_process(false)
 
-	_seed = randf() * TAU
+	_seed      = randf() * TAU
 	_r2_aimant = magnet_radius * magnet_radius
 	_r2_pickup = pickup_radius * pickup_radius
+
+	# Cache sprite et label — find_children appelé une seule fois par instance
+	var sprites := find_children("*", "Sprite2D", true, false)
+	if not sprites.is_empty():
+		_sprite_cache = sprites[0] as Sprite2D
+
+	var labels := find_children("*", "Label", true, false)
+	if not labels.is_empty():
+		_label_cache = labels[0] as Label
 
 	if _pool_owner != null:
 		_desactiver_pour_pool()
@@ -74,22 +87,22 @@ func preparer_pour_pool(pool_owner: GestionnaireLootDrops) -> void:
 	_desactiver_pour_pool()
 
 func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
-	_actif = true
+	_actif    = true
 	_collecte = false
 	_t_aimant = 0.0
-	_vel = Vector2.ZERO
+	_vel      = Vector2.ZERO
 
-	type_loot = int(req.get("rarete", TypeLoot.C))
-	type_item = int(req.get("type_item", TypeItem.CONSO))
-	item_id = req.get("item_id", &"")
-	quantite = int(req.get("quantite", 1))
+	type_loot     = int(req.get("rarete", TypeLoot.C))
+	type_item     = int(req.get("type_item", TypeItem.CONSO))
+	item_id       = req.get("item_id", &"")
+	quantite      = int(req.get("quantite", 1))
 	scene_contenu = req.get("scene", scene_contenu)
 
 	nom_affiche = String(req.get("nom_affiche", nom_affiche))
-	icone = req.get("icone", icone) as Texture2D
-	skin_id = req.get("skin_id", skin_id)
+	icone       = req.get("icone", icone) as Texture2D
+	skin_id     = req.get("skin_id", skin_id)
 
-	joueur_cible = req.get("joueur", joueur_cible)
+	joueur_cible    = req.get("joueur", joueur_cible)
 	global_position = req.get("pos", global_position)
 
 	if parent_loots != null and get_parent() != parent_loots:
@@ -109,11 +122,11 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	call_deferred("_essayer_s_inscrire_manager")
 
 func _desactiver_pour_pool() -> void:
-	_actif = false
+	_actif    = false
 	_collecte = false
 	_t_aimant = 0.0
-	_vel = Vector2.ZERO
-	_die_ms = -1
+	_vel      = Vector2.ZERO
+	_die_ms   = -1
 
 	if _lm != null and is_instance_valid(_lm):
 		_lm.retirer_loot(self)
@@ -175,7 +188,7 @@ func tick_aimant(dt: float, pos_pickup: Vector2) -> int:
 	var vers: Vector2 = pos_pickup - global_position
 	var d2: float = vers.length_squared()
 
-	var dist: float = sqrt(maxf(d2, 0.000001))
+	var dist: float  = sqrt(maxf(d2, 0.000001))
 	var dir: Vector2 = vers / dist
 	var dist01: float = clamp(dist / maxf(magnet_radius, 0.0001), 0.0, 1.0)
 
@@ -183,8 +196,8 @@ func tick_aimant(dt: float, pos_pickup: Vector2) -> int:
 
 	_t_aimant += dt
 
-	var perp: Vector2 = Vector2(-dir.y, dir.x)
-	var bell: float = dist01 * (1.0 - dist01) * 4.0
+	var perp: Vector2  = Vector2(-dir.y, dir.x)
+	var bell: float    = dist01 * (1.0 - dist01) * 4.0
 	var swirl: Vector2 = perp * sin((_t_aimant * magnet_swirl_freq) + _seed) * (speed * magnet_swirl_strength * bell)
 
 	var desired: Vector2 = (dir * speed) + swirl
@@ -216,7 +229,7 @@ func _demarrer_collecte(pos_fin: Vector2) -> void:
 		return
 	_collecte = true
 
-	var j: Node2D = joueur_cible
+	var j: Node2D        = joueur_cible
 	var payload: Dictionary = prendre_payload()
 
 	if anim != null:
@@ -241,39 +254,28 @@ func _retour_pool() -> void:
 
 func prendre_payload() -> Dictionary:
 	return {
-		"type_loot": type_loot,
-		"type_item": type_item,
-		"id": item_id,
-		"item_id": item_id,
-		"quantite": quantite,
-		"scene": scene_contenu,
+		"type_loot":  type_loot,
+		"type_item":  type_item,
+		"id":         item_id,
+		"item_id":    item_id,
+		"quantite":   quantite,
+		"scene":      scene_contenu,
 		"nom_affiche": nom_affiche,
-		"icone": icone,
-		"skin_id": skin_id
+		"icone":      icone,
+		"skin_id":    skin_id
 	}
 
 func vider() -> void:
-	quantite = 0
-	type_loot = TypeLoot.C
-	item_id = &""
+	quantite      = 0
+	type_loot     = TypeLoot.C
+	item_id       = &""
 	scene_contenu = null
-	nom_affiche = ""
-	icone = null
-	skin_id = &""
+	nom_affiche   = ""
+	icone         = null
+	skin_id       = &""
 
 func _appliquer_visuel() -> void:
-	var sprite: Sprite2D = null
-	var label: Label = null
-
-	var sprites := find_children("*", "Sprite2D", true, false)
-	if not sprites.is_empty():
-		sprite = sprites[0] as Sprite2D
-
-	var labels := find_children("*", "Label", true, false)
-	if not labels.is_empty():
-		label = labels[0] as Label
-
-	if sprite != null and icone != null:
-		sprite.texture = icone
-	if label != null and nom_affiche != "":
-		label.text = nom_affiche
+	if _sprite_cache != null and icone != null:
+		_sprite_cache.texture = icone
+	if _label_cache != null and nom_affiche != "":
+		_label_cache.text = nom_affiche

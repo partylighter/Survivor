@@ -16,7 +16,8 @@ class_name MenuTouches
 	{"action": "lacher_main_gauche", "label": "Lâcher main gauche"},
 	{"action": "lacher_main_droite", "label": "Lâcher main droite"},
 	{"action": "jeter_main_gauche", "label": "Jeter main gauche"},
-	{"action": "jeter_main_droite", "label": "Jeter main droite"}
+	{"action": "jeter_main_droite", "label": "Jeter main droite"},
+	{"action": "mode_joint_armes", "label": "Mode joint armes"}
 ]
 
 @onready var conteneur_liste: VBoxContainer = %ListeActions
