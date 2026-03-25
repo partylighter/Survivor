@@ -1,0 +1,219 @@
+[gd_scene format=3 uid="uid://bxhvsp0qy5nos"]
+
+[ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/menus/menu_titre.gd" id="1_b4npc"]
+[ext_resource type="Material" uid="uid://brldkbrto6kg7" path="res://shaders/preload/menu_titre_shader.tres" id="2_pmp5a"]
+[ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/chargements_auto/menus/GestionnaireMenuTitre.gd" id="2_ru77k"]
+[ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/niveaux/NiveauTest/world.tscn" id="3_iipul"]
+[ext_resource type="Shader" uid="uid://smdojyjkschy" path="res://shaders/glitcheffect.gdshader" id="3_ochwo"]
+[ext_resource type="PackedScene" uid="uid://d3m82iowm74c8" path="res://scenes/menus/menu_parametres.tscn" id="4_iipul"]
+[ext_resource type="Texture2D" uid="uid://chhyl8s1v8t1e" path="res://assets/ui/jouer_txtt.png" id="4_um6qy"]
+[ext_resource type="PackedScene" uid="uid://cmle5kbdu3q7b" path="res://scenes/menus/menu_credits.tscn" id="5_iipul"]
+[ext_resource type="Texture2D" uid="uid://derhwlkhaequ1" path="res://assets/ui/Parametres_txt.png" id="5_sgjoj"]
+[ext_resource type="Script" uid="uid://bq3t5gut31jxk" path="res://scripts/menus/GlitchTextureButtonGroupController.gd" id="5_um6qy"]
+[ext_resource type="Texture2D" uid="uid://ccb2ulk1ntb5x" path="res://assets/ui/Credits_txt.png" id="6_x1rs3"]
+[ext_resource type="Texture2D" uid="uid://4ymruuxglnm8" path="res://assets/ui/Quitter_txt.png" id="7_nq5t2"]
+[ext_resource type="Script" uid="uid://dffiqrgc51xph" path="res://scripts/menus/glitch_controller_team.gd" id="12_ochwo"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_aj7qu"]
+shader = ExtResource("3_ochwo")
+shader_parameter/tex = ExtResource("4_um6qy")
+shader_parameter/glitch_amount = 1.9100000000000001
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 44.41
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/max_shift = 0.075
+shader_parameter/jitter_px = -0.02
+shader_parameter/freeze_chance = 1.655
+shader_parameter/blockiness = 0.72
+shader_parameter/scan_strength = 2.785
+shader_parameter/noise_strength = 0.25
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yk2tf"]
+shader = ExtResource("3_ochwo")
+shader_parameter/tex = ExtResource("5_sgjoj")
+shader_parameter/glitch_amount = 0.55
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 36.0
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/max_shift = 0.06
+shader_parameter/jitter_px = 1.5
+shader_parameter/freeze_chance = 0.12
+shader_parameter/blockiness = 0.55
+shader_parameter/scan_strength = 0.05
+shader_parameter/noise_strength = 0.02
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5hk1i"]
+shader = ExtResource("3_ochwo")
+shader_parameter/tex = ExtResource("6_x1rs3")
+shader_parameter/glitch_amount = 0.55
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 36.0
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/max_shift = 0.06
+shader_parameter/jitter_px = 1.5
+shader_parameter/freeze_chance = 0.12
+shader_parameter/blockiness = 0.55
+shader_parameter/scan_strength = 0.05
+shader_parameter/noise_strength = 0.02
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_84y00"]
+shader = ExtResource("3_ochwo")
+shader_parameter/tex = ExtResource("7_nq5t2")
+shader_parameter/glitch_amount = 0.55
+shader_parameter/glitch_speed = 1.6
+shader_parameter/band_count = 36.0
+shader_parameter/rgb_split_px = 2.0
+shader_parameter/max_shift = 0.06
+shader_parameter/jitter_px = 1.5
+shader_parameter/freeze_chance = 0.12
+shader_parameter/blockiness = 0.55
+shader_parameter/scan_strength = 0.05
+shader_parameter/noise_strength = 0.02
+
+[node name="MenuTitre" type="CanvasLayer" unique_id=115352017]
+script = ExtResource("1_b4npc")
+chemin_btn_jouer = NodePath("Root/VBoxContainer/btn_play")
+chemin_btn_parametres = NodePath("Root/VBoxContainer/btn_settings")
+chemin_btn_credits = NodePath("Root/VBoxContainer/btn_credits")
+chemin_btn_quitter = NodePath("Root/VBoxContainer/btn_quit")
+
+[node name="Root" type="Control" parent="." unique_id=1465130667]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Root" unique_id=1764704751]
+material = ExtResource("2_pmp5a")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect2" type="ColorRect" parent="Root" unique_id=1540436195]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 36.0
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect3" type="ColorRect" parent="Root" unique_id=1733652409]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -37.0
+grow_horizontal = 0
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect4" type="ColorRect" parent="Root" unique_id=535724549]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -86.0
+grow_horizontal = 2
+grow_vertical = 0
+color = Color(0, 0, 0, 1)
+
+[node name="ColorRect5" type="ColorRect" parent="Root" unique_id=772520990]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 27.0
+grow_horizontal = 2
+color = Color(0, 0, 0, 1)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Root" unique_id=2060812006]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -49.5
+offset_top = -68.0
+offset_right = 49.5
+offset_bottom = 68.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="btn_play" type="TextureButton" parent="Root/VBoxContainer" unique_id=1946422243]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_aj7qu")
+layout_mode = 2
+texture_normal = ExtResource("4_um6qy")
+script = ExtResource("5_um6qy")
+live_update = true
+idle_scale = Vector2(4, 4)
+idle_offset_px = Vector2(-500, -200)
+
+[node name="btn_settings" type="TextureButton" parent="Root/VBoxContainer" unique_id=1034386705]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_yk2tf")
+layout_mode = 2
+texture_normal = ExtResource("5_sgjoj")
+script = ExtResource("5_um6qy")
+live_update = true
+idle_scale = Vector2(4, 4)
+idle_offset_px = Vector2(-400, 0)
+
+[node name="btn_credits" type="TextureButton" parent="Root/VBoxContainer" unique_id=441224674]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_5hk1i")
+layout_mode = 2
+texture_normal = ExtResource("6_x1rs3")
+script = ExtResource("5_um6qy")
+live_update = true
+idle_scale = Vector2(4, 4)
+idle_offset_px = Vector2(-500, 200)
+
+[node name="btn_quit" type="TextureButton" parent="Root/VBoxContainer" unique_id=1085646173]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_84y00")
+layout_mode = 2
+texture_normal = ExtResource("7_nq5t2")
+script = ExtResource("5_um6qy")
+live_update = true
+idle_scale = Vector2(4, 4)
+idle_offset_px = Vector2(-460.535, 400)
+
+[node name="GestionnaireMenuTitre" type="Node" parent="." unique_id=1408607463]
+script = ExtResource("2_ru77k")
+scene_jeu = ExtResource("3_iipul")
+scene_options = ExtResource("4_iipul")
+scene_credits = ExtResource("5_iipul")
+metadata/_custom_type_script = "uid://b7hstmkshyre5"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=362785622]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -82.0
+offset_right = 242.0
+grow_vertical = 0
+
+[node name="Auteur" type="Label" parent="VBoxContainer" unique_id=928814093]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "By PARTYLIGHTER"
+
+[node name="Label Game Version" type="Label" parent="VBoxContainer" unique_id=1692201637]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Version 0.1.2"
+
+[node name="glitch_controller_team" type="Node" parent="." unique_id=1960832793]
+script = ExtResource("12_ochwo")
+groupe = &"droit"
+live_update = true
+idle_scale = Vector2(6, 5)
+idle_offset_px = Vector2(-400, -200)

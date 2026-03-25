@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="LootItemEntry" load_steps=2 format=3 uid="uid://dk71txuwjlglb"]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_hey0i"]
+
+[resource]
+script = ExtResource("1_hey0i")
+item_id = &"upgrade_carburant_1"
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
