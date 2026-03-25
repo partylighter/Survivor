@@ -87,6 +87,8 @@ enum State {
 @export var secousse_scale_spring:  float   = 120.0
 @export var secousse_scale_damping: float   = 18.0
 @export var secousse_scale_max:     float   = 0.35
+@export var flash_couleur:          Color   = Color(2.0, 0.5, 0.5)
+@export var flash_duree_s:          float   = 0.08
 
 # ---------------------------------------------------------------------------
 # Exports — Distance joueur
@@ -159,6 +161,7 @@ var _scale_offset:           Vector2 = Vector2.ZERO
 var _scale_vel:              Vector2 = Vector2.ZERO
 # Flag — évite d'appeler _tick_scale_impact quand aucun impact actif
 var _scale_actif:            bool    = false
+var _flash_t:                float   = 0.0
 
 # Base véhicule (cache statique partagé)
 var base_refuge: Node2D  = null
@@ -484,6 +487,8 @@ func _tick_physics_commun(dt: float) -> void:
 			sprite.position = _sprite_pos_neutre
 		if _scale_actif:
 			_tick_scale_impact(dt)
+		if _flash_t > 0.0:
+			_tick_flash(dt)
 
 	# Base véhicule
 	_maj_base_vel(dt)
@@ -506,6 +511,18 @@ func _prendre_coup_visuel() -> void:
 	_secousse_t  = secousse_duree_s
 	_scale_vel  += secousse_scale_impulse
 	_scale_actif = true
+
+func _declencher_flash() -> void:
+	if sprite == null:
+		return
+	_flash_t = max(flash_duree_s, 0.0)
+	sprite.modulate = flash_couleur
+
+func _tick_flash(dt: float) -> void:
+	_flash_t -= dt
+	if _flash_t <= 0.0:
+		_flash_t = 0.0
+		sprite.modulate = _sprite_modulate_neutre
 
 func _tick_sprite_secousse(dt: float) -> void:
 	_secousse_t -= dt
@@ -630,6 +647,7 @@ func _bloquer_entree_base(dt: float) -> void:
 # ===========================================================================
 
 func _on_damaged(amount: int, source: Node) -> void:
+	_declencher_flash()
 	if not (source is Node2D):
 		return
 	var f: float = clamp(
@@ -667,6 +685,7 @@ func _reset_visual_state() -> void:
 	_scale_offset    = Vector2.ZERO
 	_scale_vel       = Vector2.ZERO
 	_scale_actif     = false
+	_flash_t         = 0.0
 	_bloc_actif_prev = false
 	_base_vel        = Vector2.ZERO
 	if sprite != null:
