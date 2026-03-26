@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://nx5so8lh4iq4"
-path="res://.godot/imported/Logo bg MAXIMUM.png-1a1b4142644e2768a26826e68a04a1b1.ctex"
+path="res://.godot/imported/Logo bg MAXIMUM.png-bc9d164a832fb48fd1c6440d03aaab51.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/Logo bg MAXIMUM.png"
-dest_files=["res://.godot/imported/Logo bg MAXIMUM.png-1a1b4142644e2768a26826e68a04a1b1.ctex"]
+source_file="res://assets/ui/Logo bg MAXIMUM.png"
+dest_files=["res://.godot/imported/Logo bg MAXIMUM.png-bc9d164a832fb48fd1c6440d03aaab51.ctex"]
 
 [params]
 
