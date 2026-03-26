@@ -32,6 +32,7 @@ func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) ->
 	set_physics_process(true)
 	global_position = pos
 	_dir = dir.normalized()
+	rotation = _dir.angle()
 	_degats = dmg
 	_recul_force = recul
 	_source = src
