@@ -11,6 +11,7 @@ class_name ArmeTir
 @export var hitscan: bool = false
 @export var tir_max_par_frame: int = 20
 @export var portee_hitscan_px: float = 2000.0
+@export var hitscan_contacts: int = 1
 @export var mask_tir: int = 0
 
 var upgrades: GestionnaireUpgradesArmeTir = null
@@ -134,19 +135,31 @@ func attaquer() -> void:
 		effets.kick_tir(dir0, intensite)
 
 func _tir_hitscan(from: Vector2, dir: Vector2) -> void:
-	var to: Vector2 = from + dir * portee_hitscan_px
-	var q: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(from, to)
-	q.exclude = [self, porteur]
-	q.collide_with_bodies = true
-	q.collide_with_areas = true
-	if mask_tir != 0:
-		q.collision_mask = mask_tir
+	var to: Vector2    = from + dir * portee_hitscan_px
+	var exclus: Array  = [self, porteur]
+	var restants: int  = max(hitscan_contacts, 1)
+	var pos: Vector2   = from
 
-	var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(q)
-	if hit.is_empty():
-		return
-	var collider: Object = hit.get("collider")
-	_appliquer_impact_commum(collider, degats, recul_force)
+	while restants > 0:
+		var q: PhysicsRayQueryParameters2D = PhysicsRayQueryParameters2D.create(pos, to)
+		q.exclude             = exclus
+		q.collide_with_bodies = true
+		q.collide_with_areas  = true
+		if mask_tir != 0:
+			q.collision_mask = mask_tir
+
+		var hit: Dictionary = get_world_2d().direct_space_state.intersect_ray(q)
+		if hit.is_empty():
+			break
+
+		var collider: Object = hit.get("collider")
+		_appliquer_impact_commum(collider, degats, recul_force)
+		restants -= 1
+
+		if restants > 0:
+			if collider != null:
+				exclus.append(collider)
+			pos = (hit.get("position") as Vector2) + dir * 0.5
 
 func _appliquer_impact_commum(collider: Object, dmg: int, force: float) -> void:
 	var hb: HurtBox = _resolve_hurtbox(collider)
