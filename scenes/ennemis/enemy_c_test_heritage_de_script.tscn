@@ -17,6 +17,7 @@ speed = 900.0
 recul_amorti = 5.0
 recul_max = 1500.0
 secousse_force_px = 30.0
+flash_couleur = Color(2.2500002, 2.2500002, 2.2500002, 1)
 base_marge_px = 1000.0
 mort_delai_pool_s = 0.5
 recul_amorti_mort = 20.0

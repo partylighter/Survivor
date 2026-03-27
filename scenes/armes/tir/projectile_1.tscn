@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://scqyht4f3wgy"]
 
 [ext_resource type="Script" uid="uid://cwxumd2sgnrnk" path="res://scripts/utilitaires/armement/Projectile.gd" id="1_eskv8"]
-[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_d50n4"]
+[ext_resource type="Texture2D" uid="uid://bw7kuvt2cg6nt" path="res://assets/ui/vullet.png" id="2_cp136"]
 
 [node name="Projectile 1" type="Area2D" unique_id=115077572]
 scale = Vector2(5, 5)
@@ -15,5 +15,7 @@ contacts_avant_destruction = 7
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=679078811]
-scale = Vector2(0.075, 0.075)
-texture = ExtResource("2_d50n4")
+position = Vector2(58.036816, 0.32727298)
+rotation = 1.5707964
+scale = Vector2(0.13030307, 2.2007763)
+texture = ExtResource("2_cp136")
