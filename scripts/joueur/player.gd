@@ -49,6 +49,11 @@ var _col_idx: int = 0
 
 var _mort: bool = false
 
+# Limites horizontales — contrôlées par GestionnaireZones pour les zones boss.
+# Valeurs par défaut = pas de contrainte.
+var _limite_gauche: float = -INF
+var _limite_droite: float =  INF
+
 func _ready() -> void:
 	add_to_group("joueur_principal")
 	if soif != null and not soif.died_of_thirst.is_connected(_on_soif_died):
@@ -151,6 +156,7 @@ func collision_ennemis_post(dt: float) -> void:
 		pos_finale = _resoudre_collisions_ennemis(pos_finale, dt, true)
 
 	pos_finale = _resoudre_barriere_verticale(pos_finale)
+	pos_finale = _resoudre_barriere_horizontale(pos_finale)
 	global_position = pos_finale
 
 func _resoudre_barriere_verticale(pos: Vector2) -> Vector2:
@@ -160,10 +166,24 @@ func _resoudre_barriere_verticale(pos: Vector2) -> Vector2:
 	pos.y = clamp(
 		pos.y,
 		limite_haut + rayon_barriere_joueur,
-		limite_bas - rayon_barriere_joueur
+		limite_bas  - rayon_barriere_joueur
 	)
 
 	return pos
+
+func _resoudre_barriere_horizontale(pos: Vector2) -> Vector2:
+	pos.x = clamp(
+		pos.x,
+		_limite_gauche + rayon_barriere_joueur,
+		_limite_droite - rayon_barriere_joueur
+	)
+	return pos
+
+func set_limite_droite(x: float) -> void:
+	_limite_droite = x
+
+func set_limite_gauche(x: float) -> void:
+	_limite_gauche = x
 
 func _resoudre_collisions_ennemis(p: Vector2, dt: float, pousser_ennemi: bool) -> Vector2:
 	var enemies: Array = _get_enemies_for_collision()
