@@ -54,7 +54,14 @@ signal limite_atteinte()
 
 @export var loot_manager: GestionnaireLootDrops
 
+## Optionnel — si assigné, active le spawn par zone (remplace le spawn continu
+## non-vague). Laisser vide pour conserver le comportement existant.
+@export var gestionnaire_zones: GestionnaireZones = null
+
 var ennemis: Array[Node2D] = []
+# Index de zone au dernier spawn — permet de détecter un changement de zone
+# et de remettre l'accumulateur à zéro pour éviter un burst de spawn.
+var _zone_idx_spawn: int = -1
 var _ennemis_set: Dictionary = {}
 var pools: Array = []
 
@@ -121,6 +128,9 @@ func _ready() -> void:
 	if mode_vagues and _nb_vagues_cache > 0:
 		_demarrer_vague(0)
 
+	if gestionnaire_zones != null:
+		gestionnaire_zones.zone_changee.connect(_sur_zone_changee)
+
 	_rect_visible_cache = _get_rect_camera_monde(marge_visible_ecran_px)
 	_rect_buffer_cache  = _get_rect_camera_monde(marge_buffer_ecran_px)
 
@@ -148,13 +158,16 @@ func _process(dt: float) -> void:
 			else:
 				_tick_vague(dt)
 	else:
-		accumulateur += apparitions_par_sec * dt
-		while accumulateur >= 1.0:
-			accumulateur -= 1.0
-			if ennemis.size() >= max_ennemis:
-				emit_signal("limite_atteinte")
-				break
-			_creer_ennemi()
+		if gestionnaire_zones != null:
+			_tick_spawn_zone(dt)
+		else:
+			accumulateur += apparitions_par_sec * dt
+			while accumulateur >= 1.0:
+				accumulateur -= 1.0
+				if ennemis.size() >= max_ennemis:
+					emit_signal("limite_atteinte")
+					break
+				_creer_ennemi()
 
 	if _lod_frame == 0:
 		_appliquer_lod()
@@ -336,6 +349,85 @@ func _creer_ennemi() -> void:
 		return
 	var idx: int = _choisir_type()
 	_creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
+
+# ---------------------------------------------------------------------------
+# Spawn par zone
+# ---------------------------------------------------------------------------
+
+func _tick_spawn_zone(dt: float) -> void:
+	if not is_instance_valid(joueur):
+		return
+
+	var zone_idx: int          = gestionnaire_zones.index_zone_en(joueur.global_position.x)
+	var zone:     ZoneDefinition = gestionnaire_zones.zone_active
+
+	# Changement de zone → reset accumulateur pour éviter un burst.
+	if zone_idx != _zone_idx_spawn:
+		_zone_idx_spawn = zone_idx
+		accumulateur    = 0.0
+
+	if zone == null:
+		return
+
+	var cap: int = min(zone.max_ennemis_zone, max_ennemis)
+	if ennemis.size() >= cap:
+		return
+
+	accumulateur += zone.apparitions_par_sec * dt
+	while accumulateur >= 1.0:
+		accumulateur -= 1.0
+		if ennemis.size() >= cap:
+			break
+		var idx: int = _choisir_type_depuis_poids(zone.poids)
+		_creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
+
+func _choisir_type_depuis_poids(poids: PackedFloat32Array) -> int:
+	if poids.is_empty() or poids.size() != scenes_ennemis.size():
+		return _choisir_type()
+	var total: float = 0.0
+	for w: float in poids:
+		total += w
+	if total <= 0.0:
+		return 0
+	var x: float = hasard.randf() * total
+	var s: float = 0.0
+	for ii: int in range(poids.size()):
+		s += poids[ii]
+		if x <= s:
+			return ii
+	return 0
+
+## Spawne une scène directement sans qu'elle soit pré-enregistrée dans
+## scenes_ennemis. Utilisé pour les boss de zone.
+## type_idx = -1 → l'ennemi sera queue_free'd au retour pool (pas poolé).
+func spawn_scene_directe(scene: PackedScene, pos: Vector2) -> Node2D:
+	if scene == null:
+		return null
+	var e: Node2D = scene.instantiate() as Node2D
+	if e == null:
+		return null
+	e.set_meta("type_idx", -1)
+	e.global_position = pos
+	if e.has_method("reactiver_apres_pool"):
+		e.call("reactiver_apres_pool")
+	add_child(e)
+	_activer_ennemi(e, true)
+	ennemis.append(e)
+	_ennemis_set[e] = true
+	e.set_meta("vague_id", -1)
+	_lod_modes[e] = -1
+	_connecter_signaux(e)
+	_appliquer_lod_immediat_sur_ennemi(e)
+	emit_signal("ennemi_cree", e)
+	return e
+
+func _sur_zone_changee(_ancienne: ZoneDefinition, _nouvelle: ZoneDefinition) -> void:
+	accumulateur    = 0.0
+	_zone_idx_spawn = -1
+
+## Retourne la liste des ennemis actifs (utilisé par le joueur pour les collisions).
+func get_ennemis_actifs() -> Array:
+	return ennemis
 
 func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 	if scenes_ennemis.is_empty() or not is_instance_valid(joueur):
