@@ -45,9 +45,9 @@ var _boss_tues:       Dictionary = {}
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	# Tri défensif — l'ordre dans l'inspecteur ne compte pas.
+	# Tri décroissant — les zones vont de droite (X élevé) vers gauche (X faible).
 	zones.sort_custom(func(a: ZoneDefinition, b: ZoneDefinition) -> bool:
-		return a.x_debut_px < b.x_debut_px)
+		return a.x_debut_px > b.x_debut_px)
 	_joueur = get_tree().get_first_node_in_group("joueur_principal") as Node2D
 
 # ---------------------------------------------------------------------------
@@ -64,22 +64,22 @@ func _physics_process(_dt: float) -> void:
 # API publique
 # ---------------------------------------------------------------------------
 
-## Retourne la ZoneDefinition correspondant à la position X, ou la dernière zone.
+## Retourne la ZoneDefinition correspondant à la position X (zones droite→gauche).
 func zone_en(x: float) -> ZoneDefinition:
 	for z: ZoneDefinition in zones:
-		if x >= z.x_debut_px and x < z.x_fin_px:
+		if x <= z.x_debut_px and x > z.x_fin_px:
 			return z
 	return zones.back() if not zones.is_empty() else null
 
-## Retourne l'index dans le tableau zones, ou -1 si vide.
+## Retourne l'index dans le tableau zones, ou -1 si vide (zones droite→gauche).
 func index_zone_en(x: float) -> int:
 	for i: int in range(zones.size()):
-		if x >= zones[i].x_debut_px and x < zones[i].x_fin_px:
+		if x <= zones[i].x_debut_px and x > zones[i].x_fin_px:
 			return i
 	if zones.is_empty():
 		return -1
-	# À gauche de toutes les zones → zone 0 ; à droite → dernière zone.
-	if x < zones[0].x_debut_px:
+	# À droite de toutes les zones → zone 0 ; à gauche → dernière zone.
+	if x > zones[0].x_debut_px:
 		return 0
 	return zones.size() - 1
 
@@ -153,10 +153,11 @@ func _set_avance_bloquee(v: bool) -> void:
 		return
 	avance_bloquee = v
 
-	if is_instance_valid(_joueur) and _joueur.has_method("set_limite_droite"):
-		var limite: float = INF
+	# Jeu droite→gauche : le boss bloque la progression vers la gauche.
+	if is_instance_valid(_joueur) and _joueur.has_method("set_limite_gauche"):
+		var limite: float = -INF
 		if v and zone_active != null:
 			limite = zone_active.x_fin_px
-		_joueur.call("set_limite_droite", limite)
+		_joueur.call("set_limite_gauche", limite)
 
 	emit_signal("avance_bloquee_changee", v)

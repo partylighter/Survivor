@@ -16,7 +16,7 @@ var _ui_visible: bool = true
 
 @export_group("Affichage")
 @export var ui_position: Vector2 = Vector2(16, 260)
-@export var ui_largeur_min_px: float = 360.0
+@export var ui_largeur_min_px: float = Vector2(360.0, 0.0).x
 @export_range(8, 64, 1) var ui_taille_police: int = 14
 @export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
 @export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
@@ -61,7 +61,7 @@ func _creer_ui() -> void:
 	_panel = Panel.new()
 	add_child(_panel)
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
+	_panel.custom_minimum_size = Vector2(360.0, 0.0)
 
 	_margin = MarginContainer.new()
 	_panel.add_child(_margin)
@@ -197,9 +197,9 @@ func _refresh() -> void:
 	_set_val("Bornes X", "%.0f -> %.0f" % [zone.x_debut_px, zone.x_fin_px])
 
 	if is_instance_valid(_joueur):
-		var longueur: float = zone.x_fin_px - zone.x_debut_px
-		var parcouru: float = clampf(_joueur.global_position.x - zone.x_debut_px, 0.0, longueur)
-		var reste: float    = maxf(zone.x_fin_px - _joueur.global_position.x, 0.0)
+		var longueur: float = zone.x_debut_px - zone.x_fin_px
+		var parcouru: float = clampf(zone.x_debut_px - _joueur.global_position.x, 0.0, longueur)
+		var reste: float    = maxf(_joueur.global_position.x - zone.x_fin_px, 0.0)
 		var pct: float      = (parcouru / longueur * 100.0) if longueur > 0.0 else 0.0
 		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, longueur])
 		_set_val("Reste", "%.0f px" % reste)
