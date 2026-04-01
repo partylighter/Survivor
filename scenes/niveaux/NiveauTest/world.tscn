@@ -31,26 +31,27 @@
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/menus/labolo_menu.tscn" id="24_dwlrb"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/gestionnaires/en_jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 [ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/gestionnaires/en_jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
-[ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://Shaders/BandesNoires.gdshader" id="31_b3mfv"]
+[ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://shaders/BandesNoires.gdshader" id="31_b3mfv"]
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
-[ext_resource type="Script" uid="uid://dx4bzone3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
+[ext_resource type="Script" uid="uid://dx4b0one3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
 script = ExtResource("12_yovrb")
+x_fin_px = 300000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_5o3x5"]
 script = ExtResource("12_yovrb")
-x_debut_px = 30000.0
-x_fin_px = 6000.0
+x_debut_px = 300000.0
+x_fin_px = 600000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_upkmr"]
 script = ExtResource("12_yovrb")
-x_debut_px = 6000.0
-x_fin_px = 9000.0
+x_debut_px = 600000.0
+x_fin_px = 90000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
