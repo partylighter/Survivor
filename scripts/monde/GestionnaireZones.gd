@@ -76,7 +76,12 @@ func index_zone_en(x: float) -> int:
 	for i: int in range(zones.size()):
 		if x >= zones[i].x_debut_px and x < zones[i].x_fin_px:
 			return i
-	return zones.size() - 1 if not zones.is_empty() else -1
+	if zones.is_empty():
+		return -1
+	# À gauche de toutes les zones → zone 0 ; à droite → dernière zone.
+	if x < zones[0].x_debut_px:
+		return 0
+	return zones.size() - 1
 
 # ---------------------------------------------------------------------------
 # Suivi de zone
