@@ -26,6 +26,7 @@ var _ui_visible: bool = true
 @export var toggle_key: Key = KEY_F8
 
 var zones_ref: GestionnaireZones
+var _joueur: Node2D = null
 
 var _panel: Panel
 var _margin: MarginContainer
@@ -40,6 +41,7 @@ var _cache: Dictionary = {}
 func _ready() -> void:
 	_ui_visible = ui_visible
 	zones_ref = _resoudre_gestionnaire_zones()
+	_joueur = get_tree().get_first_node_in_group("joueur_principal") as Node2D
 	_creer_ui()
 	_appliquer_style()
 	_apply_ui_visible()
@@ -87,13 +89,15 @@ func _creer_ui() -> void:
 	_grid.columns = 2
 	_root.add_child(_grid)
 
-	_add_row("Zone", "—")
-	_add_row("Index", "—")
-	_add_row("Bornes X", "—")
-	_add_row("Spawn/s", "—")
-	_add_row("Cap zone", "—")
-	_add_row("Boss", "—")
-	_add_row("Avance", "—")
+	_add_row("Zone", "\u2014")
+	_add_row("Index", "\u2014")
+	_add_row("Bornes X", "\u2014")
+	_add_row("Progression", "\u2014")
+	_add_row("Reste", "\u2014")
+	_add_row("Spawn/s", "\u2014")
+	_add_row("Cap zone", "\u2014")
+	_add_row("Boss", "\u2014")
+	_add_row("Avance", "\u2014")
 
 func _add_row(k: String, v: String) -> void:
 	var lk := Label.new()
@@ -157,26 +161,33 @@ func _process(_dt: float) -> void:
 	if zones_ref == null or not is_instance_valid(zones_ref):
 		zones_ref = _resoudre_gestionnaire_zones()
 
+	if not is_instance_valid(_joueur):
+		_joueur = get_tree().get_first_node_in_group("joueur_principal") as Node2D
+
 	_refresh()
 
 func _refresh() -> void:
 	if zones_ref == null or not is_instance_valid(zones_ref):
 		_set_val("Zone", "(GestionnaireZones introuvable)")
-		_set_val("Index", "—")
-		_set_val("Bornes X", "—")
-		_set_val("Spawn/s", "—")
-		_set_val("Cap zone", "—")
-		_set_val("Boss", "—")
-		_set_val("Avance", "—")
+		_set_val("Index", "\u2014")
+		_set_val("Bornes X", "\u2014")
+		_set_val("Progression", "\u2014")
+		_set_val("Reste", "\u2014")
+		_set_val("Spawn/s", "\u2014")
+		_set_val("Cap zone", "\u2014")
+		_set_val("Boss", "\u2014")
+		_set_val("Avance", "\u2014")
 		return
 
 	var zone: ZoneDefinition = zones_ref.zone_active
 	if zone == null:
 		_set_val("Zone", "(hors zone)")
 		_set_val("Index", str(zones_ref._zone_idx_active))
-		_set_val("Bornes X", "—")
-		_set_val("Spawn/s", "—")
-		_set_val("Cap zone", "—")
+		_set_val("Bornes X", "\u2014")
+		_set_val("Progression", "\u2014")
+		_set_val("Reste", "\u2014")
+		_set_val("Spawn/s", "\u2014")
+		_set_val("Cap zone", "\u2014")
 		_set_val("Boss", "Non")
 		_set_val("Avance", "Libre")
 		return
@@ -184,6 +195,18 @@ func _refresh() -> void:
 	_set_val("Zone", String(zone.nom))
 	_set_val("Index", str(zones_ref._zone_idx_active))
 	_set_val("Bornes X", "%.0f -> %.0f" % [zone.x_debut_px, zone.x_fin_px])
+
+	if is_instance_valid(_joueur):
+		var longueur: float = zone.x_fin_px - zone.x_debut_px
+		var parcouru: float = clampf(_joueur.global_position.x - zone.x_debut_px, 0.0, longueur)
+		var reste: float    = maxf(zone.x_fin_px - _joueur.global_position.x, 0.0)
+		var pct: float      = (parcouru / longueur * 100.0) if longueur > 0.0 else 0.0
+		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, longueur])
+		_set_val("Reste", "%.0f px" % reste)
+	else:
+		_set_val("Progression", "(joueur introuvable)")
+		_set_val("Reste", "\u2014")
+
 	_set_val("Spawn/s", "%.2f" % zone.apparitions_par_sec)
 	_set_val("Cap zone", str(zone.max_ennemis_zone))
 	_set_val("Boss", "Oui" if zone.est_zone_boss else "Non")
