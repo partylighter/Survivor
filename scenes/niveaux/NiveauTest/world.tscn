@@ -37,21 +37,21 @@
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
 script = ExtResource("12_yovrb")
-x_fin_px = 300000.0
+x_fin_px = -5000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_5o3x5"]
 script = ExtResource("12_yovrb")
-x_debut_px = 300000.0
-x_fin_px = 600000.0
+x_debut_px = -5000.0
+x_fin_px = -10000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_upkmr"]
 script = ExtResource("12_yovrb")
-x_debut_px = 600000.0
-x_fin_px = 90000.0
+x_debut_px = -10000.0
+x_fin_px = -15000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
