@@ -378,12 +378,42 @@ func _tick_spawn_zone(dt: float) -> void:
 		accumulateur -= 1.0
 		if ennemis.size() >= cap:
 			break
-		var idx: int = _choisir_type_depuis_poids(zone.poids)
+		var idx: int = _choisir_type_pour_zone(zone)
 		_creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
+
+func _choisir_type_pour_zone(zone: ZoneDefinition) -> int:
+	if zone == null:
+		return _choisir_type()
+
+	if not zone.scenes_ennemis.is_empty():
+		return _choisir_type_depuis_scenes_zone(zone)
+
+	return _choisir_type_depuis_poids(zone.poids)
+
+func _choisir_type_depuis_scenes_zone(zone: ZoneDefinition) -> int:
+	if zone == null or zone.scenes_ennemis.is_empty():
+		return _choisir_type()
+
+	var scene_locale_idx: int = 0
+	if zone.poids.size() == zone.scenes_ennemis.size():
+		scene_locale_idx = _choisir_index_depuis_poids(zone.poids)
+	else:
+		scene_locale_idx = hasard.randi_range(0, zone.scenes_ennemis.size() - 1)
+
+	var scene: PackedScene = zone.scenes_ennemis[scene_locale_idx]
+	var idx_global: int = _trouver_index_scene_globale(scene)
+	if idx_global >= 0:
+		return idx_global
+
+	push_warning("GestionnaireEnnemis: la scene de zone '%s' n'existe pas dans scenes_ennemis." % [scene.resource_path])
+	return _choisir_type()
 
 func _choisir_type_depuis_poids(poids: PackedFloat32Array) -> int:
 	if poids.is_empty() or poids.size() != scenes_ennemis.size():
 		return _choisir_type()
+	return _choisir_index_depuis_poids(poids)
+
+func _choisir_index_depuis_poids(poids: PackedFloat32Array) -> int:
 	var total: float = 0.0
 	for w: float in poids:
 		total += w
@@ -396,6 +426,25 @@ func _choisir_type_depuis_poids(poids: PackedFloat32Array) -> int:
 		if x <= s:
 			return ii
 	return 0
+
+func _trouver_index_scene_globale(scene: PackedScene) -> int:
+	if scene == null:
+		return -1
+
+	var idx_direct: int = scenes_ennemis.find(scene)
+	if idx_direct >= 0:
+		return idx_direct
+
+	var path: String = scene.resource_path
+	if path.is_empty():
+		return -1
+
+	for i: int in range(scenes_ennemis.size()):
+		var scene_globale: PackedScene = scenes_ennemis[i]
+		if scene_globale != null and scene_globale.resource_path == path:
+			return i
+
+	return -1
 
 ## Spawne une scène directement sans qu'elle soit pré-enregistrée dans
 ## scenes_ennemis. Utilisé pour les boss de zone.

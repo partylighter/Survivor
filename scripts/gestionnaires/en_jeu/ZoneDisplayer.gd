@@ -16,7 +16,7 @@ var _ui_visible: bool = true
 
 @export_group("Affichage")
 @export var ui_position: Vector2 = Vector2(16, 260)
-@export var ui_largeur_min_px: float = Vector2(360.0, 0.0).x
+@export var ui_largeur_min_px: float = 360.0
 @export_range(8, 64, 1) var ui_taille_police: int = 14
 @export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
 @export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
@@ -61,7 +61,7 @@ func _creer_ui() -> void:
 	_panel = Panel.new()
 	add_child(_panel)
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.custom_minimum_size = Vector2(360.0, 0.0)
+	_panel.custom_minimum_size = Vector2(ui_largeur_min_px, 0.0)
 
 	_margin = MarginContainer.new()
 	_panel.add_child(_margin)
@@ -91,6 +91,7 @@ func _creer_ui() -> void:
 
 	_add_row("Zone", "-")
 	_add_row("Index", "-")
+	_add_row("X joueur", "-")
 	_add_row("Bornes X", "-")
 	_add_row("Progression", "-")
 	_add_row("Reste", "-")
@@ -173,6 +174,7 @@ func _refresh() -> void:
 	if zones_ref == null or not is_instance_valid(zones_ref):
 		_set_val("Zone", "(GestionnaireZones introuvable)")
 		_set_val("Index", "-")
+		_set_val("X joueur", "-")
 		_set_val("Bornes X", "-")
 		_set_val("Progression", "-")
 		_set_val("Reste", "-")
@@ -189,6 +191,7 @@ func _refresh() -> void:
 	if zone == null:
 		_set_val("Zone", "(hors zone)")
 		_set_val("Index", str(zones_ref._zone_idx_active))
+		_set_val("X joueur", _fmt_position_x())
 		_set_val("Bornes X", "-")
 		_set_val("Progression", "-")
 		_set_val("Reste", "-")
@@ -203,17 +206,10 @@ func _refresh() -> void:
 
 	_set_val("Zone", String(zone.nom))
 	_set_val("Index", str(zones_ref._zone_idx_active))
+	_set_val("X joueur", _fmt_position_x())
 	_set_val("Bornes X", "%.0f -> %.0f" % [zone.x_debut_px, zone.x_fin_px])
 
 	if is_instance_valid(_joueur):
-<<<<<<< Updated upstream
-		var longueur: float = zone.x_debut_px - zone.x_fin_px
-		var parcouru: float = clampf(zone.x_debut_px - _joueur.global_position.x, 0.0, longueur)
-		var reste: float    = maxf(_joueur.global_position.x - zone.x_fin_px, 0.0)
-		var pct: float      = (parcouru / longueur * 100.0) if longueur > 0.0 else 0.0
-		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, longueur])
-		_set_val("Reste", "%.0f px" % reste)
-=======
 		var borne_min: float = minf(zone.x_debut_px, zone.x_fin_px)
 		var borne_max: float = maxf(zone.x_debut_px, zone.x_fin_px)
 		var largeur: float = borne_max - borne_min
@@ -224,7 +220,6 @@ func _refresh() -> void:
 		var pct: float = (parcouru / largeur * 100.0) if largeur > 0.0 else 0.0
 		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, largeur])
 		_set_val("Reste", "G %.0f | D %.0f" % [reste_gauche, reste_droite])
->>>>>>> Stashed changes
 	else:
 		_set_val("Progression", "(joueur introuvable)")
 		_set_val("Reste", "-")
@@ -267,6 +262,11 @@ func _fmt_limite(v: float) -> String:
 	if is_inf(v):
 		return "INF"
 	return "%.0f" % v
+
+func _fmt_position_x() -> String:
+	if not is_instance_valid(_joueur):
+		return "-"
+	return "%.0f" % _joueur.global_position.x
 
 func _decrire_blocage() -> String:
 	var limite_g: float = _lire_limite_joueur("_limite_gauche")

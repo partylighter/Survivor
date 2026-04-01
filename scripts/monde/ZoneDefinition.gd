@@ -8,8 +8,13 @@ extends Resource
 @export_group("Spawn")
 @export var apparitions_par_sec: float              = 5.0
 @export var max_ennemis_zone:    int                = 80
-## Un float par entrée de scenes_ennemis dans GestionnaireEnnemis, même ordre.
-## Ex : [0.6, 0.4, 0.0, 0.0, 0.0] → 60 % type 0, 40 % type 1.
+## Liste pratique des scènes autorisées dans cette zone.
+## Si renseignée, GestionnaireEnnemis l'utilise directement pour choisir les ennemis.
+@export var scenes_ennemis:      Array[PackedScene] = []
+## Poids associés à scenes_ennemis.
+## Si vide ou de taille incorrecte, le choix se fait uniformément parmi scenes_ennemis.
+## Compatibilité: si scenes_ennemis est vide, ce tableau reste interprété
+## selon l'ancien système global du gestionnaire.
 @export var poids:               PackedFloat32Array = PackedFloat32Array()
 
 @export_group("Boss")
