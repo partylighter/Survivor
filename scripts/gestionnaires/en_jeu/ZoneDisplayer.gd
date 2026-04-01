@@ -89,15 +89,18 @@ func _creer_ui() -> void:
 	_grid.columns = 2
 	_root.add_child(_grid)
 
-	_add_row("Zone", "\u2014")
-	_add_row("Index", "\u2014")
-	_add_row("Bornes X", "\u2014")
-	_add_row("Progression", "\u2014")
-	_add_row("Reste", "\u2014")
-	_add_row("Spawn/s", "\u2014")
-	_add_row("Cap zone", "\u2014")
-	_add_row("Boss", "\u2014")
-	_add_row("Avance", "\u2014")
+	_add_row("Zone", "-")
+	_add_row("Index", "-")
+	_add_row("Bornes X", "-")
+	_add_row("Progression", "-")
+	_add_row("Reste", "-")
+	_add_row("Spawn/s", "-")
+	_add_row("Cap zone", "-")
+	_add_row("Boss", "-")
+	_add_row("Avance", "-")
+	_add_row("Limite G", "-")
+	_add_row("Limite D", "-")
+	_add_row("Blocage", "-")
 
 func _add_row(k: String, v: String) -> void:
 	var lk := Label.new()
@@ -169,27 +172,33 @@ func _process(_dt: float) -> void:
 func _refresh() -> void:
 	if zones_ref == null or not is_instance_valid(zones_ref):
 		_set_val("Zone", "(GestionnaireZones introuvable)")
-		_set_val("Index", "\u2014")
-		_set_val("Bornes X", "\u2014")
-		_set_val("Progression", "\u2014")
-		_set_val("Reste", "\u2014")
-		_set_val("Spawn/s", "\u2014")
-		_set_val("Cap zone", "\u2014")
-		_set_val("Boss", "\u2014")
-		_set_val("Avance", "\u2014")
+		_set_val("Index", "-")
+		_set_val("Bornes X", "-")
+		_set_val("Progression", "-")
+		_set_val("Reste", "-")
+		_set_val("Spawn/s", "-")
+		_set_val("Cap zone", "-")
+		_set_val("Boss", "-")
+		_set_val("Avance", "-")
+		_set_val("Limite G", "-")
+		_set_val("Limite D", "-")
+		_set_val("Blocage", "-")
 		return
 
 	var zone: ZoneDefinition = zones_ref.zone_active
 	if zone == null:
 		_set_val("Zone", "(hors zone)")
 		_set_val("Index", str(zones_ref._zone_idx_active))
-		_set_val("Bornes X", "\u2014")
-		_set_val("Progression", "\u2014")
-		_set_val("Reste", "\u2014")
-		_set_val("Spawn/s", "\u2014")
-		_set_val("Cap zone", "\u2014")
+		_set_val("Bornes X", "-")
+		_set_val("Progression", "-")
+		_set_val("Reste", "-")
+		_set_val("Spawn/s", "-")
+		_set_val("Cap zone", "-")
 		_set_val("Boss", "Non")
 		_set_val("Avance", "Libre")
+		_set_val("Limite G", _fmt_limite(_lire_limite_joueur("_limite_gauche")))
+		_set_val("Limite D", _fmt_limite(_lire_limite_joueur("_limite_droite")))
+		_set_val("Blocage", _decrire_blocage())
 		return
 
 	_set_val("Zone", String(zone.nom))
@@ -197,20 +206,36 @@ func _refresh() -> void:
 	_set_val("Bornes X", "%.0f -> %.0f" % [zone.x_debut_px, zone.x_fin_px])
 
 	if is_instance_valid(_joueur):
+<<<<<<< Updated upstream
 		var longueur: float = zone.x_debut_px - zone.x_fin_px
 		var parcouru: float = clampf(zone.x_debut_px - _joueur.global_position.x, 0.0, longueur)
 		var reste: float    = maxf(_joueur.global_position.x - zone.x_fin_px, 0.0)
 		var pct: float      = (parcouru / longueur * 100.0) if longueur > 0.0 else 0.0
 		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, longueur])
 		_set_val("Reste", "%.0f px" % reste)
+=======
+		var borne_min: float = minf(zone.x_debut_px, zone.x_fin_px)
+		var borne_max: float = maxf(zone.x_debut_px, zone.x_fin_px)
+		var largeur: float = borne_max - borne_min
+		var pos_x: float = _joueur.global_position.x
+		var parcouru: float = clampf(pos_x - borne_min, 0.0, largeur)
+		var reste_gauche: float = maxf(pos_x - borne_min, 0.0)
+		var reste_droite: float = maxf(borne_max - pos_x, 0.0)
+		var pct: float = (parcouru / largeur * 100.0) if largeur > 0.0 else 0.0
+		_set_val("Progression", "%.0f%% (%.0f / %.0f px)" % [pct, parcouru, largeur])
+		_set_val("Reste", "G %.0f | D %.0f" % [reste_gauche, reste_droite])
+>>>>>>> Stashed changes
 	else:
 		_set_val("Progression", "(joueur introuvable)")
-		_set_val("Reste", "\u2014")
+		_set_val("Reste", "-")
 
 	_set_val("Spawn/s", "%.2f" % zone.apparitions_par_sec)
 	_set_val("Cap zone", str(zone.max_ennemis_zone))
 	_set_val("Boss", "Oui" if zone.est_zone_boss else "Non")
 	_set_val("Avance", "Bloquee" if zones_ref.avance_bloquee else "Libre")
+	_set_val("Limite G", _fmt_limite(_lire_limite_joueur("_limite_gauche")))
+	_set_val("Limite D", _fmt_limite(_lire_limite_joueur("_limite_droite")))
+	_set_val("Blocage", _decrire_blocage())
 
 func _resoudre_gestionnaire_zones() -> GestionnaireZones:
 	var ref := get_node_or_null(chemin_zones) as GestionnaireZones
@@ -229,6 +254,33 @@ func _trouver_gestionnaire_zones(racine: Node) -> GestionnaireZones:
 		if trouve != null:
 			return trouve
 	return null
+
+func _lire_limite_joueur(nom: String) -> float:
+	if not is_instance_valid(_joueur):
+		return INF
+	var v: Variant = _joueur.get(nom)
+	if typeof(v) == TYPE_FLOAT or typeof(v) == TYPE_INT:
+		return float(v)
+	return INF
+
+func _fmt_limite(v: float) -> String:
+	if is_inf(v):
+		return "INF"
+	return "%.0f" % v
+
+func _decrire_blocage() -> String:
+	var limite_g: float = _lire_limite_joueur("_limite_gauche")
+	var limite_d: float = _lire_limite_joueur("_limite_droite")
+	var bloque_g: bool = not is_inf(limite_g)
+	var bloque_d: bool = not is_inf(limite_d)
+
+	if bloque_g and bloque_d:
+		return "Gauche + Droite"
+	if bloque_g:
+		return "Gauche"
+	if bloque_d:
+		return "Droite"
+	return "Aucun"
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
