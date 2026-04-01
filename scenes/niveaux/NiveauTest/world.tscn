@@ -31,9 +31,9 @@
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/menus/labolo_menu.tscn" id="24_dwlrb"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/gestionnaires/en_jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 [ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/gestionnaires/en_jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
-[ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://shaders/BandesNoires.gdshader" id="31_b3mfv"]
+[ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://Shaders/BandesNoires.gdshader" id="31_b3mfv"]
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
-[ext_resource type="Script" uid="uid://dx4bzone3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
+[ext_resource type="Script" uid="uid://frydrunvt35" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
 script = ExtResource("12_yovrb")
@@ -145,7 +145,7 @@ zoom_in_delay_s = 6.0
 [node name="Base" parent="." unique_id=2051095588 instance=ExtResource("6_rsdp2")]
 position = Vector2(63788, 45778)
 
-[node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager") instance=ExtResource("2_4wyf3")]
+[node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager", "gestionnaire_zones") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Player")
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3")])
 apparitions_par_sec = 500.0
@@ -164,6 +164,7 @@ croissance_max = 1.06
 croissance_total = 1.12
 duree_vague_defaut_infinie = 45.0
 loot_manager = NodePath("../GestionnaireLootDrops")
+gestionnaire_zones = NodePath("../GestionnaireZones")
 
 [node name="ProjectileHub" type="Node2D" parent="." unique_id=1274116743]
 script = ExtResource("12_30tab")
