@@ -32,7 +32,6 @@ var _visual_runtime_courant: ProjectileVisualRuntime = null
 var _query: PhysicsRayQueryParameters2D = null
 
 func _ready() -> void:
-	_visual_runtime_courant = ProjectileVisualRuntime.new()
 	_visual_ctrl = ProjectileVisualController.new(self, chemin_sprite_visuel, chemin_trail_particules)
 	if _visual_ctrl != null:
 		_visual_ctrl.reset()
@@ -122,8 +121,6 @@ func _gerer_impact(collider: Object, hit_pos: Vector2) -> bool:
 		_cibles_deja_touchees[id] = true
 
 	_appliquer_impact(collider)
-	if _visual_ctrl != null and _visual_runtime_courant != null:
-		_visual_ctrl.jouer_impact(hit_pos, _dir, _visual_runtime_courant)
 
 	_contacts_restants -= 1
 	return true
@@ -177,6 +174,9 @@ func _appliquer_impact(collider: Object) -> void:
 	elif collider != null and collider.has_method("tek_it"):
 		collider.call("tek_it", _degats, src)
 		_appliquer_recul_sur_chaine(collider, src, _recul_force)
+
+	if _visual_ctrl != null and _visual_runtime_courant != null:
+		_visual_ctrl.jouer_impact(global_position, _dir, _visual_runtime_courant)
 
 func _resolve_hurtbox(o: Object) -> HurtBox:
 	var n: Node = o as Node

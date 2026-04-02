@@ -1,7 +1,9 @@
 extends RefCounted
 class_name VisualEffectRegistry
 
-static var _trail_map: Dictionary = {}
+static var _trail_map: Dictionary = {
+	&"trail_default": preload("res://scenes/vfx/projectiles/trail_default.tscn"),
+}
 static var _impact_map: Dictionary = {
 	&"impact_default": preload("res://scenes/vfx/projectiles/impact_default.tscn"),
 }
