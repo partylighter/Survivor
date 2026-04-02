@@ -3,6 +3,16 @@
 [ext_resource type="Script" uid="uid://cwxumd2sgnrnk" path="res://scripts/utilitaires/armement/Projectile.gd" id="1_eskv8"]
 [ext_resource type="Texture2D" uid="uid://bw7kuvt2cg6nt" path="res://assets/ui/vullet.png" id="2_cp136"]
 
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
+direction = Vector3(-1, 0, 0)
+spread = 12.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 12.0
+initial_velocity_max = 36.0
+scale_min = 0.28
+scale_max = 0.55
+color = Color(1, 0.68, 0.22, 1)
+
 [node name="Projectile 1" type="Area2D" unique_id=115077572]
 scale = Vector2(5, 5)
 collision_layer = 0
@@ -19,3 +29,10 @@ position = Vector2(58.036816, 0.32727298)
 rotation = 1.5707964
 scale = Vector2(0.13030307, 2.2007763)
 texture = ExtResource("2_cp136")
+
+[node name="TrailParticles" type="GPUParticles2D" parent="." unique_id=111115223]
+amount = 10
+lifetime = 0.12
+emitting = false
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_trail")

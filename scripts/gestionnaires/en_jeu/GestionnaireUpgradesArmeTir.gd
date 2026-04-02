@@ -619,3 +619,34 @@ func _apply_num(o: Object, prop: StringName, enabled: bool, v, mode: int) -> voi
 func _dbg(o: Object, prop: StringName, v, tag: String) -> void:
 	if debug_upgrades:
 		print("[Upgrades] ", o.get_class(), "#", o.get_instance_id(), " ", tag, " ", prop, "=", v)
+
+func get_visual_delta(arme: ArmeTir = null, projectile: Projectile = null) -> ProjectileVisualDelta:
+	var delta := ProjectileVisualDelta.new()
+	if not actif:
+		return delta
+
+	if arme != null and is_instance_valid(arme):
+		var bonus_degats: float = maxf(float(arme.degats - 1), 0.0)
+		delta.echelle_add += clampf(bonus_degats * 0.035, 0.0, 0.8)
+		delta.glow_add += clampf(bonus_degats * 0.045, 0.0, 1.2)
+
+		var bonus_balles: float = maxf(float(arme.nb_balles - 1), 0.0)
+		delta.trainee_amount_mult *= 1.0 + clampf(bonus_balles * 0.05, 0.0, 0.35)
+
+		var dispersion_norm: float = clampf(arme.dispersion_deg / 45.0, 0.0, 1.0)
+		delta.epaisseur_add += dispersion_norm * 0.08
+
+	if projectile != null and is_instance_valid(projectile):
+		var vitesse_ratio: float = clampf(projectile.vitesse_px_s / 1400.0, 0.65, 2.2)
+		delta.longueur_mult *= vitesse_ratio
+		delta.trainee_amount_mult *= clampf(0.85 + vitesse_ratio * 0.35, 0.75, 1.8)
+
+		var pierce_bonus: float = maxf(float(projectile.contacts_avant_destruction - 1), 0.0)
+		delta.epaisseur_add += clampf(pierce_bonus * 0.05, 0.0, 0.5)
+		delta.glow_add += clampf(pierce_bonus * 0.04, 0.0, 0.5)
+
+		if projectile.largeur_zone_scane > 0.0:
+			delta.epaisseur_mult *= clampf(1.0 + projectile.largeur_zone_scane / 600.0, 1.0, 1.8)
+			delta.trainee_scale_mult *= clampf(1.0 + projectile.largeur_zone_scane / 900.0, 1.0, 1.6)
+
+	return delta

@@ -9,6 +9,8 @@ signal expired(p: Projectile)
 @export var marge_raycast_px: float = 1.0
 @export var largeur_zone_scane: float = 0.0
 @export_range(1, 9, 1) var nombre_de_rayon_dans_zone_scane: int = 2
+@export_node_path("Sprite2D") var chemin_sprite_visuel: NodePath = NodePath("Sprite2D")
+@export_node_path("GPUParticles2D") var chemin_trail_particules: NodePath = NodePath("TrailParticles")
 
 @export_group("Piercing")
 @export_range(1, 50, 1) var contacts_avant_destruction: int = 1
@@ -23,11 +25,19 @@ var _active: bool = false
 
 var _contacts_restants: int = 1
 var _cibles_deja_touchees: Dictionary = {}
+var _visual_ctrl: ProjectileVisualController = null
+var _visual_runtime_courant: ProjectileVisualRuntime = null
 
 # Cache query — réutilisé à chaque frame, jamais réalloué
 var _query: PhysicsRayQueryParameters2D = null
 
-func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) -> void:
+func _ready() -> void:
+	_visual_runtime_courant = ProjectileVisualRuntime.new()
+	_visual_ctrl = ProjectileVisualController.new(self, chemin_sprite_visuel, chemin_trail_particules)
+	if _visual_ctrl != null:
+		_visual_ctrl.reset()
+
+func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D, visual_runtime: ProjectileVisualRuntime = null) -> void:
 	visible = true
 	set_physics_process(true)
 	global_position = pos
@@ -53,12 +63,22 @@ func activer(pos: Vector2, dir: Vector2, dmg: int, recul: float, src: Node2D) ->
 	# 0 = détecter tous les layers (pas de filtre), toute autre valeur = filtre explicite
 	_query.collision_mask = collision_mask if collision_mask != 0 else 0xFFFFFFFF
 	_query.exclude        = [self, src] if src != null else [self]
+	if _visual_runtime_courant == null:
+		_visual_runtime_courant = ProjectileVisualRuntime.new()
+	_visual_runtime_courant.copy_from(visual_runtime)
+	if _visual_ctrl != null:
+		_visual_ctrl.reset()
+		_visual_ctrl.appliquer(_visual_runtime_courant)
 
 func desactiver() -> void:
 	_active = false
 	visible = false
 	set_physics_process(false)
 	_source = null
+	if _visual_runtime_courant != null:
+		_visual_runtime_courant.reset_to_defaults()
+	if _visual_ctrl != null:
+		_visual_ctrl.reset()
 	emit_signal("expired", self)
 
 func _physics_process(dt: float) -> void:
@@ -76,7 +96,8 @@ func _physics_process(dt: float) -> void:
 	var hit: Dictionary = _intersect_large(from, ray_to)
 	if not hit.is_empty():
 		var collider: Object = hit.get("collider", null)
-		if _gerer_impact(collider):
+		var hit_pos: Vector2 = hit.get("position", move_to)
+		if _gerer_impact(collider, hit_pos):
 			if _contacts_restants <= 0:
 				desactiver()
 				return
@@ -87,7 +108,7 @@ func _physics_process(dt: float) -> void:
 	if _t >= duree_vie_s:
 		desactiver()
 
-func _gerer_impact(collider: Object) -> bool:
+func _gerer_impact(collider: Object, hit_pos: Vector2) -> bool:
 	if collider == null:
 		return false
 
@@ -101,6 +122,8 @@ func _gerer_impact(collider: Object) -> bool:
 		_cibles_deja_touchees[id] = true
 
 	_appliquer_impact(collider)
+	if _visual_ctrl != null and _visual_runtime_courant != null:
+		_visual_ctrl.jouer_impact(hit_pos, _dir, _visual_runtime_courant)
 
 	_contacts_restants -= 1
 	return true

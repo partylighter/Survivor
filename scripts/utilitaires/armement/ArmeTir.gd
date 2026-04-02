@@ -2,6 +2,7 @@ extends ArmeBase
 class_name ArmeTir
 
 @export var scene_projectile: PackedScene
+@export var profile_visuel_base: ProjectileVisualProfile
 @export_node_path("ArmeEffets2D") var chemin_effets: NodePath
 @export_node_path("Node2D") var chemin_socket_muzzle: NodePath
 @export_node_path("Node") var chemin_racine_projectiles: NodePath
@@ -20,6 +21,11 @@ var _muzzle: Node2D
 var _root_proj: Node
 var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
+var _visuel_runtime: ProjectileVisualRuntime = ProjectileVisualRuntime.new()
+var _trail_scene_resolue: PackedScene = null
+var _impact_scene_resolue: PackedScene = null
+var _famille_trail_resolue: StringName = &""
+var _famille_impact_resolue: StringName = &""
 
 func _ready() -> void:
 	add_to_group("armes_tir")
@@ -52,6 +58,8 @@ func _ready() -> void:
 		p.top_level = true
 		get_tree().current_scene.add_child(p)
 		_root_proj = p
+
+	_rafraichir_cache_effets_visuels(true)
 
 func _trouver_upgrades() -> void:
 	if upgrades != null and is_instance_valid(upgrades):
@@ -128,7 +136,8 @@ func attaquer() -> void:
 				# Upgrades sur le projectile appliqués ici, une fois par projectile
 				if upgrades and upgrades.actif:
 					upgrades.appliquer_sur_projectile(p)
-				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src)
+				var visuel_rt: ProjectileVisualRuntime = _construire_visuel_runtime(p)
+				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src, visuel_rt)
 
 	if effets:
 		var intensite: float = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
@@ -222,6 +231,74 @@ func _prendre_projectile_brut() -> Projectile:
 func _recycler_projectile(p: Projectile) -> void:
 	if is_instance_valid(p):
 		_pool.append(p)
+
+func _construire_visuel_runtime(projectile: Projectile) -> ProjectileVisualRuntime:
+	_visuel_runtime.reset_to_defaults()
+
+	if profile_visuel_base != null:
+		profile_visuel_base.remplir_runtime(_visuel_runtime)
+
+	_rafraichir_cache_effets_visuels()
+	_visuel_runtime.trail_scene_resolue = _trail_scene_resolue
+	_visuel_runtime.impact_scene_resolue = _impact_scene_resolue
+
+	if upgrades != null and upgrades.actif:
+		var delta: ProjectileVisualDelta = upgrades.get_visual_delta(self, projectile)
+		_appliquer_delta_visuel(_visuel_runtime, delta)
+
+	_resoudre_effets_runtime_si_necessaire(_visuel_runtime)
+	return _visuel_runtime
+
+func _appliquer_delta_visuel(rt: ProjectileVisualRuntime, delta: ProjectileVisualDelta) -> void:
+	if rt == null or delta == null:
+		return
+
+	if delta.override_couleur_principale_active:
+		rt.couleur_principale = delta.override_couleur_principale
+	if delta.override_couleur_secondaire_active:
+		rt.couleur_secondaire = delta.override_couleur_secondaire
+
+	rt.echelle_sprite = maxf(0.05, (rt.echelle_sprite + delta.echelle_add) * delta.echelle_mult)
+	rt.longueur_visuelle = maxf(0.05, (rt.longueur_visuelle + delta.longueur_add) * delta.longueur_mult)
+	rt.epaisseur_visuelle = maxf(0.05, (rt.epaisseur_visuelle + delta.epaisseur_add) * delta.epaisseur_mult)
+	rt.glow_intensite = maxf(0.0, rt.glow_intensite + delta.glow_add)
+	rt.trainee_amount_mult = maxf(0.05, rt.trainee_amount_mult * delta.trainee_amount_mult)
+	rt.trainee_scale = maxf(0.05, rt.trainee_scale * delta.trainee_scale_mult)
+
+	if delta.override_famille_trail_active:
+		rt.famille_trail = delta.override_famille_trail
+	if delta.override_famille_impact_active:
+		rt.famille_impact = delta.override_famille_impact
+
+func _rafraichir_cache_effets_visuels(force: bool = false) -> void:
+	if profile_visuel_base == null:
+		_famille_trail_resolue = &""
+		_famille_impact_resolue = &""
+		_trail_scene_resolue = null
+		_impact_scene_resolue = null
+		return
+
+	if force or _famille_trail_resolue != profile_visuel_base.famille_trail:
+		_famille_trail_resolue = profile_visuel_base.famille_trail
+		_trail_scene_resolue = VisualEffectRegistry.resoudre_trail(_famille_trail_resolue)
+
+	if force or _famille_impact_resolue != profile_visuel_base.famille_impact:
+		_famille_impact_resolue = profile_visuel_base.famille_impact
+		_impact_scene_resolue = VisualEffectRegistry.resoudre_impact(_famille_impact_resolue)
+
+func _resoudre_effets_runtime_si_necessaire(rt: ProjectileVisualRuntime) -> void:
+	if rt == null:
+		return
+
+	if rt.famille_trail == _famille_trail_resolue:
+		rt.trail_scene_resolue = _trail_scene_resolue
+	else:
+		rt.trail_scene_resolue = VisualEffectRegistry.resoudre_trail(rt.famille_trail)
+
+	if rt.famille_impact == _famille_impact_resolue:
+		rt.impact_scene_resolue = _impact_scene_resolue
+	else:
+		rt.impact_scene_resolue = VisualEffectRegistry.resoudre_impact(rt.famille_impact)
 
 func _maj_etat_pickup() -> void:
 	if _pickup:

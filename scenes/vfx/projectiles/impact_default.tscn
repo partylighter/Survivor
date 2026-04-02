@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://c4e6of3s0t0q5"]
+
+[ext_resource type="Script" path="res://scripts/utilitaires/armement/OneShotGpuParticles2D.gd" id="1_impact"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_impact"]
+emission_shape = 1
+emission_sphere_radius = 6.0
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 90.0
+initial_velocity_max = 150.0
+scale_min = 0.5
+scale_max = 1.2
+color = Color(1, 0.72, 0.2, 1)
+
+[node name="ImpactDefault" type="GPUParticles2D"]
+amount = 14
+lifetime = 0.18
+emitting = false
+one_shot = true
+explosiveness = 1.0
+local_coords = false
+process_material = SubResource("ParticleProcessMaterial_impact")
+script = ExtResource("1_impact")
