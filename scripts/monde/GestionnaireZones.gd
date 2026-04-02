@@ -1,5 +1,5 @@
 class_name GestionnaireZones
-extends Node
+extends Node2D
 
 # ---------------------------------------------------------------------------
 # Signaux
@@ -25,6 +25,19 @@ signal avance_bloquee_changee(bloquee: bool)
 ## Référence au gestionnaire d'ennemis pour le spawn du boss.
 @export var gestionnaire_ennemis: GestionnaireEnnemis = null
 
+@export_group("Debug Draw")
+@export var debug_draw: bool = false:
+	set(v):
+		debug_draw = v
+		queue_redraw()
+		set_process(debug_draw)
+@export var debug_draw_y_min: float = -1200.0
+@export var debug_draw_y_max: float = 1200.0
+@export var debug_draw_couleur_zone: Color = Color(0.2, 0.7, 1.0, 0.10)
+@export var debug_draw_couleur_zone_active: Color = Color(1.0, 0.75, 0.2, 0.18)
+@export var debug_draw_couleur_bordure: Color = Color(1, 1, 1, 0.55)
+@export var debug_draw_couleur_boss: Color = Color(1.0, 0.2, 0.2, 0.14)
+
 # ---------------------------------------------------------------------------
 # État interne
 # ---------------------------------------------------------------------------
@@ -45,10 +58,12 @@ var _boss_tues:       Dictionary = {}
 # ---------------------------------------------------------------------------
 
 func _ready() -> void:
-	# Tri décroissant — les zones vont de droite (X élevé) vers gauche (X faible).
+	# Tri défensif — l'ordre dans l'inspecteur ne compte pas.
 	zones.sort_custom(func(a: ZoneDefinition, b: ZoneDefinition) -> bool:
-		return a.x_debut_px > b.x_debut_px)
+		return a.x_debut_px < b.x_debut_px)
 	_joueur = get_tree().get_first_node_in_group("joueur_principal") as Node2D
+	set_process(debug_draw)
+	queue_redraw()
 
 # ---------------------------------------------------------------------------
 # Boucle
@@ -57,8 +72,55 @@ func _ready() -> void:
 func _physics_process(_dt: float) -> void:
 	if not is_instance_valid(_joueur):
 		_joueur = get_tree().get_first_node_in_group("joueur_principal") as Node2D
+		queue_redraw()
 		return
 	_verifier_zone(_joueur.global_position.x)
+	if debug_draw:
+		queue_redraw()
+
+func _process(_dt: float) -> void:
+	if debug_draw:
+		queue_redraw()
+
+func _draw() -> void:
+	if not debug_draw or zones.is_empty():
+		return
+
+	var y_min: float = minf(debug_draw_y_min, debug_draw_y_max)
+	var y_max: float = maxf(debug_draw_y_min, debug_draw_y_max)
+	var hauteur: float = y_max - y_min
+	if hauteur <= 0.0:
+		return
+
+	var font: Font = ThemeDB.fallback_font
+	var font_size: int = ThemeDB.fallback_font_size
+
+	for i: int in range(zones.size()):
+		var z: ZoneDefinition = zones[i]
+		if z == null:
+			continue
+
+		var x_min: float = minf(z.x_debut_px, z.x_fin_px)
+		var x_max: float = maxf(z.x_debut_px, z.x_fin_px)
+		var rect := Rect2(Vector2(x_min, y_min), Vector2(x_max - x_min, hauteur))
+
+		var couleur_fond: Color = debug_draw_couleur_zone_active if i == _zone_idx_active else debug_draw_couleur_zone
+		if z.est_zone_boss:
+			couleur_fond = debug_draw_couleur_boss if i != _zone_idx_active else debug_draw_couleur_zone_active
+
+		draw_rect(rect, couleur_fond, true)
+		draw_rect(rect, debug_draw_couleur_bordure, false, 3.0)
+		draw_line(Vector2(x_min, y_min), Vector2(x_min, y_max), debug_draw_couleur_bordure, 2.0)
+		draw_line(Vector2(x_max, y_min), Vector2(x_max, y_max), debug_draw_couleur_bordure, 2.0)
+
+		if font != null:
+			var nom_zone: String = String(z.nom)
+			if nom_zone.is_empty():
+				nom_zone = "zone_%d" % i
+			var texte_nom := "%s [%d]" % [nom_zone, i]
+			var texte_bornes := "%.0f -> %.0f" % [z.x_debut_px, z.x_fin_px]
+			draw_string(font, Vector2(x_min + 12.0, y_min + 26.0), texte_nom, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size, Color(1, 1, 1, 0.95))
+			draw_string(font, Vector2(x_min + 12.0, y_min + 46.0), texte_bornes, HORIZONTAL_ALIGNMENT_LEFT, -1.0, max(font_size - 2, 10), Color(1, 1, 1, 0.82))
 
 # ---------------------------------------------------------------------------
 # API publique
@@ -153,11 +215,11 @@ func _set_avance_bloquee(v: bool) -> void:
 		return
 	avance_bloquee = v
 
-	# Jeu droite→gauche : le boss bloque la progression vers la gauche.
-	if is_instance_valid(_joueur) and _joueur.has_method("set_limite_gauche"):
-		var limite: float = -INF
+	# Jeu gauche→droite : le boss bloque la progression vers la droite.
+	if is_instance_valid(_joueur) and _joueur.has_method("set_limite_droite"):
+		var limite: float = INF
 		if v and zone_active != null:
 			limite = zone_active.x_fin_px
-		_joueur.call("set_limite_gauche", limite)
+		_joueur.call("set_limite_droite", limite)
 
 	emit_signal("avance_bloquee_changee", v)

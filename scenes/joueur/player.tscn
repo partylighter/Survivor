@@ -77,6 +77,8 @@ chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
 collision_ennemis_actif = false
+limite_haut = -1200.0
+limite_bas = 1200.0
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true

@@ -36,27 +36,26 @@
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
 [ext_resource type="Script" uid="uid://dx4b0one3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
 
-[sub_resource type="Resource" id="Resource_p5j6c"]
+[sub_resource type="Resource" id="Resource_yovrb"]
 script = ExtResource("12_yovrb")
 nom = &"zone1"
-x_fin_px = 10000.0
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
-poids = PackedFloat32Array(0.5, 0.5)
+poids = null
+metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
+
+[sub_resource type="Resource" id="Resource_p5j6c"]
+script = ExtResource("12_yovrb")
+nom = &"zone2"
+x_debut_px = 3000.0
+x_fin_px = 6000.0
+poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_5o3x5"]
 script = ExtResource("12_yovrb")
-nom = &"zone2"
-x_debut_px = 10000.0
-x_fin_px = 20000.0
-poids = null
-metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
-
-[sub_resource type="Resource" id="Resource_upkmr"]
-script = ExtResource("12_yovrb")
 nom = &"zone3"
-x_debut_px = 20000.0
-x_fin_px = 30000.0
+x_debut_px = 6000.0
+x_fin_px = 9000.0
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
@@ -178,10 +177,15 @@ metadata/_custom_type_script = "uid://ctjko77ppqoqd"
 
 [node name="ParentLootPath" type="Node2D" parent="." unique_id=1392105591]
 
-[node name="GestionnaireZones" type="Node" parent="." unique_id=1833935616 node_paths=PackedStringArray("gestionnaire_ennemis")]
+[node name="GestionnaireZones" type="Node2D" parent="." unique_id=1940312088 node_paths=PackedStringArray("gestionnaire_ennemis")]
 script = ExtResource("11_2g3hm")
-zones = Array[ExtResource("12_yovrb")]([SubResource("Resource_p5j6c"), SubResource("Resource_5o3x5"), SubResource("Resource_upkmr")])
+zones = Array[ExtResource("12_yovrb")]([SubResource("Resource_yovrb"), SubResource("Resource_p5j6c"), SubResource("Resource_5o3x5")])
 gestionnaire_ennemis = NodePath("../Gestionnaire Enemies")
+debug_draw = true
+debug_draw_couleur_zone = Color(0.2, 0.69803923, 1, 0.050980393)
+debug_draw_couleur_zone_active = Color(1, 0.7490196, 0.2, 0.06666667)
+debug_draw_couleur_bordure = Color(1, 1, 1, 0.0627451)
+debug_draw_couleur_boss = Color(1, 0.2, 0.2, 0.06666667)
 metadata/_custom_type_script = "uid://1j4gtocrueg1"
 
 [node name="UpgradeRegistry" type="Node" parent="." unique_id=2043351419]
@@ -300,7 +304,6 @@ metadata/_custom_type_script = "uid://n1ib2janvwgn"
 layer = 2
 script = ExtResource("32_zone")
 debug_enabled = true
-chemin_zones = NodePath("../GestionnaireZones")
 ui_position = Vector2(1200, 5)
 toggle_key = 4194340
 
