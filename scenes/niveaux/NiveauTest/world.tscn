@@ -23,6 +23,7 @@
 [ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="13_ixded"]
 [ext_resource type="PackedScene" uid="uid://cqihndgca0bto" path="res://scenes/ennemis/enemy_b_test_heritage.tscn" id="13_yovrb"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://ressources/items/upg_degats_tir_1.tres" id="14_ixded"]
+[ext_resource type="PackedScene" uid="uid://cb3hqjg4okx4h" path="res://scenes/ennemis/enemy_boss_test.tscn" id="14_p5j6c"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/gestionnaires/en_jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://ressources/items/upg_degats_contact_1.tres" id="15_lougb"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
@@ -41,6 +42,8 @@ script = ExtResource("12_yovrb")
 nom = &"zone1"
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
 poids = null
+est_zone_boss = true
+scene_boss = ExtResource("14_p5j6c")
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
@@ -135,6 +138,9 @@ chemin_base_vehicle = NodePath("../Base")
 [node name="Camera2D2" type="Camera2D" parent="Player" unique_id=575527116]
 script = ExtResource("6_b3mfv")
 chemin_joueur = NodePath("..")
+limites_y_actives = true
+limite_haute_y = -1200
+limite_basse_y = 1200
 mouse_look_sol_px = 250.0
 mouse_look_conduite_px = 500.0
 mouse_deadzone = 0.27
@@ -142,7 +148,7 @@ mouse_influence_y = 1.0
 offset_speed = 7.0
 zoom_sol = 0.37
 zoom_conduite = 0.7000000000000001
-zoom_move_sol = 0.37
+zoom_move_sol = 0.6900000000000001
 zoom_move_conduite = 0.5
 zoom_speed = 4.0
 zoom_in_delay_s = 6.0

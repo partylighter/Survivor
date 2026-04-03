@@ -107,7 +107,7 @@ func _physics_process(dt: float) -> void:
 	if _t >= duree_vie_s:
 		desactiver()
 
-func _gerer_impact(collider: Object, hit_pos: Vector2) -> bool:
+func _gerer_impact(collider: Object, _hit_pos: Vector2) -> bool:
 	if collider == null:
 		return false
 

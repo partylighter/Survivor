@@ -1,3 +1,4 @@
+@tool
 extends Camera2D
 class_name CamPlayer
 
@@ -6,6 +7,20 @@ class_name CamPlayer
 
 @export_group("Follow")
 @export_range(0.1, 30.0, 0.1) var follow_speed: float = 8.0
+
+@export_group("Limites Y")
+@export var limites_y_actives: bool = false:
+	set(v):
+		limites_y_actives = v
+		_appliquer_limites_y()
+@export var limite_haute_y: int = -10000:
+	set(v):
+		limite_haute_y = v
+		_appliquer_limites_y()
+@export var limite_basse_y: int = 10000:
+	set(v):
+		limite_basse_y = v
+		_appliquer_limites_y()
 
 @export_group("Offset / Look")
 @export_range(0.0, 2000.0, 1.0) var look_ahead_sol_px: float = 140.0
@@ -61,6 +76,7 @@ var _shake_amp_now: float = 0.0
 func _ready() -> void:
 	add_to_group(&"cam_player")
 	make_current()
+	_appliquer_limites_y()
 	_joueur = get_node_or_null(chemin_joueur) as Player
 	_vp = get_viewport()
 	if _vp:
@@ -69,6 +85,15 @@ func _ready() -> void:
 
 func _ts() -> float:
 	return Time.get_ticks_msec() * 0.001
+
+func _appliquer_limites_y() -> void:
+	limit_enabled = limites_y_actives
+	if not limites_y_actives:
+		return
+	limit_left = -100000000
+	limit_right = 100000000
+	limit_top = min(limite_haute_y, limite_basse_y)
+	limit_bottom = max(limite_haute_y, limite_basse_y)
 
 func kick_shake_from_damage(damage: int) -> void:
 	var d: float = maxf(float(damage), 0.0)

@@ -1,18 +1,13 @@
-[gd_resource type="Resource" script_class="ProjectileVisualProfile" format=3]
+[gd_resource type="Resource" script_class="ProjectileVisualProfile" format=3 uid="uid://c6jcvs016kcn4"]
 
-[ext_resource type="Script" path="res://scripts/utilitaires/armement/ProjectileVisualProfile.gd" id="1_profile"]
+[ext_resource type="Script" uid="uid://bg5idam36y7ug" path="res://scripts/utilitaires/armement/ProjectileVisualProfile.gd" id="1_profile"]
 
 [resource]
 script = ExtResource("1_profile")
 couleur_principale = Color(1, 0.86, 0.24, 1)
-couleur_secondaire = Color(1, 0.58, 0.16, 0.92)
-echelle_sprite = 1.0
-longueur_visuelle = 1.0
-epaisseur_visuelle = 1.0
-glow_intensite = 0.4
-rotation_suivre_direction = true
-trainee_active = true
-trainee_amount_mult = 1.0
-trainee_scale = 1.0
-famille_trail = &"trail_default"
-famille_impact = &"impact_default"
+couleur_secondaire = Color(1.883, 0, 0, 1)
+echelle_sprite = 0.1
+longueur_visuelle = 0.15000000000000002
+epaisseur_visuelle = 8.0
+trainee_amount_mult = 8.0
+trainee_scale = 8.0

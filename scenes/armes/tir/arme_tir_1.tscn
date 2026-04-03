@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/armes/tir/projectile_1.tscn" id="2_58xvi"]
 [ext_resource type="Texture2D" uid="uid://bkbbclwh7vcv2" path="res://assets/ui/armtir.png" id="3_dte6k"]
 [ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/utilitaires/armement/ArmeEffets2D.gd" id="4_rn7y6"]
-[ext_resource type="Resource" path="res://ressources/armement/projectile_visual_profile_default.tres" id="5_visual"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_58xvi"]
 radius = 214.8
@@ -20,7 +19,6 @@ colors = PackedColorArray(0.7148021, 0.41435745, 3.85046e-07, 1, 1, 0.9565546, 0
 [node name="ArmeTir_1" type="Node2D" unique_id=1191658835]
 script = ExtResource("1_58xvi")
 scene_projectile = ExtResource("2_58xvi")
-profile_visuel_base = ExtResource("5_visual")
 chemin_effets = NodePath("ArmeEffets2D")
 chemin_socket_muzzle = NodePath("Icon3/Socket")
 degats = 1

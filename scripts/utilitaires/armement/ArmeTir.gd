@@ -2,6 +2,7 @@ extends ArmeBase
 class_name ArmeTir
 
 @export var scene_projectile: PackedScene
+@export var visuel_projectiles_actif: bool = false
 @export var profile_visuel_base: ProjectileVisualProfile
 @export_node_path("ArmeEffets2D") var chemin_effets: NodePath
 @export_node_path("Node2D") var chemin_socket_muzzle: NodePath
@@ -136,7 +137,9 @@ func attaquer() -> void:
 				# Upgrades sur le projectile appliqués ici, une fois par projectile
 				if upgrades and upgrades.actif:
 					upgrades.appliquer_sur_projectile(p)
-				var visuel_rt: ProjectileVisualRuntime = _construire_visuel_runtime(p)
+				var visuel_rt: ProjectileVisualRuntime = null
+				if visuel_projectiles_actif:
+					visuel_rt = _construire_visuel_runtime(p)
 				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src, visuel_rt)
 
 	if effets:

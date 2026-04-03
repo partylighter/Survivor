@@ -3,15 +3,38 @@
 [ext_resource type="Script" uid="uid://cwxumd2sgnrnk" path="res://scripts/utilitaires/armement/Projectile.gd" id="1_eskv8"]
 [ext_resource type="Texture2D" uid="uid://bw7kuvt2cg6nt" path="res://assets/ui/vullet.png" id="2_cp136"]
 
+[sub_resource type="Gradient" id="Gradient_cp136"]
+offsets = PackedFloat32Array(0, 0.57044196)
+colors = PackedColorArray(18.892157, 0, 0, 1, 1, 1, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_2hxxa"]
+gradient = SubResource("Gradient_cp136")
+
+[sub_resource type="Curve" id="Curve_bvloe"]
+_data = [Vector2(0, 0.9950926), 0.0, 0.0, 0, 0, Vector2(1, 0.31785583), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="CurveTexture_p2qx8"]
+curve = SubResource("Curve_bvloe")
+
+[sub_resource type="Curve" id="Curve_5op16"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.521519, 0.8282372), -1.3084656, -1.3084656, 0, 0, Vector2(1, 0.0037750006), -2.4515915, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_pg4pk"]
+curve = SubResource("Curve_5op16")
+
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_trail"]
 direction = Vector3(-1, 0, 0)
-spread = 12.0
+spread = 7.251
+initial_velocity_max = 16.13
 gravity = Vector3(0, 0, 0)
-initial_velocity_min = 12.0
-initial_velocity_max = 36.0
-scale_min = 0.28
-scale_max = 0.55
-color = Color(1, 0.68, 0.22, 1)
+scale_min = 0.0
+scale_max = 5.0
+scale_curve = SubResource("CurveTexture_pg4pk")
+color = Color(1.3322645, 0.9095308, 0.30781427, 1)
+color_ramp = SubResource("GradientTexture1D_2hxxa")
+emission_curve = SubResource("CurveTexture_p2qx8")
 
 [node name="Projectile 1" type="Area2D" unique_id=115077572]
 scale = Vector2(5, 5)
@@ -25,14 +48,15 @@ contacts_avant_destruction = 7
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=679078811]
-position = Vector2(58.036816, 0.32727298)
+position = Vector2(106.399994, -0.59999996)
 rotation = 1.5707964
-scale = Vector2(0.13030307, 2.2007763)
 texture = ExtResource("2_cp136")
 
 [node name="TrailParticles" type="GPUParticles2D" parent="." unique_id=111115223]
-amount = 10
-lifetime = 0.12
 emitting = false
-local_coords = false
+amount = 20
+lifetime = 0.12
+preprocess = 0.75
+speed_scale = 1.42
+explosiveness = 0.66
 process_material = SubResource("ParticleProcessMaterial_trail")

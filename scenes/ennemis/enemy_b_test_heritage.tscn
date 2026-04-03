@@ -11,6 +11,7 @@ radius = 122.44
 
 [node name="EnemyB" type="CharacterBody2D" unique_id=1399925958]
 script = ExtResource("1_e2sh2")
+type_ennemi = 1
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Icon")
 speed = 950.0

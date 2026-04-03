@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://cb3hqjg4okx4h"]
+
+[ext_resource type="Script" uid="uid://dip1cb7tqccxs" path="res://scripts/ennemis/EnemyBOSS.gd" id="1_8ocdw"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_lkatu"]
+[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_qitei"]
+[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_m5wvq"]
+[ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/ennemis/ContactDamage.gd" id="5_hyfxn"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_b5wfo"]
+radius = 257.0
+
+[node name="EnemyBOSS" type="CharacterBody2D" unique_id=128044021]
+script = ExtResource("1_8ocdw")
+type_ennemi = 4
+chemin_sante = NodePath("Sante")
+chemin_sprite = NodePath("Sprite2D")
+rayon_collision_px = 257.0
+speed = 500.0
+flash_couleur = Color(2, 2, 2, 1)
+metadata/_custom_type_script = "uid://dip1cb7tqccxs"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1886905901]
+modulate = Color(1.0659664, 1.0659664, 0.47276938, 1)
+scale = Vector2(3, 3)
+texture = ExtResource("2_lkatu")
+
+[node name="Sante" type="Node" parent="." unique_id=1557058843]
+script = ExtResource("3_qitei")
+max_pv = 3000
+metadata/_custom_type_script = "uid://dckl6i06hmi3g"
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=1595328980]
+collision_layer = 64
+collision_mask = 0
+script = ExtResource("4_m5wvq")
+chemin_sante = NodePath("../Sante")
+groupe_hurtbox = &"enemy_hurtbox"
+metadata/_custom_type_script = "uid://cp87fy13f23lc"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1990080976]
+z_index = -1
+position = Vector2(0.5, 1)
+shape = SubResource("CircleShape2D_b5wfo")
+debug_color = Color(18.892157, 18.892157, 18.892157, 0)
+
+[node name="ContactDamage" type="Node" parent="." unique_id=1074068826]
+script = ExtResource("5_hyfxn")
+metadata/_custom_type_script = "uid://b1wenibwev34d"
