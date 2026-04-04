@@ -101,11 +101,11 @@ func apply_to_window(w: Window) -> void:
 	if w == null:
 		return
 
-	w.content_scale_mode = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
-	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
-	w.content_scale_size = BASE_CANVAS_SIZE
-
 	var r := get_current_resolution()
+
+	w.content_scale_mode   = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
+	w.content_scale_size   = r
 
 	if fullscreen:
 		if OS.has_feature("editor"):
@@ -117,11 +117,11 @@ func apply_to_window(w: Window) -> void:
 
 	w.mode = Window.MODE_WINDOWED
 
-	var screen := w.current_screen
-	var max_size := _get_max_window_size_for_screen(screen)
+	var screen    := w.current_screen
+	var max_size  := _get_max_window_size_for_screen(screen)
 	var final_size := Vector2i(min(r.x, max_size.x), min(r.y, max_size.y))
-	final_size.x = maxi(final_size.x, MIN_WINDOW_PX.x)
-	final_size.y = maxi(final_size.y, MIN_WINDOW_PX.y)
+	final_size.x   = maxi(final_size.x, MIN_WINDOW_PX.x)
+	final_size.y   = maxi(final_size.y, MIN_WINDOW_PX.y)
 
 	w.size = final_size
 	w.move_to_center()
