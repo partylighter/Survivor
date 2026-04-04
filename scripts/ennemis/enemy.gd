@@ -448,19 +448,18 @@ func _tick_ia(dt: float) -> void:
 	if pousse_actif: max_delta *= max(pousse_deceleration_mult, 1.0)
 
 	_vel_mouvement = _vel_mouvement.move_toward(desired_vel, max_delta)
-	velocity = _vel_mouvement
 
 	# Contrainte vitesse approche joueur
 	if target != null and is_instance_valid(target) and dir_to_player.length_squared() > 0.0001:
 		if dist_player <= dist_arret:
-			var inward0: float = velocity.dot(dir_to_player)
+			var inward0: float = _vel_mouvement.dot(dir_to_player)
 			if inward0 > 0.0:
-				velocity -= dir_to_player * inward0
+				_vel_mouvement -= dir_to_player * inward0
 		elif dist_player < dist_ralenti:
 			var t2: float = clamp((dist_player - dist_arret) / (dist_ralenti - dist_arret), 0.0, 1.0)
-			var inward: float = velocity.dot(dir_to_player)
+			var inward: float = _vel_mouvement.dot(dir_to_player)
 			if inward > speed * t2:
-				velocity -= dir_to_player * (inward - speed * t2)
+				_vel_mouvement -= dir_to_player * (inward - speed * t2)
 
 # ===========================================================================
 # Tick commun — recul, pousse, effets visuels, base, move_and_slide
@@ -468,14 +467,12 @@ func _tick_ia(dt: float) -> void:
 
 func _tick_physics_commun(dt: float) -> void:
 	# Recul
-	velocity += recul
-	recul = recul.lerp(Vector2.ZERO, clamp(recul_amorti * dt, 0.0, 0.95))
+	recul = recul.lerp(Vector2.ZERO, 1.0 - exp(-max(recul_amorti, 0.0) * dt))
 	if recul.length_squared() < 1.0:
 		recul = Vector2.ZERO
 
 	# Bousculade
-	velocity += pousse
-	pousse = pousse.lerp(Vector2.ZERO, clamp(pousse_amorti * dt, 0.0, 0.95))
+	pousse = pousse.lerp(Vector2.ZERO, 1.0 - exp(-max(pousse_amorti, 0.0) * dt))
 	if pousse.length_squared() < 1.0:
 		pousse = Vector2.ZERO
 
@@ -492,11 +489,12 @@ func _tick_physics_commun(dt: float) -> void:
 
 	# Base véhicule
 	_maj_base_vel(dt)
+	velocity = _vel_mouvement + recul + pousse
 	_bloquer_entree_base(dt)
 
 	# Décélération mort
 	if _state == State.DYING:
-		velocity = velocity.lerp(Vector2.ZERO, clamp(recul_amorti_mort * dt, 0.0, 1.0))
+		velocity = velocity.lerp(Vector2.ZERO, 1.0 - exp(-max(recul_amorti_mort, 0.0) * dt))
 
 	move_and_slide()
 

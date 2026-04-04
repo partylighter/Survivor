@@ -194,7 +194,6 @@ script = ExtResource("8_1bwnf")
 
 [node name="Santé" type="Node" parent="." unique_id=2029737781]
 script = ExtResource("3_qhqgy")
-max_pv = 9999999999999
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=655173724]
 script = ExtResource("9_7tfl1")
