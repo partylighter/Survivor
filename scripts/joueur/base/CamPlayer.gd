@@ -1,4 +1,3 @@
-@tool
 extends Camera2D
 class_name CamPlayer
 
@@ -75,8 +74,9 @@ var _shake_amp_now: float = 0.0
 
 func _ready() -> void:
 	add_to_group(&"cam_player")
-	make_current()
 	_appliquer_limites_y()
+	if not Engine.is_editor_hint():
+		make_current()
 	_joueur = get_node_or_null(chemin_joueur) as Player
 	_vp = get_viewport()
 	if _vp:
@@ -112,6 +112,8 @@ func kick_shake(force_mul: float = 1.0) -> void:
 
 func _process(dt: float) -> void:
 	if dt <= 0.0:
+		return
+	if Engine.is_editor_hint():
 		return
 	if _joueur == null or not is_instance_valid(_joueur):
 		return

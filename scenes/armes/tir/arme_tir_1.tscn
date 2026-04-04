@@ -46,9 +46,9 @@ scale = Vector2(0.7604562, 0.7604562)
 [node name="CPUParticles2D" type="CPUParticles2D" parent="Icon3" unique_id=689288932]
 position = Vector2(67.94626, 1.9193865)
 scale = Vector2(0.3708478, 0.51419777)
+emitting = false
 amount = 4
 lifetime = 0.08
-emitting = false
 spread = 0.0
 gravity = Vector2(0, 0)
 initial_velocity_min = 678.0
@@ -62,4 +62,5 @@ color_ramp = SubResource("Gradient_dte6k")
 
 [node name="ArmeEffets2D" type="Node" parent="." unique_id=98624666]
 script = ExtResource("4_rn7y6")
+tir_lift_px = 4.375
 metadata/_custom_type_script = "uid://5adwsbkqdlcw"

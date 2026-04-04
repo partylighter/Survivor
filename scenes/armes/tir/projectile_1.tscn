@@ -48,8 +48,9 @@ contacts_avant_destruction = 7
 metadata/_custom_type_script = "uid://cwxumd2sgnrnk"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=679078811]
-position = Vector2(106.399994, -0.59999996)
+position = Vector2(30.40001, -0.6000001)
 rotation = 1.5707964
+scale = Vector2(0.175, 2.18)
 texture = ExtResource("2_cp136")
 
 [node name="TrailParticles" type="GPUParticles2D" parent="." unique_id=111115223]
