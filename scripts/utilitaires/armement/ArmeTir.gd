@@ -25,6 +25,11 @@ var _root_proj: Node
 var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
 var _particles_tir_fin_s: float = 0.0
+var _base_cooldown_s: float = 0.0
+var _base_degats: int = 0
+var _base_nb_balles: int = 0
+var _base_dispersion_deg: float = 0.0
+var _upgrades_signal_connecte: bool = false
 var _visuel_runtime: ProjectileVisualRuntime = ProjectileVisualRuntime.new()
 var _trail_scene_resolue: PackedScene = null
 var _impact_scene_resolue: PackedScene = null
@@ -33,13 +38,17 @@ var _famille_impact_resolue: StringName = &""
 
 func _ready() -> void:
 	add_to_group("armes_tir")
-
-	_trouver_upgrades()
+	_base_cooldown_s = cooldown_s
+	_base_degats = degats
+	_base_nb_balles = nb_balles
+	_base_dispersion_deg = dispersion_deg
 
 	if chemin_effets != NodePath():
 		effets = get_node(chemin_effets) as ArmeEffets2D
 	if effets:
 		effets.set_cible(self)
+
+	_trouver_upgrades()
 
 	if chemin_socket_muzzle != NodePath():
 		_muzzle = get_node(chemin_socket_muzzle) as Node2D
@@ -69,13 +78,17 @@ func _ready() -> void:
 		_root_proj = p
 
 	_rafraichir_cache_effets_visuels(true)
+	_rebuild_effets_runtime()
 
 func _trouver_upgrades() -> void:
-	if upgrades != null and is_instance_valid(upgrades):
-		return
-	var arr := get_tree().get_nodes_in_group("upg_arme_tir")
-	if not arr.is_empty():
-		upgrades = arr[0] as GestionnaireUpgradesArmeTir
+	if upgrades == null or not is_instance_valid(upgrades):
+		var arr := get_tree().get_nodes_in_group("upg_arme_tir")
+		if not arr.is_empty():
+			upgrades = arr[0] as GestionnaireUpgradesArmeTir
+	if upgrades != null and not _upgrades_signal_connecte:
+		upgrades.upgrades_changes.connect(_on_upgrades_changes)
+		_upgrades_signal_connecte = true
+		_rebuild_effets_runtime()
 
 func _offset_eventail(i: int, n: int, spread_rad: float) -> float:
 	if n <= 1 or spread_rad <= 0.0:
@@ -122,6 +135,7 @@ func attaquer() -> void:
 	_trouver_upgrades()
 	if upgrades and upgrades.actif:
 		upgrades.re_appliquer_sur_arme(self)
+		_rebuild_effets_runtime()
 
 	if not hitscan and scene_projectile == null:
 		return
@@ -250,6 +264,49 @@ func _prendre_projectile_brut() -> Projectile:
 func _recycler_projectile(p: Projectile) -> void:
 	if is_instance_valid(p):
 		_pool.append(p)
+
+func _on_upgrades_changes() -> void:
+	_rebuild_effets_runtime()
+
+func _rebuild_effets_runtime() -> void:
+	if effets == null:
+		return
+
+	var rt = effets.creer_runtime()
+	var base_cd_floor: float = (_base_cooldown_s * 0.1) if _base_cooldown_s > 0.0 else 0.001
+	var cadence_ratio: float = clampf(
+		_base_cooldown_s / maxf(cooldown_s, base_cd_floor),
+		0.5,
+		3.0
+	)
+	var degats_ratio: float = clampf(
+		float(degats) / maxf(float(_base_degats), 1.0),
+		0.5,
+		4.0
+	)
+	var multi_ratio: float = clampf(
+		float(nb_balles) / maxf(float(max(_base_nb_balles, 1)), 1.0),
+		1.0,
+		3.0
+	)
+	var dispersion_ratio: float = clampf(
+		dispersion_deg / maxf(max(_base_dispersion_deg, 1.0), 1.0),
+		0.0,
+		3.0
+	)
+
+	rt.tir_recul_px *= lerpf(0.9, 1.8, clampf((degats_ratio - 0.5) / 3.5, 0.0, 1.0))
+	rt.tir_lift_px *= lerpf(0.9, 1.45, clampf((degats_ratio - 0.5) / 3.5, 0.0, 1.0))
+	rt.tir_rot_deg *= lerpf(0.85, 1.55, clampf((degats_ratio - 0.5) / 3.5, 0.0, 1.0))
+	rt.tir_kick_reactivite *= cadence_ratio
+	rt.tir_retour *= cadence_ratio
+	rt.tir_stack_max *= lerpf(1.0, 1.35, clampf((multi_ratio - 1.0) / 2.0, 0.0, 1.0))
+	rt.tir_shake_pos_px *= lerpf(0.9, 1.7, clampf((degats_ratio - 0.5) / 3.5, 0.0, 1.0))
+	rt.tir_shake_pos_px *= lerpf(1.0, 1.3, clampf((multi_ratio - 1.0) / 2.0, 0.0, 1.0))
+	rt.tir_shake_rot_deg *= lerpf(0.9, 1.55, clampf(dispersion_ratio / 3.0, 0.0, 1.0))
+	rt.tir_shake_fade *= lerpf(0.85, 1.2, clampf((cadence_ratio - 0.5) / 2.5, 0.0, 1.0))
+
+	effets.appliquer_runtime(rt)
 
 func _construire_visuel_runtime(projectile: Projectile) -> ProjectileVisualRuntime:
 	_visuel_runtime.reset_to_defaults()

@@ -1,6 +1,8 @@
 extends Node
 class_name GestionnaireUpgradesArmeTir
 
+signal upgrades_changes
+
 # =====================================================================================
 # BUT
 # =====================================================================================
@@ -341,14 +343,13 @@ func re_appliquer() -> void:
 				continue
 			if upg.cible != UpgradeData.Target.ARME:
 				continue
-			if upg.slot != &"tir":
-				continue
 
 			if int(upg.cible) == int(UpgradeData.Target.ARME):
 				upg.apply_to(arme, stacks)
 
 	# 3.4 Applique sur tous les projectiles (pool + actifs)
 	appliquer_sur_projectiles_pool_et_actifs(arme)
+	emit_signal("upgrades_changes")
 
 # =====================================================================================
 # 4) APPLICATION SUR ARME (manuel)

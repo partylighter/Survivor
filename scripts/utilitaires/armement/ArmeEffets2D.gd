@@ -1,6 +1,17 @@
 extends Node
 class_name ArmeEffets2D
 
+class EffetsRuntime:
+	var tir_recul_px: float = 10.0
+	var tir_lift_px: float = 2.0
+	var tir_rot_deg: float = 4.0
+	var tir_kick_reactivite: float = 38.0
+	var tir_retour: float = 22.0
+	var tir_stack_max: float = 1.2
+	var tir_shake_pos_px: float = 2.4
+	var tir_shake_rot_deg: float = 1.2
+	var tir_shake_fade: float = 18.0
+
 @export_group("Flottement au sol")
 @export var flottement_amp_px: float = 6.0
 @export var flottement_freq_hz: float = 1.0
@@ -93,13 +104,82 @@ var _tir_shake: float = 0.0
 
 var _tir_pos_off: Vector2 = Vector2.ZERO
 var _tir_rot_off: float = 0.0
+var _base_tir_recul_px: float = 10.0
+var _base_tir_lift_px: float = 2.0
+var _base_tir_rot_deg: float = 4.0
+var _base_tir_kick_reactivite: float = 38.0
+var _base_tir_retour: float = 22.0
+var _base_tir_stack_max: float = 1.2
+var _base_tir_shake_pos_px: float = 2.4
+var _base_tir_shake_rot_deg: float = 1.2
+var _base_tir_shake_fade: float = 18.0
+var _rt_tir_recul_px: float = 10.0
+var _rt_tir_lift_px: float = 2.0
+var _rt_tir_rot_deg: float = 4.0
+var _rt_tir_kick_reactivite: float = 38.0
+var _rt_tir_retour: float = 22.0
+var _rt_tir_stack_max: float = 1.2
+var _rt_tir_shake_pos_px: float = 2.4
+var _rt_tir_shake_rot_deg: float = 1.2
+var _rt_tir_shake_fade: float = 18.0
 
 func set_cible(n: Node2D) -> void:
 	cible = n
 	if cible:
+		_snapshot_tir_authoring()
+		reset_runtime()
 		base_y       = cible.position.y
 		_tir_pos_off = Vector2.ZERO
 		_tir_rot_off = 0.0
+
+func _snapshot_tir_authoring() -> void:
+	_base_tir_recul_px = tir_recul_px
+	_base_tir_lift_px = tir_lift_px
+	_base_tir_rot_deg = tir_rot_deg
+	_base_tir_kick_reactivite = tir_kick_reactivite
+	_base_tir_retour = tir_retour
+	_base_tir_stack_max = tir_stack_max
+	_base_tir_shake_pos_px = tir_shake_pos_px
+	_base_tir_shake_rot_deg = tir_shake_rot_deg
+	_base_tir_shake_fade = tir_shake_fade
+
+func creer_runtime() -> EffetsRuntime:
+	var rt := EffetsRuntime.new()
+	rt.tir_recul_px = _base_tir_recul_px
+	rt.tir_lift_px = _base_tir_lift_px
+	rt.tir_rot_deg = _base_tir_rot_deg
+	rt.tir_kick_reactivite = _base_tir_kick_reactivite
+	rt.tir_retour = _base_tir_retour
+	rt.tir_stack_max = _base_tir_stack_max
+	rt.tir_shake_pos_px = _base_tir_shake_pos_px
+	rt.tir_shake_rot_deg = _base_tir_shake_rot_deg
+	rt.tir_shake_fade = _base_tir_shake_fade
+	return rt
+
+func appliquer_runtime(rt: EffetsRuntime) -> void:
+	if rt == null:
+		reset_runtime()
+		return
+	_rt_tir_recul_px = rt.tir_recul_px
+	_rt_tir_lift_px = rt.tir_lift_px
+	_rt_tir_rot_deg = rt.tir_rot_deg
+	_rt_tir_kick_reactivite = rt.tir_kick_reactivite
+	_rt_tir_retour = rt.tir_retour
+	_rt_tir_stack_max = rt.tir_stack_max
+	_rt_tir_shake_pos_px = rt.tir_shake_pos_px
+	_rt_tir_shake_rot_deg = rt.tir_shake_rot_deg
+	_rt_tir_shake_fade = rt.tir_shake_fade
+
+func reset_runtime() -> void:
+	_rt_tir_recul_px = _base_tir_recul_px
+	_rt_tir_lift_px = _base_tir_lift_px
+	_rt_tir_rot_deg = _base_tir_rot_deg
+	_rt_tir_kick_reactivite = _base_tir_kick_reactivite
+	_rt_tir_retour = _base_tir_retour
+	_rt_tir_stack_max = _base_tir_stack_max
+	_rt_tir_shake_pos_px = _base_tir_shake_pos_px
+	_rt_tir_shake_rot_deg = _base_tir_shake_rot_deg
+	_rt_tir_shake_fade = _base_tir_shake_fade
 
 
 func stop_drop() -> void:
@@ -272,7 +352,7 @@ func kick_tir(dir: Vector2, intensite: float = 1.0) -> void:
 	var d := dir.normalized() if dir.length() > 0.001 else Vector2.RIGHT
 	_tir_dir = d
 	intensite = clamp(intensite, 0.0, 3.0)
-	_tir_t = min(_tir_t + intensite, tir_stack_max)
+	_tir_t = min(_tir_t + intensite, _rt_tir_stack_max)
 	_tir_shake = min(_tir_shake + intensite, 3.0)
 
 func _appliquer_tir_overlay(now: float, dt: float) -> void:
@@ -281,8 +361,8 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 
 	dt = max(dt, 0.000001)
 
-	var a_kick: float = 1.0 - exp(-tir_kick_reactivite * dt)
-	var a_ret: float = 1.0 - exp(-tir_retour * dt)
+	var a_kick: float = 1.0 - exp(-_rt_tir_kick_reactivite * dt)
+	var a_ret: float = 1.0 - exp(-_rt_tir_retour * dt)
 
 	if _tir_t > 0.0001:
 		_tir_t = lerp(_tir_t, 0.0, a_ret)
@@ -290,7 +370,7 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 		_tir_t = 0.0
 
 	if _tir_shake > 0.0001:
-		_tir_shake = lerp(_tir_shake, 0.0, 1.0 - exp(-tir_shake_fade * dt))
+		_tir_shake = lerp(_tir_shake, 0.0, 1.0 - exp(-_rt_tir_shake_fade * dt))
 	else:
 		_tir_shake = 0.0
 
@@ -298,9 +378,9 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 	var cible_off_rot: float = 0.0
 
 	if _tir_t > 0.0:
-		var recul: Vector2 = (-_tir_dir * tir_recul_px) + (Vector2.UP * tir_lift_px)
+		var recul: Vector2 = (-_tir_dir * _rt_tir_recul_px) + (Vector2.UP * _rt_tir_lift_px)
 		cible_off_pos += recul * _tir_t
-		cible_off_rot += tir_rot_deg * _tir_t
+		cible_off_rot += _rt_tir_rot_deg * _tir_t
 
 	if _tir_shake > 0.0:
 		var n1: float = sin(now * 47.3) + sin(now * 91.7) * 0.5
@@ -308,8 +388,8 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 		var v := Vector2(n1, n2)
 		if v.length() > 0.0001:
 			v = v.normalized()
-		cible_off_pos += v * tir_shake_pos_px * _tir_shake
-		cible_off_rot += sin(now * 63.2) * tir_shake_rot_deg * _tir_shake
+		cible_off_pos += v * _rt_tir_shake_pos_px * _tir_shake
+		cible_off_rot += sin(now * 63.2) * _rt_tir_shake_rot_deg * _tir_shake
 
 	_tir_pos_off = _tir_pos_off.lerp(cible_off_pos, a_kick)
 	_tir_rot_off = lerp(_tir_rot_off, cible_off_rot, a_kick)
