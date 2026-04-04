@@ -35,7 +35,7 @@ func _ready() -> void:
 
 func _process(_dt: float) -> void:
 	if effets:
-		effets.tick(Time.get_ticks_msec() * 0.001, est_au_sol)
+		effets.tick(Time.get_ticks_msec() * 0.001, est_au_sol, _dt)
 	if not _pret and Time.get_ticks_msec() * 0.001 >= _cooldown_fin_s:
 		_pret = true
 

@@ -31,7 +31,7 @@ func _trouver_upgrades() -> void:
 
 func _process(_dt: float) -> void:
 	if effets:
-		effets.tick(Time.get_ticks_msec() * 0.001, est_au_sol)
+		effets.tick(Time.get_ticks_msec() * 0.001, est_au_sol, _dt)
 
 func jeter(direction: Vector2, distance_px: float = 80.0) -> void:
 	if effets:

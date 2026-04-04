@@ -21,6 +21,7 @@ script = ExtResource("1_58xvi")
 scene_projectile = ExtResource("2_58xvi")
 chemin_effets = NodePath("ArmeEffets2D")
 chemin_socket_muzzle = NodePath("Icon3/Socket")
+chemin_particles_tir = NodePath("Icon3/CPUParticles2D")
 degats = 1
 duree_active_s = 0.5
 cooldown_s = 0.1
@@ -47,6 +48,7 @@ position = Vector2(67.94626, 1.9193865)
 scale = Vector2(0.3708478, 0.51419777)
 amount = 4
 lifetime = 0.08
+emitting = false
 spread = 0.0
 gravity = Vector2(0, 0)
 initial_velocity_min = 678.0
@@ -60,11 +62,4 @@ color_ramp = SubResource("Gradient_dte6k")
 
 [node name="ArmeEffets2D" type="Node" parent="." unique_id=98624666]
 script = ExtResource("4_rn7y6")
-tir_actif = false
-tir_recul_px = -55.095
-tir_lift_px = 0.0
-tir_rot_deg = 0.0
-tir_shake_pos_px = 100.0
-tir_shake_rot_deg = 50.0
-tir_shake_fade = 100.0
 metadata/_custom_type_script = "uid://5adwsbkqdlcw"

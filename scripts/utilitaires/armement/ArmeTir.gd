@@ -6,6 +6,7 @@ class_name ArmeTir
 @export var profile_visuel_base: ProjectileVisualProfile
 @export_node_path("ArmeEffets2D") var chemin_effets: NodePath
 @export_node_path("Node2D") var chemin_socket_muzzle: NodePath
+@export_node_path("CPUParticles2D") var chemin_particles_tir: NodePath
 @export_node_path("Node") var chemin_racine_projectiles: NodePath
 @export_range(1, 10000, 1) var nb_balles: int = 1
 @export_range(0.0, 60.0, 0.1) var dispersion_deg: float = 0.0
@@ -19,9 +20,11 @@ class_name ArmeTir
 var upgrades: GestionnaireUpgradesArmeTir = null
 var effets: ArmeEffets2D
 var _muzzle: Node2D
+var _particles_tir: CPUParticles2D = null
 var _root_proj: Node
 var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
+var _particles_tir_fin_s: float = 0.0
 var _visuel_runtime: ProjectileVisualRuntime = ProjectileVisualRuntime.new()
 var _trail_scene_resolue: PackedScene = null
 var _impact_scene_resolue: PackedScene = null
@@ -40,6 +43,11 @@ func _ready() -> void:
 
 	if chemin_socket_muzzle != NodePath():
 		_muzzle = get_node(chemin_socket_muzzle) as Node2D
+
+	if chemin_particles_tir != NodePath():
+		_particles_tir = get_node_or_null(chemin_particles_tir) as CPUParticles2D
+		if _particles_tir != null:
+			_particles_tir.emitting = false
 
 	_root_proj = null
 
@@ -75,9 +83,12 @@ func _offset_eventail(i: int, n: int, spread_rad: float) -> float:
 	return lerp(-spread_rad * 0.5, spread_rad * 0.5, float(i) / float(n - 1))
 
 func _process(_dt: float) -> void:
+	var now: float = Time.get_ticks_msec() * 0.001
 	if effets:
-		effets.tick(Time.get_ticks_msec() * 0.001, est_au_sol, _dt)
-	if not _pret and Time.get_ticks_msec() * 0.001 >= _cooldown_fin_s:
+		effets.tick(now, est_au_sol, _dt)
+	if _particles_tir != null and _particles_tir.emitting and now >= _particles_tir_fin_s:
+		_particles_tir.emitting = false
+	if not _pret and now >= _cooldown_fin_s:
 		_pret = true
 
 func jeter(direction: Vector2, distance_px: float = 80.0) -> void:
@@ -141,6 +152,11 @@ func attaquer() -> void:
 				if visuel_projectiles_actif:
 					visuel_rt = _construire_visuel_runtime(p)
 				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src, visuel_rt)
+
+	if _particles_tir != null:
+		_particles_tir.restart()
+		_particles_tir.emitting = true
+		_particles_tir_fin_s = now + maxf(cooldown_s, _particles_tir.lifetime)
 
 	if effets:
 		var intensite: float = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
@@ -312,3 +328,5 @@ func _maj_etat_pickup() -> void:
 func stop_drop() -> void:
 	if effets:
 		effets.stop_drop()
+	if _particles_tir != null:
+		_particles_tir.emitting = false
