@@ -84,23 +84,20 @@ var rebond_base: Vector2 = Vector2.ZERO
 var rebond_rot_cur: float = 0.0
 var rebond_scale_cur: float = 0.0
 var rebond_total: int = 0
+var _rebond_coef_h_actif: float = 0.55
+var _rebond_coef_t_actif: float = 0.8
 
 var _tir_dir: Vector2 = Vector2.RIGHT
 var _tir_t: float = 0.0
 var _tir_shake: float = 0.0
 
-# ✅ base “sans recoil” + offsets recoil (sinon ça cumule à l’infini)
-var _base_pos: Vector2 = Vector2.ZERO
-var _base_rot: float = 0.0
 var _tir_pos_off: Vector2 = Vector2.ZERO
 var _tir_rot_off: float = 0.0
 
 func set_cible(n: Node2D) -> void:
 	cible = n
 	if cible:
-		base_y = cible.position.y
-		_base_pos = cible.position
-		_base_rot = cible.rotation_degrees
+		base_y       = cible.position.y
 		_tir_pos_off = Vector2.ZERO
 		_tir_rot_off = 0.0
 
@@ -119,7 +116,7 @@ func stop_drop() -> void:
 		cible.rotation_degrees = 0.0
 		cible.scale = Vector2.ONE
 
-func tick(now: float, est_au_sol: bool) -> void:
+func tick(now: float, est_au_sol: bool, dt: float) -> void:
 	if cible == null:
 		return
 
@@ -143,11 +140,7 @@ func tick(now: float, est_au_sol: bool) -> void:
 		_:
 			maj_idle(now, est_au_sol)
 
-	# base "propre" (sans recoil)
-	_base_pos = cible.position
-	_base_rot = cible.rotation_degrees
-
-	_appliquer_tir_overlay(now)
+	_appliquer_tir_overlay(now, dt)
 	est_au_sol_prec = est_au_sol
 
 func entrer_drop(dir: Vector2) -> void:
@@ -212,7 +205,7 @@ func maj_jet(now: float) -> void:
 		cible.global_position = jet_vers
 		entrer_rebond(jet_vers, jet_rebond_nb, jet_rebond_hauteur_px, jet_rebond_duree_s, jet_rebond_rot_deg, jet_rebond_scale_amp, jet_rebond_coef_hauteur, jet_rebond_coef_duree)
 
-func entrer_rebond(base: Vector2, nb: int, haut_px: float, duree_s: float, rot_deg: float, scale_amp: float, _coef_h: float, _coef_t: float) -> void:
+func entrer_rebond(base: Vector2, nb: int, haut_px: float, duree_s: float, rot_deg: float, scale_amp: float, coef_h: float, coef_t: float) -> void:
 	if cible == null:
 		return
 	rebond_i = 0
@@ -222,6 +215,8 @@ func entrer_rebond(base: Vector2, nb: int, haut_px: float, duree_s: float, rot_d
 	rebond_rot_cur = rot_deg
 	rebond_scale_cur = scale_amp
 	rebond_total = nb
+	_rebond_coef_h_actif = coef_h
+	_rebond_coef_t_actif = coef_t
 	rebond_t0 = Time.get_ticks_msec() * 0.001
 	cible.scale = Vector2.ONE
 	etat = ETAT_REBOND
@@ -246,8 +241,8 @@ func maj_rebond(now: float) -> void:
 			flottement_actif = true
 			etat = ETAT_IDLE
 		else:
-			rebond_hauteur_cur *= rebond_coef_hauteur
-			rebond_duree_cur *= rebond_coef_duree
+			rebond_hauteur_cur *= _rebond_coef_h_actif
+			rebond_duree_cur   *= _rebond_coef_t_actif
 			rebond_t0 = now
 
 func maj_idle(now: float, est_au_sol: bool) -> void:
@@ -280,17 +275,10 @@ func kick_tir(dir: Vector2, intensite: float = 1.0) -> void:
 	_tir_t = min(_tir_t + intensite, tir_stack_max)
 	_tir_shake = min(_tir_shake + intensite, 3.0)
 
-func _retirer_tir_overlay() -> void:
-	if cible == null or not tir_actif:
-		return
-	cible.position -= _tir_pos_off
-	cible.rotation_degrees -= _tir_rot_off
-
-func _appliquer_tir_overlay(now: float) -> void:
+func _appliquer_tir_overlay(now: float, dt: float) -> void:
 	if cible == null or not tir_actif:
 		return
 
-	var dt: float = get_process_delta_time()
 	dt = max(dt, 0.000001)
 
 	var a_kick: float = 1.0 - exp(-tir_kick_reactivite * dt)
