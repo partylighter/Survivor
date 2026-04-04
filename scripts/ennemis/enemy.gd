@@ -433,7 +433,7 @@ func _tick_ia(dt: float) -> void:
 			var cur_dir: Vector2 = _dir_mouvement_last
 			if cur_dir.length_squared() < 0.0001:
 				cur_dir = desired_dir
-			var krot: float = clamp(max(vitesse_rotation_rad_s, 0.0) * dt, 0.0, 1.0)
+			var krot: float = 1.0 - exp(-max(vitesse_rotation_rad_s, 0.0) * dt)
 			_dir_mouvement_last = cur_dir.lerp(desired_dir, krot)
 			if _dir_mouvement_last.length_squared() > 0.0001:
 				_dir_mouvement_last = _dir_mouvement_last.normalized()
@@ -547,7 +547,8 @@ func _tick_scale_impact(dt: float) -> void:
 		return
 
 	var d: float = max(secousse_scale_damping, 0.0)
-	_scale_vel    += (-_scale_offset * k - _scale_vel * d) * dt
+	var denom: float = 1.0 + d * dt + k * dt * dt
+	_scale_vel    = (_scale_vel - _scale_offset * k * dt) / denom
 	_scale_offset += _scale_vel * dt
 
 	var m: float = max(secousse_scale_max, 0.0)
