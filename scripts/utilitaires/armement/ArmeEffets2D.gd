@@ -378,7 +378,7 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 	dt = max(dt, 0.000001)
 
 	var a_kick: float = 1.0 - exp(-_rt_tir_kick_reactivite * dt)
-	var a_ret: float = 1.0 - exp(-_rt_tir_retour * dt)
+	var a_ret: float  = 1.0 - exp(-_rt_tir_retour * dt)
 
 	if _tir_t > 0.0001:
 		_tir_t = lerp(_tir_t, 0.0, a_ret)
@@ -390,8 +390,9 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 	else:
 		_tir_shake = 0.0
 
+	# Calcul en espace monde, converti en local ensuite
 	var cible_off_pos: Vector2 = Vector2.ZERO
-	var cible_off_rot: float = 0.0
+	var cible_off_rot: float   = 0.0
 
 	if _tir_t > 0.0:
 		var recul: Vector2 = (-_tir_dir * _rt_tir_recul_px) + (Vector2.UP * _rt_tir_lift_px)
@@ -407,10 +408,17 @@ func _appliquer_tir_overlay(now: float, dt: float) -> void:
 		cible_off_pos += v * _rt_tir_shake_pos_px * _tir_shake
 		cible_off_rot += sin(now * 63.2) * _rt_tir_shake_rot_deg * _tir_shake
 
-	_tir_pos_off = _tir_pos_off.lerp(cible_off_pos, a_kick)
-	_tir_rot_off = lerp(_tir_rot_off, cible_off_rot, a_kick)
+	# _tir_dir vient de _forward_dir() (espace monde) → convertir en espace local du parent
+	# pour que cible.position += offset soit cohérent avec l'orientation du porteur.
+	var parent := cible.get_parent() as Node2D
+	if parent:
+		cible_off_pos = parent.get_global_transform().basis_xform_inv(cible_off_pos)
 
-	if _tir_t <= 0.0 and _tir_shake <= 0.0:
+	# Un seul lerp selon l'état : actif → suit la cible rapidement, inactif → retour lent
+	if _tir_t > 0.0 or _tir_shake > 0.0:
+		_tir_pos_off = _tir_pos_off.lerp(cible_off_pos, a_kick)
+		_tir_rot_off = lerp(_tir_rot_off, cible_off_rot, a_kick)
+	else:
 		_tir_pos_off = _tir_pos_off.lerp(Vector2.ZERO, a_ret)
 		_tir_rot_off = lerp(_tir_rot_off, 0.0, a_ret)
 
