@@ -143,6 +143,22 @@ func _snapshot_tir_authoring() -> void:
 	_base_tir_shake_rot_deg = tir_shake_rot_deg
 	_base_tir_shake_fade = tir_shake_fade
 
+func refresh_authoring_snapshot() -> void:
+	_snapshot_tir_authoring()
+
+func get_authoring_signature() -> Array:
+	return [
+		tir_recul_px,
+		tir_lift_px,
+		tir_rot_deg,
+		tir_kick_reactivite,
+		tir_retour,
+		tir_stack_max,
+		tir_shake_pos_px,
+		tir_shake_rot_deg,
+		tir_shake_fade,
+	]
+
 func creer_runtime() -> EffetsRuntime:
 	var rt := EffetsRuntime.new()
 	rt.tir_recul_px = _base_tir_recul_px

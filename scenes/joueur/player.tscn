@@ -194,10 +194,11 @@ script = ExtResource("8_1bwnf")
 
 [node name="Santé" type="Node" parent="." unique_id=2029737781]
 script = ExtResource("3_qhqgy")
+max_pv = 999999999
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=655173724]
 script = ExtResource("9_7tfl1")
-pv_max_base = 9999999999
+pv_max_base = 999999999
 vitesse_base = 1200.0
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
@@ -220,6 +221,7 @@ script = ExtResource("10_uxo23")
 conso_overheal_1_amount = 1.0
 conso_overheal_2_amount = 2.0
 conso_overheal_3_amount = 6.0
+conso_soif_1_amount = 100.0
 carburant_par_item_1 = 2.0
 carburant_par_item_2 = 6.0
 carburant_par_item_3 = 10.0

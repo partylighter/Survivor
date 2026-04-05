@@ -52,6 +52,15 @@ func _ready() -> void:
 	if visuel == null:
 		visuel = self
 
+	_sync_base_visuel()
+
+	set_process(false)
+	reset_etat()
+
+func _sync_base_visuel() -> void:
+	if visuel == null:
+		return
+
 	var ci := visuel as CanvasItem
 	if ci != null:
 		_modulate_base = ci.modulate
@@ -60,9 +69,6 @@ func _ready() -> void:
 
 	_scale_base = visuel.scale
 	_pos_base   = visuel.position
-
-	set_process(false)
-	reset_etat()
 
 func reset_etat() -> void:
 	_t_idle          = 0.0

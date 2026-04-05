@@ -62,5 +62,6 @@ color_ramp = SubResource("Gradient_dte6k")
 
 [node name="ArmeEffets2D" type="Node" parent="." unique_id=98624666]
 script = ExtResource("4_rn7y6")
-tir_lift_px = 4.375
+tir_recul_px = 80.0
+tir_rot_deg = -6.0
 metadata/_custom_type_script = "uid://5adwsbkqdlcw"

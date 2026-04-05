@@ -181,10 +181,14 @@ func demander_drops(
 
 		var nom_aff: String = ""
 		var ic: Texture2D = null
+		var couleur: Color = Color.WHITE
+		var echelle: float = 1.0
 		var skin: StringName = &""
 		if entry != null:
 			nom_aff = entry.nom_affiche
 			ic = entry.icone
+			couleur = entry.couleur
+			echelle = entry.echelle
 			skin = entry.skin_id
 
 		var ox: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
@@ -199,6 +203,8 @@ func demander_drops(
 			"joueur": joueur,
 			"nom_affiche": nom_aff,
 			"icone": ic,
+			"couleur": couleur,
+			"echelle": echelle,
 			"skin_id": skin
 		})
 

@@ -24,12 +24,12 @@ var _particles_tir: CPUParticles2D = null
 var _root_proj: Node
 var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
-var _particles_tir_fin_s: float = 0.0
 var _base_cooldown_s: float = 0.0
 var _base_degats: int = 0
 var _base_nb_balles: int = 0
 var _base_dispersion_deg: float = 0.0
 var _upgrades_signal_connecte: bool = false
+var _effets_authoring_signature: Array = []
 var _visuel_runtime: ProjectileVisualRuntime = ProjectileVisualRuntime.new()
 var _trail_scene_resolue: PackedScene = null
 var _impact_scene_resolue: PackedScene = null
@@ -57,6 +57,7 @@ func _ready() -> void:
 		_particles_tir = get_node_or_null(chemin_particles_tir) as CPUParticles2D
 		if _particles_tir != null:
 			_particles_tir.emitting = false
+			_particles_tir.one_shot = true
 
 	_root_proj = null
 
@@ -79,6 +80,8 @@ func _ready() -> void:
 
 	_rafraichir_cache_effets_visuels(true)
 	_rebuild_effets_runtime()
+	if effets != null:
+		_effets_authoring_signature = effets.get_authoring_signature()
 
 func _trouver_upgrades() -> void:
 	if upgrades == null or not is_instance_valid(upgrades):
@@ -98,9 +101,12 @@ func _offset_eventail(i: int, n: int, spread_rad: float) -> float:
 func _process(_dt: float) -> void:
 	var now: float = Time.get_ticks_msec() * 0.001
 	if effets:
+		var sig: Array = effets.get_authoring_signature()
+		if sig != _effets_authoring_signature:
+			effets.refresh_authoring_snapshot()
+			_effets_authoring_signature = sig
+			_rebuild_effets_runtime()
 		effets.tick(now, est_au_sol, _dt)
-	if _particles_tir != null and _particles_tir.emitting and now >= _particles_tir_fin_s:
-		_particles_tir.emitting = false
 	if not _pret and now >= _cooldown_fin_s:
 		_pret = true
 
@@ -150,11 +156,13 @@ func attaquer() -> void:
 	var n: int           = min(nb_balles, tir_max_par_frame)
 	var spread_rad: float = deg_to_rad(dispersion_deg)
 	var src: Node2D      = (porteur as Node2D) if porteur is Node2D else self
+	var a_tire: bool     = false
 
 	for i: int in range(n):
 		var dir_i: Vector2 = dir0.rotated(_offset_eventail(i, n, spread_rad))
 		if hitscan:
 			_tir_hitscan(from, dir_i)
+			a_tire = true
 		else:
 			# _prendre_projectile_brut — sans appel upgrades à l'intérieur
 			var p: Projectile = _prendre_projectile_brut()
@@ -166,15 +174,21 @@ func attaquer() -> void:
 				if visuel_projectiles_actif:
 					visuel_rt = _construire_visuel_runtime(p)
 				p.activer(from + dir_i * 8.0, dir_i, degats, recul_force, src, visuel_rt)
+				a_tire = true
 
-	if _particles_tir != null:
-		_particles_tir.restart()
-		_particles_tir.emitting = true
-		_particles_tir_fin_s = now + maxf(cooldown_s, _particles_tir.lifetime)
+	if a_tire:
+		_jouer_particles_tir()
 
 	if effets:
 		var intensite: float = clamp(0.9 + float(n - 1) * 0.08, 0.9, 1.6)
 		effets.kick_tir(dir0, intensite)
+
+func _jouer_particles_tir() -> void:
+	if _particles_tir == null:
+		return
+	_particles_tir.emitting = false
+	_particles_tir.restart()
+	_particles_tir.emitting = true
 
 func _tir_hitscan(from: Vector2, dir: Vector2) -> void:
 	var to: Vector2    = from + dir * portee_hitscan_px
@@ -307,6 +321,7 @@ func _rebuild_effets_runtime() -> void:
 	rt.tir_shake_fade *= lerpf(0.85, 1.2, clampf((cadence_ratio - 0.5) / 2.5, 0.0, 1.0))
 
 	effets.appliquer_runtime(rt)
+	_effets_authoring_signature = effets.get_authoring_signature()
 
 func _construire_visuel_runtime(projectile: Projectile) -> ProjectileVisualRuntime:
 	_visuel_runtime.reset_to_defaults()

@@ -9,7 +9,12 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_1y4wy"]
 radius = 122.44
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_n5nnx"]
+radius = 46.34
+
 [node name="EnemyC" type="CharacterBody2D" unique_id=1359294128]
+collision_layer = 64
+collision_mask = 64
 script = ExtResource("1_ic1sw")
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Sprite2D")
@@ -48,3 +53,7 @@ debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 [node name="ContactDamage" type="Node" parent="." unique_id=2020889737]
 script = ExtResource("5_rsoyq")
 metadata/_custom_type_script = "uid://b1wenibwev34d"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=418694463]
+shape = SubResource("CircleShape2D_n5nnx")
+debug_color = Color(0, 10.0080385, 11.57585, 0)

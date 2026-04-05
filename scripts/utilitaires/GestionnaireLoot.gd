@@ -29,6 +29,9 @@ const ID_CARB_3: StringName = &"carburant_3"
 @export var conso_overheal_2_amount: float = 40.0
 @export var conso_overheal_3_amount: float = 80.0
 
+@export_group("Conso: Soif")
+@export var conso_soif_1_amount: float = 25.0
+
 @export_group("Conso: Invincibilité")
 @export var conso_invincible_1_duree: float = 2.0
 @export var conso_invincible_2_duree: float = 3.5
@@ -67,6 +70,7 @@ var _carburant_base_cache: CarburantBase = null
 var joueur: Player = null
 var stats: StatsJoueur = null
 var sante: Sante = null
+var soif_ref: Soif = null
 
 var stats_loot: Dictionary = {}
 
@@ -121,6 +125,8 @@ func _ensure_refs() -> void:
 		sante = joueur.sante
 		if sante != null and not sante.damaged.is_connected(_on_player_damaged):
 			sante.damaged.connect(_on_player_damaged)
+	if joueur != null and (soif_ref == null or not is_instance_valid(soif_ref)):
+		soif_ref = joueur.soif
 
 	_refs_ok = (joueur != null and stats != null and sante != null)
 
@@ -223,6 +229,8 @@ func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 			_conso_overheal(quantite, conso_overheal_2_amount)
 		"conso_overheal_3":
 			_conso_overheal(quantite, conso_overheal_3_amount)
+		"conso_soif_1":
+			_conso_soif(quantite, conso_soif_1_amount)
 
 		"conso_regen_1":
 			_conso_regen(quantite, conso_regen_1_duree, conso_regen_1_total)
@@ -274,6 +282,13 @@ func _conso_overheal(quantite: int, amount: float) -> void:
 		return
 	sante.set_full_pv()
 	sante.add_overheal(amount * float(quantite))
+
+func _conso_soif(quantite: int, amount: float) -> void:
+	if joueur == null or not is_instance_valid(joueur):
+		_ensure_refs()
+	if soif_ref == null or not is_instance_valid(soif_ref) or amount <= 0.0:
+		return
+	soif_ref.gagner_soif(amount * float(quantite))
 
 func _conso_invincibilite(quantite: int, duree: float) -> void:
 	if duree <= 0.0:

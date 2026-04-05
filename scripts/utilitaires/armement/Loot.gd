@@ -18,6 +18,8 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 @export_group("Visuel")
 @export var nom_affiche: String = ""
 @export var icone: Texture2D
+@export var couleur: Color = Color.WHITE
+@export_range(0.1, 8.0, 0.05) var echelle: float = 1.0
 @export var skin_id: StringName = &""
 
 @export var magnet_radius: float = 220.0
@@ -56,6 +58,10 @@ var _lm_index: int = -1
 # Cache visuel — calculé une fois dans _ready, jamais recalculé
 var _sprite_cache: Sprite2D = null
 var _label_cache:  Label    = null
+var _sprite_texture_defaut: Texture2D = null
+var _sprite_couleur_defaut: Color = Color.WHITE
+var _sprite_echelle_defaut: Vector2 = Vector2.ONE
+var _label_texte_defaut: String = ""
 
 @onready var anim: LootAnim = get_node_or_null(anim_path) as LootAnim
 
@@ -70,10 +76,16 @@ func _ready() -> void:
 	var sprites := find_children("*", "Sprite2D", true, false)
 	if not sprites.is_empty():
 		_sprite_cache = sprites[0] as Sprite2D
+		if _sprite_cache != null:
+			_sprite_texture_defaut = _sprite_cache.texture
+			_sprite_couleur_defaut = _sprite_cache.modulate
+			_sprite_echelle_defaut = _sprite_cache.scale
 
 	var labels := find_children("*", "Label", true, false)
 	if not labels.is_empty():
 		_label_cache = labels[0] as Label
+		if _label_cache != null:
+			_label_texte_defaut = _label_cache.text
 
 	if _pool_owner != null:
 		_desactiver_pour_pool()
@@ -100,6 +112,8 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 
 	nom_affiche = String(req.get("nom_affiche", nom_affiche))
 	icone       = req.get("icone", icone) as Texture2D
+	couleur     = req.get("couleur", couleur)
+	echelle     = float(req.get("echelle", echelle))
 	skin_id     = req.get("skin_id", skin_id)
 
 	joueur_cible    = req.get("joueur", joueur_cible)
@@ -262,6 +276,8 @@ func prendre_payload() -> Dictionary:
 		"scene":      scene_contenu,
 		"nom_affiche": nom_affiche,
 		"icone":      icone,
+		"couleur":    couleur,
+		"echelle":    echelle,
 		"skin_id":    skin_id
 	}
 
@@ -272,10 +288,21 @@ func vider() -> void:
 	scene_contenu = null
 	nom_affiche   = ""
 	icone         = null
+	couleur       = Color.WHITE
+	echelle       = 1.0
 	skin_id       = &""
 
 func _appliquer_visuel() -> void:
-	if _sprite_cache != null and icone != null:
-		_sprite_cache.texture = icone
-	if _label_cache != null and nom_affiche != "":
-		_label_cache.text = nom_affiche
+	if _sprite_cache != null:
+		_sprite_cache.texture = icone if icone != null else _sprite_texture_defaut
+		_sprite_cache.modulate = Color(
+			couleur.r,
+			couleur.g,
+			couleur.b,
+			couleur.a * _sprite_couleur_defaut.a
+		)
+		_sprite_cache.scale = _sprite_echelle_defaut * echelle
+	if _label_cache != null:
+		_label_cache.text = nom_affiche if nom_affiche != "" else _label_texte_defaut
+	if anim != null and anim.has_method("_sync_base_visuel"):
+		anim.call("_sync_base_visuel")
