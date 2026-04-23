@@ -41,25 +41,31 @@
 [sub_resource type="Resource" id="Resource_yovrb"]
 script = ExtResource("12_yovrb")
 nom = &"zone1"
+x_fin_px = 30000.0
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
 poids = null
 est_zone_boss = true
 scene_boss = ExtResource("14_p5j6c")
+x_boss_spawn_px = 3000.0
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
 script = ExtResource("12_yovrb")
 nom = &"zone2"
-x_debut_px = 3000.0
-x_fin_px = 6000.0
+x_debut_px = 30000.0
+x_fin_px = 60000.0
+apparitions_par_sec = 10.0
+max_ennemis_zone = 160
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_5o3x5"]
 script = ExtResource("12_yovrb")
 nom = &"zone3"
-x_debut_px = 6000.0
-x_fin_px = 9000.0
+x_debut_px = 60000.0
+x_fin_px = 90000.0
+apparitions_par_sec = 20.0
+max_ennemis_zone = 320
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
@@ -234,6 +240,7 @@ mod_degats = true
 degats = 500
 mod_duree_active_s = true
 mod_cooldown_s = true
+cooldown_s = 0.18
 mod_recul_force = true
 recul_force = 1200.0
 mod_nb_balles = true

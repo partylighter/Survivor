@@ -20,3 +20,5 @@ extends Resource
 @export_group("Boss")
 @export var est_zone_boss: bool        = false
 @export var scene_boss:    PackedScene = null
+## Position X absolue du spawn du boss. Si 0, utilise le centre de la zone.
+@export var x_boss_spawn_px: float = 0.0

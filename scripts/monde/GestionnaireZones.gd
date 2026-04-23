@@ -184,8 +184,10 @@ func _gerer_entree_boss(zone_idx: int) -> void:
 		push_warning("GestionnaireZones: zone boss '%s' sans scene_boss." % zone_active.nom)
 		return
 
+	var x_boss: float = zone_active.x_boss_spawn_px if zone_active.x_boss_spawn_px != 0.0 \
+		else zone_active.x_debut_px + (zone_active.x_fin_px - zone_active.x_debut_px) * 0.5
 	var pos: Vector2 = Vector2(
-		zone_active.x_debut_px + (zone_active.x_fin_px - zone_active.x_debut_px) * 0.5,
+		x_boss,
 		_joueur.global_position.y if is_instance_valid(_joueur) else 0.0
 	)
 
