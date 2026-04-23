@@ -148,6 +148,9 @@ func demander_drops(
 	if table == null:
 		return
 
+	if rng.randf() < table.proba_rien:
+		return
+
 	for _i: int in range(nb_loots):
 		var rarete: int = _tirer_rarete(type_ennemi, niveau_effectif, chance_joueur)
 

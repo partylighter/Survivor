@@ -16,6 +16,8 @@ var resolutions: Array[Vector2i] = [
 	Vector2i(1920, 1080),
 	Vector2i(2560, 1440),
 	Vector2i(3840, 2160),
+	Vector2i(640, 360),
+	Vector2i(960, 540),
 ]
 
 var resolution_index: int = 0
@@ -103,7 +105,7 @@ func apply_to_window(w: Window) -> void:
 
 	var r := get_current_resolution()
 
-	w.content_scale_mode   = Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+	w.content_scale_mode   = Window.CONTENT_SCALE_MODE_VIEWPORT
 	w.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_KEEP
 	w.content_scale_size   = r
 
@@ -112,7 +114,6 @@ func apply_to_window(w: Window) -> void:
 			w.mode = Window.MODE_FULLSCREEN
 		else:
 			w.mode = Window.MODE_EXCLUSIVE_FULLSCREEN
-		DisplayServer.window_set_size(r, w.get_window_id())
 		return
 
 	w.mode = Window.MODE_WINDOWED
@@ -138,7 +139,9 @@ func get_current_resolution() -> Vector2i:
 
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
-	cfg.set_value("display", "resolution_index", resolution_index)
+	var r := get_current_resolution()
+	cfg.set_value("display", "resolution_x", r.x)
+	cfg.set_value("display", "resolution_y", r.y)
 	cfg.set_value("display", "fullscreen", fullscreen)
 	cfg.save(CONFIG_PATH)
 
@@ -150,9 +153,16 @@ func load_settings() -> void:
 		fullscreen = DEFAULT_FULLSCREEN
 		return
 
-	resolution_index = int(cfg.get_value("display", "resolution_index", _get_default_res_index()))
+	var rx: int = int(cfg.get_value("display", "resolution_x", DEFAULT_RESOLUTION.x))
+	var ry: int = int(cfg.get_value("display", "resolution_y", DEFAULT_RESOLUTION.y))
+	resolution_index = _find_resolution_index(Vector2i(rx, ry))
 	fullscreen = bool(cfg.get_value("display", "fullscreen", DEFAULT_FULLSCREEN))
-	resolution_index = clampi(resolution_index, 0, max(resolutions.size() - 1, 0))
+
+func _find_resolution_index(r: Vector2i) -> int:
+	for i in range(resolutions.size()):
+		if resolutions[i] == r:
+			return i
+	return _get_default_res_index()
 
 func _get_default_res_index() -> int:
 	if resolutions.is_empty():

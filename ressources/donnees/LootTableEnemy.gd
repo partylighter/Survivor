@@ -1,6 +1,9 @@
 extends Resource
 class_name LootTableEnemy
 
+@export_group("Probabilité de rien")
+@export_range(0.0, 1.0, 0.01) var proba_rien: float = 0.0
+
 @export_group("Probabilités de rareté")
 @export_range(0.0, 1.0, 0.01) var proba_C: float = 1.0
 @export_range(0.0, 1.0, 0.01) var proba_B: float = 0.0

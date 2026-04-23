@@ -3,13 +3,9 @@
 [ext_resource type="Script" uid="uid://c4vtow8ko88a2" path="res://scripts/menus/menu_titre.gd" id="1_b4npc"]
 [ext_resource type="Material" uid="uid://brldkbrto6kg7" path="res://shaders/preload/menu_titre_shader.tres" id="2_pmp5a"]
 [ext_resource type="Script" uid="uid://b7hstmkshyre5" path="res://scripts/chargements_auto/menus/GestionnaireMenuTitre.gd" id="2_ru77k"]
-[ext_resource type="PackedScene" uid="uid://0182ilsqlcwo" path="res://scenes/niveaux/NiveauTest/world.tscn" id="3_iipul"]
 [ext_resource type="Shader" uid="uid://smdojyjkschy" path="res://shaders/glitcheffect.gdshader" id="3_ochwo"]
-[ext_resource type="PackedScene" uid="uid://d3m82iowm74c8" path="res://scenes/menus/menu_parametres.tscn" id="4_iipul"]
 [ext_resource type="Texture2D" uid="uid://chhyl8s1v8t1e" path="res://assets/ui/jouer_txtt.png" id="4_um6qy"]
-[ext_resource type="PackedScene" uid="uid://cmle5kbdu3q7b" path="res://scenes/menus/menu_credits.tscn" id="5_iipul"]
 [ext_resource type="Texture2D" uid="uid://derhwlkhaequ1" path="res://assets/ui/Parametres_txt.png" id="5_sgjoj"]
-[ext_resource type="Script" uid="uid://bq3t5gut31jxk" path="res://scripts/menus/GlitchTextureButtonGroupController.gd" id="5_um6qy"]
 [ext_resource type="Texture2D" uid="uid://ccb2ulk1ntb5x" path="res://assets/ui/Credits_txt.png" id="6_x1rs3"]
 [ext_resource type="Texture2D" uid="uid://4ymruuxglnm8" path="res://assets/ui/Quitter_txt.png" id="7_nq5t2"]
 [ext_resource type="Script" uid="uid://dffiqrgc51xph" path="res://scripts/menus/glitch_controller_team.gd" id="12_ochwo"]
@@ -17,7 +13,7 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_aj7qu"]
 shader = ExtResource("3_ochwo")
 shader_parameter/tex = ExtResource("4_um6qy")
-shader_parameter/glitch_amount = 1.9100000000000001
+shader_parameter/glitch_amount = 1.91
 shader_parameter/glitch_speed = 1.6
 shader_parameter/band_count = 44.41
 shader_parameter/rgb_split_px = 2.0
@@ -72,10 +68,6 @@ shader_parameter/noise_strength = 0.02
 
 [node name="MenuTitre" type="CanvasLayer" unique_id=115352017]
 script = ExtResource("1_b4npc")
-chemin_btn_jouer = NodePath("Root/VBoxContainer/btn_play")
-chemin_btn_parametres = NodePath("Root/VBoxContainer/btn_settings")
-chemin_btn_credits = NodePath("Root/VBoxContainer/btn_credits")
-chemin_btn_quitter = NodePath("Root/VBoxContainer/btn_quit")
 
 [node name="Root" type="Control" parent="." unique_id=1465130667]
 layout_mode = 3
@@ -134,64 +126,43 @@ color = Color(0, 0, 0, 1)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Root" unique_id=2060812006]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
+anchors_preset = 4
 anchor_top = 0.5
-anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -49.5
-offset_top = -68.0
-offset_right = 49.5
-offset_bottom = 68.0
-grow_horizontal = 2
+offset_left = 350.0
+offset_top = -235.0
+offset_right = 650.0
+offset_bottom = 279.0
 grow_vertical = 2
+scale = Vector2(0.805, 0.805)
+theme_override_constants/separation = 108
 
 [node name="btn_play" type="TextureButton" parent="Root/VBoxContainer" unique_id=1946422243]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_aj7qu")
 layout_mode = 2
 texture_normal = ExtResource("4_um6qy")
-script = ExtResource("5_um6qy")
-live_update = true
-idle_scale = Vector2(4, 4)
-idle_offset_px = Vector2(-500, -200)
 
 [node name="btn_settings" type="TextureButton" parent="Root/VBoxContainer" unique_id=1034386705]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_yk2tf")
 layout_mode = 2
 texture_normal = ExtResource("5_sgjoj")
-script = ExtResource("5_um6qy")
-live_update = true
-idle_scale = Vector2(4, 4)
-idle_offset_px = Vector2(-400, 0)
 
 [node name="btn_credits" type="TextureButton" parent="Root/VBoxContainer" unique_id=441224674]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_5hk1i")
 layout_mode = 2
 texture_normal = ExtResource("6_x1rs3")
-script = ExtResource("5_um6qy")
-live_update = true
-idle_scale = Vector2(4, 4)
-idle_offset_px = Vector2(-500, 200)
 
 [node name="btn_quit" type="TextureButton" parent="Root/VBoxContainer" unique_id=1085646173]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_84y00")
 layout_mode = 2
 texture_normal = ExtResource("7_nq5t2")
-script = ExtResource("5_um6qy")
-live_update = true
-idle_scale = Vector2(4, 4)
-idle_offset_px = Vector2(-460.535, 400)
 
 [node name="GestionnaireMenuTitre" type="Node" parent="." unique_id=1408607463]
 script = ExtResource("2_ru77k")
-scene_jeu = ExtResource("3_iipul")
-scene_options = ExtResource("4_iipul")
-scene_credits = ExtResource("5_iipul")
-metadata/_custom_type_script = "uid://b7hstmkshyre5"
 
 [node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=362785622]
 anchors_preset = 2
@@ -215,5 +186,26 @@ text = "Version 0.1.2"
 script = ExtResource("12_ochwo")
 groupe = &"droit"
 live_update = true
-idle_scale = Vector2(6, 5)
-idle_offset_px = Vector2(-400, -200)
+idle_scale = Vector2(3, 3.3)
+idle_rot_deg = 3.6
+hover_scale = Vector2(3.12, 3.43)
+hover_rot_deg = 4.2
+hover_offset_px = Vector2(0, -3)
+pressed_scale = Vector2(2.91, 3.2)
+pressed_rot_deg = 2.8
+pressed_offset_px = Vector2(0, 3)
+idle_glitch_amount = 6.0
+idle_band_count = 8.0
+idle_max_shift = 0.8
+idle_jitter_px = 0.8
+idle_noise_strength = 0.6
+hover_glitch_amount = 8.0
+hover_band_count = 10.0
+hover_max_shift = 1.0
+hover_jitter_px = 1.0
+hover_noise_strength = 0.8
+pressed_glitch_amount = 10.0
+pressed_band_count = 12.0
+pressed_max_shift = 1.2
+pressed_jitter_px = 1.2
+pressed_noise_strength = 1.0

@@ -71,22 +71,19 @@ class BtnData:
 	var etat: int = Etat.IDLE
 	var hovered: bool = false
 	var down: bool = false
-	var base_pos: Vector2
-	var base_scale: Vector2
-	var base_rot: float
 	var tw_shader: Tween = null
 	var tw_xform: Tween = null
 	func _init(b: TextureButton, m: ShaderMaterial) -> void:
 		btn = b
 		mat = m
-		base_pos = b.position
-		base_scale = b.scale
-		base_rot = b.rotation
 
 var _btns: Array[BtnData] = []
 var _live_accum: float = 0.0
 
 func _ready() -> void:
+	call_deferred("_init_differe")
+
+func _init_differe() -> void:
 	_collect()
 	_connect_all()
 	_apply_all(true)
@@ -273,26 +270,21 @@ func _apply_transform(d: BtnData, dur: float) -> void:
 
 	var target_scale: Vector2 = idle_scale
 	var target_rot: float = deg_to_rad(idle_rot_deg)
-	var target_pos: Vector2 = d.base_pos + idle_offset_px
 
 	if d.etat == Etat.HOVER:
 		target_scale = hover_scale
 		target_rot = deg_to_rad(hover_rot_deg)
-		target_pos = d.base_pos + hover_offset_px
 	elif d.etat == Etat.PRESSED:
 		target_scale = pressed_scale
 		target_rot = deg_to_rad(pressed_rot_deg)
-		target_pos = d.base_pos + pressed_offset_px
 
 	if dur <= 0.0:
 		d.btn.scale = target_scale
 		d.btn.rotation = target_rot
-		d.btn.position = target_pos
 		return
 
 	var from_scale: Vector2 = d.btn.scale
 	var from_rot: float = d.btn.rotation
-	var from_pos: Vector2 = d.btn.position
 
 	d.tw_xform = create_tween()
 	d.tw_xform.set_trans(Tween.TRANS_QUAD)
@@ -301,7 +293,6 @@ func _apply_transform(d: BtnData, dur: float) -> void:
 		var k: float = clamp(v, 0.0, 1.0)
 		d.btn.scale = from_scale.lerp(target_scale, k)
 		d.btn.rotation = lerp(from_rot, target_rot, k)
-		d.btn.position = from_pos.lerp(target_pos, k)
 	, 0.0, 1.0, dur)
 
 func _set_params(mat: ShaderMaterial, a: float, sp: float, bc: float, rgb: float, ms: float, jit: float, frz: float, blk: float, sc: float, ns: float) -> void:

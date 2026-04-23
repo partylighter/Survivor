@@ -4,11 +4,30 @@ class_name GestionnaireArme
 enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
 
 @export_group("Refs")
-@export_node_path("Node2D") var chemin_socket_principale: NodePath
-@export_node_path("Node2D") var chemin_socket_secondaire: NodePath
-@export_node_path("ZoneRamassage") var chemin_zone: NodePath
-@export_node_path("Node2D") var chemin_pivot: NodePath
-@export var pivot_mode: PivotMode = PivotMode.SELF
+@export_node_path("Node2D") var chemin_socket_principale: NodePath:
+	set(v):
+		chemin_socket_principale = v
+		if is_inside_tree():
+			_socket_principale = get_node_or_null(v) as Node2D
+@export_node_path("Node2D") var chemin_socket_secondaire: NodePath:
+	set(v):
+		chemin_socket_secondaire = v
+		if is_inside_tree():
+			_socket_secondaire = get_node_or_null(v) as Node2D
+@export_node_path("ZoneRamassage") var chemin_zone: NodePath:
+	set(v):
+		chemin_zone = v
+		if is_inside_tree():
+			zone = get_node_or_null(v) as ZoneRamassage
+@export_node_path("Node2D") var chemin_pivot: NodePath:
+	set(v):
+		chemin_pivot = v
+		if is_inside_tree():
+			_pivot_node = get_node_or_null(v) as Node2D
+@export var pivot_mode: PivotMode = PivotMode.SELF:
+	set(v):
+		pivot_mode = v
+		_has_pivot = false
 
 @export_group("Distances")
 @export_range(0.0, 2000.0, 0.1) var distance_min: float = 300.0

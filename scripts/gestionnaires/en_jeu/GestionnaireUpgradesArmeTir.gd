@@ -38,76 +38,199 @@ signal upgrades_changes
 
 enum Mode { SET, ADD, MUL }
 
-@export var actif: bool = true
+@export var actif: bool = true:
+	set(v):
+		actif = v
+		if is_inside_tree(): re_appliquer()
 @export var debug_upgrades: bool = false
 
 @export_group("Mode (manuel)")
-@export var mode_arme: Mode = Mode.SET
-@export var mode_projectile: Mode = Mode.SET
+@export var mode_arme: Mode = Mode.SET:
+	set(v):
+		mode_arme = v
+		if is_inside_tree(): re_appliquer()
+@export var mode_projectile: Mode = Mode.SET:
+	set(v):
+		mode_projectile = v
+		if is_inside_tree(): re_appliquer()
 
 @export_group("ArmeBase - Modifs (manuel)")
-@export var mod_degats: bool = false
-@export var degats: int = 10
+@export var mod_degats: bool = false:
+	set(v):
+		mod_degats = v
+		if is_inside_tree(): re_appliquer()
+@export var degats: int = 10:
+	set(v):
+		degats = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_duree_active_s: bool = false
-@export var duree_active_s: float = 0.12
+@export var mod_duree_active_s: bool = false:
+	set(v):
+		mod_duree_active_s = v
+		if is_inside_tree(): re_appliquer()
+@export var duree_active_s: float = 0.12:
+	set(v):
+		duree_active_s = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_cooldown_s: bool = false
-@export var cooldown_s: float = 0.3
+@export var mod_cooldown_s: bool = false:
+	set(v):
+		mod_cooldown_s = v
+		if is_inside_tree(): re_appliquer()
+@export var cooldown_s: float = 0.3:
+	set(v):
+		cooldown_s = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_recul_force: bool = false
-@export var recul_force: float = 200.0
+@export var mod_recul_force: bool = false:
+	set(v):
+		mod_recul_force = v
+		if is_inside_tree(): re_appliquer()
+@export var recul_force: float = 200.0:
+	set(v):
+		recul_force = v
+		if is_inside_tree(): re_appliquer()
 
 @export_group("ArmeTir - Modifs (manuel)")
-@export var mod_nb_balles: bool = false
-@export var nb_balles: int = 1
+@export var mod_nb_balles: bool = false:
+	set(v):
+		mod_nb_balles = v
+		if is_inside_tree(): re_appliquer()
+@export var nb_balles: int = 1:
+	set(v):
+		nb_balles = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_dispersion_deg: bool = false
-@export var dispersion_deg: float = 0.0
+@export var mod_dispersion_deg: bool = false:
+	set(v):
+		mod_dispersion_deg = v
+		if is_inside_tree(): re_appliquer()
+@export var dispersion_deg: float = 0.0:
+	set(v):
+		dispersion_deg = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_hitscan: bool = false
-@export var hitscan: bool = false
+@export var mod_hitscan: bool = false:
+	set(v):
+		mod_hitscan = v
+		if is_inside_tree(): re_appliquer()
+@export var hitscan: bool = false:
+	set(v):
+		hitscan = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_tir_max_par_frame: bool = false
-@export var tir_max_par_frame: int = 20
+@export var mod_tir_max_par_frame: bool = false:
+	set(v):
+		mod_tir_max_par_frame = v
+		if is_inside_tree(): re_appliquer()
+@export var tir_max_par_frame: int = 20:
+	set(v):
+		tir_max_par_frame = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_portee_hitscan_px: bool = false
-@export var portee_hitscan_px: float = 2000.0
+@export var mod_portee_hitscan_px: bool = false:
+	set(v):
+		mod_portee_hitscan_px = v
+		if is_inside_tree(): re_appliquer()
+@export var portee_hitscan_px: float = 2000.0:
+	set(v):
+		portee_hitscan_px = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_mask_tir: bool = false
-@export var mask_tir: int = 0
+@export var mod_mask_tir: bool = false:
+	set(v):
+		mod_mask_tir = v
+		if is_inside_tree(): re_appliquer()
+@export var mask_tir: int = 0:
+	set(v):
+		mask_tir = v
+		if is_inside_tree(): re_appliquer()
 
 @export_group("Projectile - Modifs (manuel)")
-@export var mod_duree_vie_s: bool = false
-@export var duree_vie_s: float = 1.5
+@export var mod_duree_vie_s: bool = false:
+	set(v):
+		mod_duree_vie_s = v
+		if is_inside_tree(): re_appliquer()
+@export var duree_vie_s: float = 1.5:
+	set(v):
+		duree_vie_s = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_vitesse_px_s: bool = false
-@export var vitesse_px_s: float = 1400.0
+@export var mod_vitesse_px_s: bool = false:
+	set(v):
+		mod_vitesse_px_s = v
+		if is_inside_tree(): re_appliquer()
+@export var vitesse_px_s: float = 1400.0:
+	set(v):
+		vitesse_px_s = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_collision_mask: bool = false
-@export var collision_mask: int = 0
+@export var mod_collision_mask: bool = false:
+	set(v):
+		mod_collision_mask = v
+		if is_inside_tree(): re_appliquer()
+@export var collision_mask: int = 0:
+	set(v):
+		collision_mask = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_marge_raycast_px: bool = false
-@export var marge_raycast_px: float = 1.0
+@export var mod_marge_raycast_px: bool = false:
+	set(v):
+		mod_marge_raycast_px = v
+		if is_inside_tree(): re_appliquer()
+@export var marge_raycast_px: float = 1.0:
+	set(v):
+		marge_raycast_px = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_largeur_zone_scane: bool = false
-@export var largeur_zone_scane: float = 0.0
+@export var mod_largeur_zone_scane: bool = false:
+	set(v):
+		mod_largeur_zone_scane = v
+		if is_inside_tree(): re_appliquer()
+@export var largeur_zone_scane: float = 0.0:
+	set(v):
+		largeur_zone_scane = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_nombre_de_rayon_dans_zone_scane: bool = false
-@export var nombre_de_rayon_dans_zone_scane: int = 2
+@export var mod_nombre_de_rayon_dans_zone_scane: bool = false:
+	set(v):
+		mod_nombre_de_rayon_dans_zone_scane = v
+		if is_inside_tree(): re_appliquer()
+@export var nombre_de_rayon_dans_zone_scane: int = 2:
+	set(v):
+		nombre_de_rayon_dans_zone_scane = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_contacts_avant_destruction: bool = false
-@export var contacts_avant_destruction: int = 1
+@export var mod_contacts_avant_destruction: bool = false:
+	set(v):
+		mod_contacts_avant_destruction = v
+		if is_inside_tree(): re_appliquer()
+@export var contacts_avant_destruction: int = 1:
+	set(v):
+		contacts_avant_destruction = v
+		if is_inside_tree(): re_appliquer()
 
-@export var mod_ignorer_meme_cible: bool = false
-@export var ignorer_meme_cible: bool = true
+@export var mod_ignorer_meme_cible: bool = false:
+	set(v):
+		mod_ignorer_meme_cible = v
+		if is_inside_tree(): re_appliquer()
+@export var ignorer_meme_cible: bool = true:
+	set(v):
+		ignorer_meme_cible = v
+		if is_inside_tree(): re_appliquer()
 
 # -------------------------------------------------------------------------------------
 # Registry (data-driven)
 # -------------------------------------------------------------------------------------
 # Option A : tu mets le NodePath dans l’inspecteur
 # Option B : tu mets UpgradeRegistry dans le groupe "upgrade_registry"
-@export_node_path("UpgradeRegistry") var chemin_registry: NodePath
+@export_node_path("UpgradeRegistry") var chemin_registry: NodePath:
+	set(v):
+		chemin_registry = v
+		_registry = null
+		if is_inside_tree():
+			_ensure_registry()
+			re_appliquer()
 
 var _registry: UpgradeRegistry = null
 

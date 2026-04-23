@@ -1,15 +1,12 @@
 extends Node
 
-@export var scene_jeu: PackedScene
-@export var scene_options: PackedScene
-@export var scene_credits: PackedScene
-
-var menu: MenuTitre
+const SCENE_JEU:     PackedScene = preload("res://scenes/niveaux/NiveauTest/world.tscn")
+const SCENE_OPTIONS: PackedScene = preload("res://scenes/menus/menu_parametres.tscn")
+const SCENE_CREDITS: PackedScene = preload("res://scenes/menus/menu_credits.tscn")
 
 func _ready() -> void:
-	if get_parent() is MenuTitre:
-		menu = get_parent() as MenuTitre
-	else:
+	var menu := get_parent() as MenuTitre
+	if menu == null:
 		push_error("GestionnaireMenuTitre doit être enfant du MenuTitre.")
 		return
 
@@ -19,23 +16,13 @@ func _ready() -> void:
 	menu.demande_quitter.connect(_sur_demande_quitter)
 
 func _sur_demande_jouer() -> void:
-	if scene_jeu == null:
-		push_error("Aucune scène de jeu définie.")
-		return
-	# Enregistre la scène courante et charge la nouvelle
-	GestionnaireRetour.aller_a_scene(scene_jeu)
+	GestionnaireRetour.aller_a_scene(SCENE_JEU)
 
 func _sur_demande_parametres() -> void:
-	if scene_options == null:
-		push_error("Aucune scène d’options définie.")
-		return
-	GestionnaireRetour.aller_a_scene(scene_options)
+	GestionnaireRetour.aller_a_scene(SCENE_OPTIONS)
 
 func _sur_demande_credits() -> void:
-	if scene_credits == null:
-		push_error("Aucune scène de crédits définie.")
-		return
-	GestionnaireRetour.aller_a_scene(scene_credits)
+	GestionnaireRetour.aller_a_scene(SCENE_CREDITS)
 
 func _sur_demande_quitter() -> void:
 	get_tree().quit()
