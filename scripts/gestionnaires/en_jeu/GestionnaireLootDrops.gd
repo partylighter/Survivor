@@ -187,12 +187,16 @@ func demander_drops(
 		var couleur: Color = Color.WHITE
 		var echelle: float = 1.0
 		var skin: StringName = &""
+		var afficher_sprite: bool = true
+		var afficher_notification: bool = false
 		if entry != null:
 			nom_aff = entry.nom_affiche
 			ic = entry.icone
 			couleur = entry.couleur
 			echelle = entry.echelle
 			skin = entry.skin_id
+			afficher_sprite = entry.afficher_sprite_loot
+			afficher_notification = entry.afficher_notification_collecte
 
 		var ox: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
 		var oy: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
@@ -208,7 +212,9 @@ func demander_drops(
 			"icone": ic,
 			"couleur": couleur,
 			"echelle": echelle,
-			"skin_id": skin
+			"skin_id": skin,
+			"afficher_sprite_loot": afficher_sprite,
+			"afficher_notification_collecte": afficher_notification
 		})
 
 

@@ -21,6 +21,8 @@ enum TypeItem { CONSO, UPGRADE, ARME }
 @export var couleur: Color = Color.WHITE
 @export_range(0.1, 8.0, 0.05) var echelle: float = 1.0
 @export var skin_id: StringName = &""
+@export var afficher_sprite_loot: bool = true
+@export var afficher_notification_collecte: bool = false
 
 @export var magnet_radius: float = 220.0
 @export var magnet_speed: float = 420.0
@@ -115,6 +117,8 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	couleur     = req.get("couleur", couleur)
 	echelle     = float(req.get("echelle", echelle))
 	skin_id     = req.get("skin_id", skin_id)
+	afficher_sprite_loot = bool(req.get("afficher_sprite_loot", afficher_sprite_loot))
+	afficher_notification_collecte = bool(req.get("afficher_notification_collecte", afficher_notification_collecte))
 
 	joueur_cible    = req.get("joueur", joueur_cible)
 	global_position = req.get("pos", global_position)
@@ -278,7 +282,9 @@ func prendre_payload() -> Dictionary:
 		"icone":      icone,
 		"couleur":    couleur,
 		"echelle":    echelle,
-		"skin_id":    skin_id
+		"skin_id":    skin_id,
+		"afficher_sprite_loot": afficher_sprite_loot,
+		"afficher_notification_collecte": afficher_notification_collecte
 	}
 
 func vider() -> void:
@@ -291,9 +297,12 @@ func vider() -> void:
 	couleur       = Color.WHITE
 	echelle       = 1.0
 	skin_id       = &""
+	afficher_sprite_loot = true
+	afficher_notification_collecte = false
 
 func _appliquer_visuel() -> void:
 	if _sprite_cache != null:
+		_sprite_cache.visible = afficher_sprite_loot
 		_sprite_cache.texture = icone if icone != null else _sprite_texture_defaut
 		_sprite_cache.modulate = Color(
 			couleur.r,
@@ -303,6 +312,7 @@ func _appliquer_visuel() -> void:
 		)
 		_sprite_cache.scale = _sprite_echelle_defaut * echelle
 	if _label_cache != null:
+		_label_cache.visible = afficher_sprite_loot
 		_label_cache.text = nom_affiche if nom_affiche != "" else _label_texte_defaut
 	if anim != null and anim.has_method("_sync_base_visuel"):
 		anim.call("_sync_base_visuel")

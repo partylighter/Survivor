@@ -58,16 +58,103 @@ class EffetsRuntime:
 @export var jet_rebond_scale_amp: float = 0.03
 
 @export_group("Tir: recoil + shake")
-@export var tir_actif: bool = true
-@export var tir_recul_px: float = 10.0
-@export var tir_lift_px: float = 2.0
-@export var tir_rot_deg: float = 4.0
-@export var tir_kick_reactivite: float = 38.0
-@export var tir_retour: float = 22.0
-@export var tir_stack_max: float = 1.2
-@export var tir_shake_pos_px: float = 2.4
-@export var tir_shake_rot_deg: float = 1.2
-@export var tir_shake_fade: float = 18.0
+@export var tir_actif: bool = true:
+	set(v):
+		tir_actif = v
+		if not v:
+			_tir_t = 0.0
+			_tir_shake = 0.0
+			_tir_pos_off = Vector2.ZERO
+			_tir_rot_off = 0.0
+@export var tir_recul_px: float = 10.0:
+	set(v):
+		tir_recul_px = v
+		_base_tir_recul_px = v
+		_rt_tir_recul_px = v
+@export var tir_lift_px: float = 2.0:
+	set(v):
+		tir_lift_px = v
+		_base_tir_lift_px = v
+		_rt_tir_lift_px = v
+@export var tir_rot_deg: float = 4.0:
+	set(v):
+		tir_rot_deg = v
+		_base_tir_rot_deg = v
+		_rt_tir_rot_deg = v
+@export var tir_kick_reactivite: float = 38.0:
+	set(v):
+		tir_kick_reactivite = v
+		_base_tir_kick_reactivite = v
+		_rt_tir_kick_reactivite = v
+@export var tir_retour: float = 22.0:
+	set(v):
+		tir_retour = v
+		_base_tir_retour = v
+		_rt_tir_retour = v
+@export var tir_stack_max: float = 1.2:
+	set(v):
+		tir_stack_max = v
+		_base_tir_stack_max = v
+		_rt_tir_stack_max = v
+@export var tir_shake_pos_px: float = 2.4:
+	set(v):
+		tir_shake_pos_px = v
+		_base_tir_shake_pos_px = v
+		_rt_tir_shake_pos_px = v
+@export var tir_shake_rot_deg: float = 1.2:
+	set(v):
+		tir_shake_rot_deg = v
+		_base_tir_shake_rot_deg = v
+		_rt_tir_shake_rot_deg = v
+@export var tir_shake_fade: float = 18.0:
+	set(v):
+		tir_shake_fade = v
+		_base_tir_shake_fade = v
+		_rt_tir_shake_fade = v
+
+@export_group("Contact: style")
+@export var contact_actif: bool = true:
+	set(v):
+		contact_actif = v
+		if not v:
+			_contact_en_cours = false
+			_contact_pos_off = Vector2.ZERO
+			_contact_rot_off = 0.0
+			_contact_scale_off = Vector2.ZERO
+@export_enum("Estoc","Balayage","Marteau","Tourbillon","Pulse") var contact_style: int = 1
+@export_enum("Alterner","Droite","Gauche","Sans arc lateral") var contact_cote_mode: int = 0
+@export var contact_alterne_cote: bool = true
+
+@export_group("Contact: timing")
+@export var contact_duree_min_s: float = 0.10
+@export_range(0.05, 0.8, 0.01) var contact_windup_ratio: float = 0.35
+@export_range(0.0, 0.25, 0.01) var contact_hold_s: float = 0.0
+@export var contact_retour_s: float = 0.10
+@export_range(0.0, 0.5, 0.01) var contact_overshoot_retour: float = 0.12
+@export_enum("Lineaire","Smooth","Snap","Back") var contact_courbe_prepa: int = 2
+@export_enum("Lineaire","Smooth","Snap","Back") var contact_courbe_frappe: int = 2
+@export_range(1.0, 9.0, 0.1) var contact_snap_puissance: float = 5.0
+
+@export_group("Contact: mouvement")
+@export var contact_recul_prepa_px: float = 8.0
+@export var contact_avance_px: float = 34.0
+@export var contact_arc_lateral_px: float = 22.0
+@export var contact_rot_deg: float = 32.0
+@export_range(-2.0, 2.0, 0.01) var contact_prepa_rot_mult: float = -0.45
+@export_range(-3.0, 3.0, 0.01) var contact_rot_fin_mult: float = 1.0
+@export var contact_spin_deg: float = 0.0
+@export var contact_pousse_perp_px: float = 0.0
+
+@export_group("Contact: deformation")
+@export var contact_scale_amp: float = 0.06
+@export var contact_scale_x_amp: float = 0.06
+@export var contact_scale_y_amp: float = -0.03
+@export_range(0.0, 1.0, 0.01) var contact_squash_prepa_mult: float = 0.35
+
+@export_group("Contact: impact shake")
+@export var contact_shake_pos_px: float = 0.0
+@export var contact_shake_rot_deg: float = 0.0
+@export_range(1.0, 80.0, 0.5) var contact_shake_freq_hz: float = 32.0
 
 var cible: Node2D
 var est_au_sol_prec: bool = false
@@ -104,6 +191,15 @@ var _tir_shake: float = 0.0
 
 var _tir_pos_off: Vector2 = Vector2.ZERO
 var _tir_rot_off: float = 0.0
+var _contact_dir: Vector2 = Vector2.RIGHT
+var _contact_sens: float = 1.0
+var _contact_t0: float = -1.0
+var _contact_duree_s: float = 0.12
+var _contact_intensite: float = 1.0
+var _contact_en_cours: bool = false
+var _contact_pos_off: Vector2 = Vector2.ZERO
+var _contact_rot_off: float = 0.0
+var _contact_scale_off: Vector2 = Vector2.ZERO
 var _base_tir_recul_px: float = 10.0
 var _base_tir_lift_px: float = 2.0
 var _base_tir_rot_deg: float = 4.0
@@ -131,6 +227,9 @@ func set_cible(n: Node2D) -> void:
 		base_y       = cible.position.y
 		_tir_pos_off = Vector2.ZERO
 		_tir_rot_off = 0.0
+		_contact_pos_off = Vector2.ZERO
+		_contact_rot_off = 0.0
+		_contact_scale_off = Vector2.ZERO
 
 func _snapshot_tir_authoring() -> void:
 	_base_tir_recul_px = tir_recul_px
@@ -208,6 +307,10 @@ func stop_drop() -> void:
 	_tir_shake = 0.0
 	_tir_pos_off = Vector2.ZERO
 	_tir_rot_off = 0.0
+	_contact_en_cours = false
+	_contact_pos_off = Vector2.ZERO
+	_contact_rot_off = 0.0
+	_contact_scale_off = Vector2.ZERO
 	if cible:
 		cible.rotation_degrees = 0.0
 		cible.scale = Vector2.ONE
@@ -220,6 +323,10 @@ func tick(now: float, est_au_sol: bool, dt: float) -> void:
 	if tir_actif:
 		cible.position -= _tir_pos_off
 		cible.rotation_degrees -= _tir_rot_off
+	if _contact_pos_off != Vector2.ZERO or absf(_contact_rot_off) > 0.0001 or _contact_scale_off != Vector2.ZERO:
+		cible.position -= _contact_pos_off
+		cible.rotation_degrees -= _contact_rot_off
+		cible.scale -= _contact_scale_off
 
 	if etat == ETAT_IDLE and est_au_sol and not est_au_sol_prec:
 		var d0: Vector2 = cible.get_global_mouse_position() - cible.global_position
@@ -236,6 +343,7 @@ func tick(now: float, est_au_sol: bool, dt: float) -> void:
 		_:
 			maj_idle(now, est_au_sol)
 
+	_appliquer_contact_overlay(now)
 	_appliquer_tir_overlay(now, dt)
 	est_au_sol_prec = est_au_sol
 
@@ -370,6 +478,176 @@ func kick_tir(dir: Vector2, intensite: float = 1.0) -> void:
 	intensite = clamp(intensite, 0.0, 3.0)
 	_tir_t = min(_tir_t + intensite, _rt_tir_stack_max)
 	_tir_shake = min(_tir_shake + intensite, 3.0)
+
+func frappe_contact(dir: Vector2, intensite: float = 1.0, duree_active_s: float = 0.12) -> void:
+	if cible == null or not contact_actif:
+		return
+	var d := dir.normalized() if dir.length() > 0.001 else Vector2.RIGHT
+	_choisir_contact_sens()
+	_contact_dir = d
+	_contact_intensite = clampf(intensite, 0.2, 3.0)
+	_contact_duree_s = maxf(duree_active_s, contact_duree_min_s)
+	_contact_t0 = Time.get_ticks_msec() * 0.001
+	_contact_en_cours = true
+
+func _choisir_contact_sens() -> void:
+	match contact_cote_mode:
+		0:
+			if contact_alterne_cote:
+				_contact_sens *= -1.0
+			else:
+				_contact_sens = 1.0
+		1:
+			_contact_sens = 1.0
+		2:
+			_contact_sens = -1.0
+		_:
+			_contact_sens = 0.0
+
+func _ease_contact(t: float, mode: int) -> float:
+	t = clampf(t, 0.0, 1.0)
+	match mode:
+		0:
+			return t
+		1:
+			return t * t * (3.0 - 2.0 * t)
+		2:
+			return 1.0 - pow(1.0 - t, contact_snap_puissance)
+		_:
+			var c1: float = 1.70158
+			var c3: float = c1 + 1.0
+			return 1.0 + c3 * pow(t - 1.0, 3.0) + c1 * pow(t - 1.0, 2.0)
+
+func _contact_style_params() -> Array:
+	# [forward_mult, arc_mult, rot_mult, spin_deg_bonus, scale_style_mult]
+	match contact_style:
+		0: # Estoc
+			return [1.35, 0.22, 0.42, 0.0, 0.85]
+		1: # Balayage (baseline)
+			return [1.0, 1.0, 1.0, 0.0, 1.0]
+		2: # Marteau
+			return [0.82, 0.45, 1.55, 0.0, 1.25]
+		3: # Tourbillon
+			return [0.55, 1.15, 0.85, 220.0, 1.0]
+		4: # Pulse
+			return [0.25, 0.0, 0.18, 0.0, 1.9]
+		_:
+			return [1.0, 1.0, 1.0, 0.0, 1.0]
+
+func _appliquer_contact_overlay(now: float) -> void:
+	if cible == null:
+		return
+	if not contact_actif:
+		_contact_en_cours = false
+		_contact_pos_off = Vector2.ZERO
+		_contact_rot_off = 0.0
+		_contact_scale_off = Vector2.ZERO
+		return
+
+	if not _contact_en_cours:
+		_contact_pos_off = Vector2.ZERO
+		_contact_rot_off = 0.0
+		_contact_scale_off = Vector2.ZERO
+		return
+
+	var retour_s: float = maxf(contact_retour_s, 0.001)
+	var hold_s: float = maxf(contact_hold_s, 0.0)
+	var elapsed: float = now - _contact_t0
+	var total_s: float = _contact_duree_s + hold_s + retour_s
+	if elapsed >= total_s:
+		_contact_en_cours = false
+		_contact_pos_off = Vector2.ZERO
+		_contact_rot_off = 0.0
+		_contact_scale_off = Vector2.ZERO
+		return
+
+	var windup_ratio: float = clampf(contact_windup_ratio, 0.05, 0.8)
+	var duree_windup: float = _contact_duree_s * windup_ratio
+	var duree_strike: float = maxf(_contact_duree_s - duree_windup, 0.001)
+
+	var params: Array = _contact_style_params()
+	var forward_mult: float = float(params[0])
+	var arc_mult: float = float(params[1])
+	var rot_mult: float = float(params[2])
+	var spin_style_deg: float = float(params[3])
+	var scale_style_mult: float = float(params[4])
+	var sens_rot: float = _contact_sens if absf(_contact_sens) > 0.001 else 1.0
+	var perp: Vector2 = Vector2(-_contact_dir.y, _contact_dir.x) * _contact_sens
+	var prepa_rot: float = contact_rot_deg * contact_prepa_rot_mult * rot_mult
+	var fin_forward_px: float = contact_avance_px * forward_mult
+	var fin_rot: float = contact_rot_deg * contact_rot_fin_mult * rot_mult
+	var spin_deg: float = contact_spin_deg + spin_style_deg
+	var off_pos_monde: Vector2 = Vector2.ZERO
+	var off_rot: float = 0.0
+	var scale_off: Vector2 = Vector2.ZERO
+	var shake_env: float = 0.0
+
+	if elapsed <= duree_windup:
+		var t: float = clampf(elapsed / maxf(duree_windup, 0.001), 0.0, 1.0)
+		var s: float = _ease_contact(t, contact_courbe_prepa)
+		var forward_px: float = lerpf(0.0, -contact_recul_prepa_px, s)
+		var rot: float = lerpf(0.0, prepa_rot, s)
+		var squash: float = contact_squash_prepa_mult * s
+		off_pos_monde = _contact_dir * forward_px
+		off_rot = rot * sens_rot
+		scale_off = Vector2(-absf(contact_scale_x_amp) * squash, absf(contact_scale_y_amp) * squash)
+
+	elif elapsed <= _contact_duree_s:
+		var t: float = clampf((elapsed - duree_windup) / duree_strike, 0.0, 1.0)
+		var s: float = _ease_contact(t, contact_courbe_frappe)
+		var arc_env: float = sin(PI * s)
+		var forward_px: float = lerpf(-contact_recul_prepa_px, fin_forward_px, s)
+		var arc_px: float = (arc_env * contact_arc_lateral_px * arc_mult) + (contact_pousse_perp_px * s)
+		var rot: float = lerpf(prepa_rot, fin_rot, s) + sin(PI * s) * spin_deg
+		var squash_x: float = lerpf(-absf(contact_scale_x_amp) * contact_squash_prepa_mult, 0.0, s)
+		var squash_y: float = lerpf(absf(contact_scale_y_amp) * contact_squash_prepa_mult, 0.0, s)
+		var uniform_pop: float = arc_env * contact_scale_amp * scale_style_mult
+		off_pos_monde = (_contact_dir * forward_px) + (perp * arc_px)
+		off_rot = rot * sens_rot
+		scale_off = Vector2(
+			squash_x + uniform_pop + arc_env * contact_scale_x_amp * scale_style_mult,
+			squash_y + uniform_pop + arc_env * contact_scale_y_amp * scale_style_mult
+		)
+		shake_env = arc_env
+
+	elif elapsed <= _contact_duree_s + hold_s:
+		off_pos_monde = (_contact_dir * fin_forward_px) + (perp * contact_pousse_perp_px)
+		off_rot = fin_rot * sens_rot
+		scale_off = Vector2.ZERO
+		shake_env = 1.0
+
+	else:
+		var t_retour: float = clampf((elapsed - _contact_duree_s - hold_s) / retour_s, 0.0, 1.0)
+		var r: float = 1.0 - (t_retour * t_retour * (3.0 - 2.0 * t_retour))
+		var overshoot: float = sin(t_retour * PI) * contact_overshoot_retour
+		off_pos_monde = (_contact_dir * fin_forward_px * (r - overshoot)) + (perp * contact_pousse_perp_px * r)
+		off_rot = fin_rot * sens_rot * r
+		scale_off = Vector2.ZERO
+		shake_env = r
+
+	off_pos_monde *= _contact_intensite
+	off_rot *= _contact_intensite
+	scale_off *= _contact_intensite
+
+	if shake_env > 0.0 and (contact_shake_pos_px > 0.0 or contact_shake_rot_deg > 0.0):
+		var phase: float = now * TAU * contact_shake_freq_hz
+		var shake_vec := Vector2(sin(phase * 1.13), cos(phase * 0.91))
+		if shake_vec.length() > 0.0001:
+			shake_vec = shake_vec.normalized()
+		off_pos_monde += shake_vec * contact_shake_pos_px * shake_env * _contact_intensite
+		off_rot += sin(phase * 1.37) * contact_shake_rot_deg * shake_env * _contact_intensite
+
+	var parent := cible.get_parent() as Node2D
+	if parent:
+		off_pos_monde = parent.get_global_transform().basis_xform_inv(off_pos_monde)
+
+	_contact_pos_off = off_pos_monde
+	_contact_rot_off = off_rot
+	_contact_scale_off = scale_off
+
+	cible.position += _contact_pos_off
+	cible.rotation_degrees += _contact_rot_off
+	cible.scale += _contact_scale_off
 
 func _appliquer_tir_overlay(now: float, dt: float) -> void:
 	if cible == null or not tir_actif:

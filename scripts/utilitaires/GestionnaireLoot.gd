@@ -3,6 +3,7 @@ class_name GestionnaireLoot
 
 signal carburant_stock_change(stocke: float)
 signal loot_change()
+signal loot_collecte(payload: Dictionary)
 
 const ID_UP_CARB_1: StringName = &"upgrade_carburant_1"
 const ID_UP_CARB_2: StringName = &"upgrade_carburant_2"
@@ -195,6 +196,7 @@ func on_loot_collecte(payload: Dictionary) -> void:
 	if nom != "":
 		_nom_par_id[identifiant] = nom
 
+	emit_signal("loot_collecte", payload)
 	_enregistrer_loot(identifiant, quantite)
 
 	match type_item:

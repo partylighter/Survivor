@@ -10,3 +10,5 @@ poids = 0.02
 nom_affiche = "Bouteille d'eau"
 icone = ExtResource("1_vsyo6")
 echelle = 8.0
+afficher_sprite_loot = false
+afficher_notification_collecte = true

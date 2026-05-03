@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://dyqfiex1vttnc"]
+[gd_scene format=3 uid="uid://dyqfiex1vttnc"]
 
 [ext_resource type="Script" uid="uid://cet65ljfweymf" path="res://scripts/utilitaires/armement/ArmeContact.gd" id="1_56oaw"]
 [ext_resource type="Script" uid="uid://fetlg4snxf4u" path="res://scripts/utilitaires/armement/HitBoxContact.gd" id="2_cphlq"]
@@ -11,7 +11,7 @@ size = Vector2(986, 785)
 [sub_resource type="CircleShape2D" id="CircleShape2D_56oaw"]
 radius = 162.05
 
-[node name="ArmeContact 1" type="Node2D"]
+[node name="ArmeContact 1" type="Node2D" unique_id=540909004]
 script = ExtResource("1_56oaw")
 chemin_effets = NodePath("ArmeEffets2D")
 degats = 4
@@ -19,49 +19,71 @@ recul_force = 1000.0
 chemin_pickup = NodePath("Area2D")
 metadata/_custom_type_script = "uid://cet65ljfweymf"
 
-[node name="HitBoxContact" type="Area2D" parent="."]
+[node name="HitBoxContact" type="Area2D" parent="." unique_id=2106859163]
 collision_layer = 8
 collision_mask = 96
 script = ExtResource("2_cphlq")
 metadata/_custom_type_script = "uid://fetlg4snxf4u"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="HitBoxContact"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitBoxContact" unique_id=1496438403]
 position = Vector2(-3, -252.5)
 shape = SubResource("RectangleShape2D_l60q6")
 debug_color = Color(0.721569, 0, 0, 0.12549)
 
-[node name="Sprite2D" type="Sprite2D" parent="."]
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=2099888927]
 position = Vector2(0, -114.781)
 scale = Vector2(0.269052, 0.269052)
 texture = ExtResource("3_5hh65")
 
-[node name="Sprite2D2" type="Sprite2D" parent="."]
+[node name="Sprite2D2" type="Sprite2D" parent="." unique_id=1722636250]
 position = Vector2(0, -80.7807)
 scale = Vector2(0.269052, 0.269052)
 texture = ExtResource("3_5hh65")
 
-[node name="Sprite2D3" type="Sprite2D" parent="."]
+[node name="Sprite2D3" type="Sprite2D" parent="." unique_id=377198431]
 position = Vector2(0, -50.7807)
 scale = Vector2(0.269052, 0.269052)
 texture = ExtResource("3_5hh65")
 
-[node name="Sprite2D4" type="Sprite2D" parent="."]
+[node name="Sprite2D4" type="Sprite2D" parent="." unique_id=810311810]
 position = Vector2(0, -16.7807)
 scale = Vector2(0.269052, 0.269052)
 texture = ExtResource("3_5hh65")
 
-[node name="Sprite2D5" type="Sprite2D" parent="."]
+[node name="Sprite2D5" type="Sprite2D" parent="." unique_id=1138780688]
 position = Vector2(0, 17.2193)
 scale = Vector2(0.269052, 0.269052)
 texture = ExtResource("3_5hh65")
 
-[node name="Area2D" type="Area2D" parent="."]
+[node name="Area2D" type="Area2D" parent="." unique_id=1779747115]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1576673779]
 position = Vector2(0, -49)
 shape = SubResource("CircleShape2D_56oaw")
 debug_color = Color(0, 0.6, 0.701961, 0)
 
-[node name="ArmeEffets2D" type="Node" parent="."]
+[node name="ArmeEffets2D" type="Node" parent="." unique_id=399327568]
 script = ExtResource("4_cphlq")
+tir_actif = false
+contact_style = 4
+contact_cote_mode = 3
+contact_duree_min_s = 0.505
+contact_hold_s = 0.06
+contact_retour_s = 0.5
+contact_overshoot_retour = 0.5
+contact_courbe_prepa = 1
+contact_courbe_frappe = 1
+contact_snap_puissance = 9.0
+contact_recul_prepa_px = 15.0
+contact_avance_px = 500.0
+contact_arc_lateral_px = 50.0
+contact_rot_deg = 5.0
+contact_prepa_rot_mult = 1.9500000000000002
+contact_rot_fin_mult = 2.9000000000000004
+contact_spin_deg = 45.0
+contact_scale_amp = 0.0
+contact_squash_prepa_mult = 1.0
+contact_shake_pos_px = -25.0
+contact_shake_rot_deg = -30.0
+contact_shake_freq_hz = 80.0
 metadata/_custom_type_script = "uid://5adwsbkqdlcw"

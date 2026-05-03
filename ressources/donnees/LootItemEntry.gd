@@ -10,3 +10,7 @@ class_name LootItemEntry
 @export var couleur: Color = Color.WHITE
 @export_range(0.1, 8.0, 0.05) var echelle: float = 1.0
 @export var skin_id: StringName = &""
+
+@export_group("Affichage collecte")
+@export var afficher_sprite_loot: bool = true
+@export var afficher_notification_collecte: bool = false
