@@ -7,6 +7,7 @@ class_name Player
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 @export_node_path("Soif") var chemin_soif: NodePath
+@export_node_path("Sprite2D") var chemin_sprite: NodePath = NodePath("Sprite2D")
 @export var can_die_of_soif : bool = false
 
 @export_group("Vehicule")
@@ -38,17 +39,29 @@ var dash_direction: Vector2 = Vector2.ZERO
 var dash_infini_actif: bool = false
 var dash_autorise: bool = true
 
+@export_group("Visuel deplacement")
+@export var visuel_deplacement_actif: bool = true
+@export var inclinaison_deplacement_deg: float = 7.0
+@export var rebond_deplacement_px: float = 5.0
+@export var rebond_deplacement_hz: float = 8.0
+@export var etirement_dash: float = 0.18
+@export var lissage_visuel_deplacement: float = 18.0
+
 @onready var stats: StatsJoueur = get_node_or_null(chemin_stats) as StatsJoueur
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
 @onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
 @onready var soif: Soif = get_node_or_null(chemin_soif) as Soif
+@onready var sprite_joueur: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
 
 var base_vehicle: Node2D = null
 var _col_idx: int = 0
 
 var _mort: bool = false
 var _recul_externe: Vector2 = Vector2.ZERO
+var _sprite_position_neutre: Vector2 = Vector2.ZERO
+var _sprite_scale_neutre: Vector2 = Vector2.ONE
+var _temps_visuel_deplacement: float = 0.0
 
 # Limites horizontales — contrôlées par GestionnaireZones pour les zones boss.
 # Valeurs par défaut = pas de contrainte.
@@ -57,6 +70,9 @@ var _limite_droite: float =  INF
 
 func _ready() -> void:
 	add_to_group("joueur_principal")
+	if sprite_joueur != null:
+		_sprite_position_neutre = sprite_joueur.position
+		_sprite_scale_neutre = sprite_joueur.scale
 	if soif != null and not soif.died_of_thirst.is_connected(_on_soif_died):
 		soif.died_of_thirst.connect(_on_soif_died)
 	
@@ -103,6 +119,7 @@ func mourir() -> void:
 func _physics_process(dt: float) -> void:
 	if gestion_deplacement:
 		gestion_deplacement.traiter(self, stats, dt)
+	_mettre_a_jour_visuel_deplacement(dt)
 
 func set_base_vehicle(n: Node2D) -> void:
 	base_vehicle = n
@@ -272,3 +289,41 @@ func _get_enemies_for_collision() -> Array:
 	if gm != null and gm.has_method("get_ennemis_actifs"):
 		return gm.get_ennemis_actifs()
 	return get_tree().get_nodes_in_group("enemy")
+
+func _mettre_a_jour_visuel_deplacement(dt: float) -> void:
+	if not visuel_deplacement_actif or sprite_joueur == null:
+		return
+
+	var vitesse_ref: float = 1.0
+	if stats != null:
+		vitesse_ref = maxf(stats.get_vitesse_effective(), 1.0)
+	var intensite: float = clampf(velocity.length() / vitesse_ref, 0.0, 1.0)
+	var cible_rotation: float = 0.0
+	var cible_position: Vector2 = _sprite_position_neutre
+	var cible_scale: Vector2 = _sprite_scale_neutre
+
+	if intensite > 0.03:
+		_temps_visuel_deplacement += dt * maxf(rebond_deplacement_hz, 0.0) * TAU
+		var direction_souris: Vector2 = get_global_mouse_position() - global_position
+		var direction_vitesse: Vector2 = velocity.normalized()
+		if direction_souris.length_squared() > 0.0001:
+			var cote: float = direction_souris.normalized().cross(direction_vitesse)
+			cible_rotation = -cote * deg_to_rad(inclinaison_deplacement_deg) * intensite
+
+		var cycle: float = sin(_temps_visuel_deplacement)
+		var impact_pas: float = abs(cycle) * intensite
+		cible_position.y -= impact_pas * rebond_deplacement_px
+		cible_scale = Vector2(
+			_sprite_scale_neutre.x * (1.0 + impact_pas * 0.035),
+			_sprite_scale_neutre.y * (1.0 - impact_pas * 0.045)
+		)
+
+		if dash_t_restant_s > 0.0:
+			var force_dash: float = clampf(dash_t_restant_s / maxf(dash_duree_s, 0.001), 0.0, 1.0)
+			cible_scale.x = _sprite_scale_neutre.x * (1.0 + etirement_dash * force_dash)
+			cible_scale.y = _sprite_scale_neutre.y * (1.0 - etirement_dash * 0.55 * force_dash)
+
+	var lissage: float = 1.0 - exp(-maxf(lissage_visuel_deplacement, 0.0) * dt)
+	sprite_joueur.rotation = lerp_angle(sprite_joueur.rotation, cible_rotation, lissage)
+	sprite_joueur.position = sprite_joueur.position.lerp(cible_position, lissage)
+	sprite_joueur.scale = sprite_joueur.scale.lerp(cible_scale, lissage)

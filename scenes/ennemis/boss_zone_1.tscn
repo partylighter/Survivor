@@ -12,6 +12,8 @@ radius = 180.0
 
 [node name="BossZone1" type="CharacterBody2D" unique_id=4247777]
 script = ExtResource("1_bosszone1")
+rayon_activite_px = 3000.0
+distance_arret_spawn_px = 50.0
 delai_retour_spawn_s = 10.0
 type_ennemi = 4
 chemin_sante = NodePath("Sante")
@@ -21,6 +23,8 @@ speed = 360.0
 acceleration_px_s2 = 1100.0
 deceleration_px_s2 = 1600.0
 flash_couleur = Color(2, 2, 2, 1)
+resistance_knockback_dash = 0.65
+recul_knockback_dash_mult = 0.7
 distance_arret_joueur_px = 95.0
 distance_ralentir_joueur_px = 170.0
 metadata/_custom_type_script = "uid://dovjl67ubyml3"

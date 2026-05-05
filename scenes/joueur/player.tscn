@@ -199,16 +199,21 @@ max_pv = 999999999
 [node name="StatsJoueur" type="Node" parent="." unique_id=655173724]
 script = ExtResource("9_7tfl1")
 pv_max_base = 999999999
-vitesse_base = 1200.0
+vitesse_base = 1180.0
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=85766498]
 script = ExtResource("12_t6q27")
-acceleration_px_s2 = 3100.0
-deceleration_px_s2 = 1000.0
-elan_depart_impulsion_px_s = 300.0
-dash_multiplicateur_vitesse = 2.0
-dash_duree_s = 0.05
+acceleration_px_s2 = 11500.0
+deceleration_px_s2 = 8500.0
+freinage_virage_mult = 2.0
+vitesse_cote_mult = 0.87
+vitesse_reculons_mult = 0.75
+elan_depart_actif = false
+dash_vitesse_fin_mult = 0.5
+dash_knockback_force = 10000.0
+dash_knockback_rayon_px = 500.0
+dash_knockback_force_bord_mult = 0.55
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1157013637]

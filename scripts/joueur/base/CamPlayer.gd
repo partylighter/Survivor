@@ -26,10 +26,10 @@ class_name CamPlayer
 @export_range(0.0, 2000.0, 1.0) var look_ahead_conduite_px: float = 220.0
 @export_range(0.0, 2000.0, 1.0) var mouse_look_sol_px: float = 130.0
 @export_range(0.0, 2000.0, 1.0) var mouse_look_conduite_px: float = 170.0
-@export_range(0.0, 1.0, 0.01) var mouse_deadzone: float = 0.12
+@export_range(0.0, 1.0, 0.01) var mouse_deadzone: float = 0.08
 @export_range(0.0, 2.0, 0.01) var mouse_influence_y: float = 0.85
 @export_range(0.0, 2000.0, 1.0) var max_offset_px: float = 260.0
-@export_range(0.1, 30.0, 0.1) var offset_speed: float = 10.0
+@export_range(0.1, 30.0, 0.1) var offset_speed: float = 18.0
 
 @export_group("Zoom")
 @export_range(0.05, 4.0, 0.01) var zoom_sol: float = 1.0

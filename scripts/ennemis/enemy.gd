@@ -75,6 +75,8 @@ enum State {
 @export var pousse_bloque_chase_duree_s:   float = 0.07
 @export var pousse_seuil_blocage_px:       float = 14.0
 @export var pousse_deceleration_mult:      float = 2.2
+@export var resistance_knockback_dash: float = 0.0
+@export var recul_knockback_dash_mult: float = 1.0
 
 # ---------------------------------------------------------------------------
 # Exports — Effets visuels
@@ -255,6 +257,15 @@ func appliquer_recul(direction: Vector2, force: float) -> void:
 	var m: float = recul.length()
 	if m > recul_max:
 		recul = recul * (recul_max / m)
+	_recul_lock_t = max(_recul_lock_t, max(recul_bloque_chase_duree_s, 0.0))
+	if recul_reset_vitesse_mouvement:
+		_vel_mouvement = Vector2.ZERO
+	_prendre_coup_visuel()
+
+func appliquer_recul_dash(direction: Vector2, force: float) -> void:
+	if direction.length_squared() <= 0.0001:
+		return
+	recul += direction.normalized() * max(force, 0.0)
 	_recul_lock_t = max(_recul_lock_t, max(recul_bloque_chase_duree_s, 0.0))
 	if recul_reset_vitesse_mouvement:
 		_vel_mouvement = Vector2.ZERO

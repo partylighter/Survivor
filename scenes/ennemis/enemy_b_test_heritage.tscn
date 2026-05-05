@@ -15,6 +15,8 @@ type_ennemi = 1
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Icon")
 speed = 950.0
+resistance_knockback_dash = 4.0
+recul_knockback_dash_mult = 0.3
 metadata/_custom_type_script = "uid://bflkdxpp0ja41"
 
 [node name="Sante" type="Node" parent="." unique_id=1107695323]
