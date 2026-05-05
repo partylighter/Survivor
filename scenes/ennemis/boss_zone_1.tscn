@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://ck6jypdu6nb31"]
+
+[ext_resource type="Script" uid="uid://dovjl67ubyml3" path="res://scripts/ennemis/BossZone1.gd" id="1_bosszone1"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_icon"]
+[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_sante"]
+[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_hurtbox"]
+[ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/ennemis/ContactDamage.gd" id="5_contact"]
+[ext_resource type="Script" uid="uid://c468v3bv6lvay" path="res://scripts/gestionnaires/en_jeu/BossHealthBarDisplayer.gd" id="6_bossbar"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss_zone_1"]
+radius = 180.0
+
+[node name="BossZone1" type="CharacterBody2D" unique_id=4247777]
+script = ExtResource("1_bosszone1")
+delai_retour_spawn_s = 10.0
+type_ennemi = 4
+chemin_sante = NodePath("Sante")
+chemin_sprite = NodePath("Sprite2D")
+rayon_collision_px = 180.0
+speed = 360.0
+acceleration_px_s2 = 1100.0
+deceleration_px_s2 = 1600.0
+flash_couleur = Color(2, 2, 2, 1)
+distance_arret_joueur_px = 95.0
+distance_ralentir_joueur_px = 170.0
+metadata/_custom_type_script = "uid://dovjl67ubyml3"
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1991532333]
+modulate = Color(0.75, 1.4, 0.55, 1)
+scale = Vector2(2.4, 2.4)
+texture = ExtResource("2_icon")
+
+[node name="Sante" type="Node" parent="." unique_id=2050622675]
+script = ExtResource("3_sante")
+max_pv = 1800
+metadata/_custom_type_script = "uid://dckl6i06hmi3g"
+
+[node name="HurtBox" type="Area2D" parent="." unique_id=979766566]
+collision_layer = 64
+collision_mask = 0
+script = ExtResource("4_hurtbox")
+chemin_sante = NodePath("../Sante")
+groupe_hurtbox = &"enemy_hurtbox"
+metadata/_custom_type_script = "uid://cp87fy13f23lc"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=1706964078]
+z_index = -1
+shape = SubResource("CircleShape2D_boss_zone_1")
+debug_color = Color(18.892157, 18.892157, 18.892157, 0)
+
+[node name="ContactDamage" type="Node" parent="." unique_id=1593342841]
+script = ExtResource("5_contact")
+degats_contact = 0
+metadata/_custom_type_script = "uid://b1wenibwev34d"
+
+[node name="BossHealthBarDisplayer" type="CanvasLayer" parent="." unique_id=552436265]
+layer = 3
+script = ExtResource("6_bossbar")
+debug_enabled = true

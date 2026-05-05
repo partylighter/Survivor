@@ -122,6 +122,7 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 				joueur.dash_charges_actuelles = dash_max
 
 	if joueur is Player:
+		joueur.velocity += (joueur as Player).tick_recul_externe(dt)
 		(joueur as Player).collision_ennemis_pre(dt)
 
 	var pos_avant: Vector2 = joueur.global_position

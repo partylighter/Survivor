@@ -48,6 +48,7 @@ var base_vehicle: Node2D = null
 var _col_idx: int = 0
 
 var _mort: bool = false
+var _recul_externe: Vector2 = Vector2.ZERO
 
 # Limites horizontales — contrôlées par GestionnaireZones pour les zones boss.
 # Valeurs par défaut = pas de contrainte.
@@ -140,6 +141,24 @@ func get_luck() -> float:
 	if stats:
 		return stats.get_chance()
 	return 0.0
+
+func appliquer_recul(direction: Vector2, force: float) -> void:
+	if direction.length_squared() <= 0.0001:
+		return
+	_recul_externe += direction.normalized() * maxf(force, 0.0)
+	_recul_externe = _recul_externe.limit_length(1600.0)
+
+func appliquer_recul_depuis(source: Node2D, force: float) -> void:
+	if source == null or not is_instance_valid(source):
+		return
+	appliquer_recul(global_position - source.global_position, force)
+
+func tick_recul_externe(dt: float) -> Vector2:
+	var out: Vector2 = _recul_externe
+	_recul_externe = _recul_externe.lerp(Vector2.ZERO, 1.0 - exp(-18.0 * dt))
+	if _recul_externe.length_squared() < 4.0:
+		_recul_externe = Vector2.ZERO
+	return out
 
 func collision_ennemis_pre(dt: float) -> void:
 	if not collision_ennemis_actif or dt <= 0.0:

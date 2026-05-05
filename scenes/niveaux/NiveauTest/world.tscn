@@ -23,15 +23,17 @@
 [ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="13_ixded"]
 [ext_resource type="PackedScene" uid="uid://cqihndgca0bto" path="res://scenes/ennemis/enemy_b_test_heritage.tscn" id="13_yovrb"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://ressources/items/upg_degats_tir_1.tres" id="14_ixded"]
-[ext_resource type="PackedScene" uid="uid://cb3hqjg4okx4h" path="res://scenes/ennemis/enemy_boss_test.tscn" id="14_p5j6c"]
+[ext_resource type="PackedScene" path="res://scenes/ennemis/boss_zone_1.tscn" id="14_p5j6c"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/gestionnaires/en_jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://ressources/items/upg_degats_contact_1.tres" id="15_lougb"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
 [ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeContact.gd" id="17_g8on3"]
 [ext_resource type="Script" uid="uid://kthfkdydc61t" path="res://scripts/gestionnaires/en_jeu/EnemyCountDisplayer.gd" id="20_g8on3"]
 [ext_resource type="Resource" uid="uid://c0orbebnrr13t" path="res://ressources/items/Bouteille eau.tres" id="22_5o3x5"]
+[ext_resource type="Resource" uid="uid://ddun7xohjqhsl" path="res://ressources/items/upg_degat_tir_visuel.tres" id="22_7isto"]
 [ext_resource type="Script" uid="uid://c3n45jyngklmv" path="res://scripts/gestionnaires/en_jeu/TouchesHUDDisplayer.gd" id="24_5r2b3"]
 [ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/menus/labolo_menu.tscn" id="24_dwlrb"]
+[ext_resource type="Resource" uid="uid://3f8kbtu2ekgm" path="res://ressources/items/uppg_degat_contact_visuel.tres" id="24_oc1kx"]
 [ext_resource type="Script" uid="uid://b3dp2irf05ry" path="res://scripts/gestionnaires/en_jeu/LootPickupNotifier.gd" id="28_upkmr"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/gestionnaires/en_jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
 [ext_resource type="Script" uid="uid://n1ib2janvwgn" path="res://scripts/gestionnaires/en_jeu/ArmContactStatsDisplayer.gd" id="30_vykxf"]
@@ -70,30 +72,19 @@ max_ennemis_zone = 320
 poids = null
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
-[sub_resource type="Resource" id="Resource_lougb"]
-script = ExtResource("11_op4qr")
-item_id = &"upg_degats_tir_1"
-poids = 0.5
-metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
-
 [sub_resource type="Resource" id="Resource_op4qr"]
 script = ExtResource("11_22h11")
 proba_C = 0.0
 proba_B = 1.0
-upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_lougb")])
+upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("22_7isto")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
-
-[sub_resource type="Resource" id="Resource_vykxf"]
-script = ExtResource("11_op4qr")
-item_id = &"upg_degats_contact_1"
-metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
 script = ExtResource("11_22h11")
 proba_C = 0.39
 proba_B = 0.56
 conso_C = Array[ExtResource("11_op4qr")]([ExtResource("22_5o3x5")])
-upgrade_B = Array[ExtResource("11_op4qr")]([SubResource("Resource_vykxf")])
+upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("24_oc1kx")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_bjm5b"]
@@ -330,7 +321,6 @@ chemin_gestionnaire_ennemis = NodePath("../Gestionnaire Enemies")
 layer = 3
 script = ExtResource("28_upkmr")
 duree_visible_s = 1.0
-taille_icone = 350.0
 metadata/_custom_type_script = "uid://b3dp2irf05ry"
 
 [node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1820510581]

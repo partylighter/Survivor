@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://ddun7xohjqhsl"]
+
+[ext_resource type="Texture2D" uid="uid://bkbbclwh7vcv2" path="res://assets/ui/armtir.png" id="1_6kxve"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_42sy3"]
+
+[resource]
+script = ExtResource("1_42sy3")
+item_id = &"upg_degats_tir_1"
+poids = 0.5
+nom_affiche = "boost degat tir 1"
+icone = ExtResource("1_6kxve")
+afficher_sprite_loot = false
+afficher_notification_collecte = true
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

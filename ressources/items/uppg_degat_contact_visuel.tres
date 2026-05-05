@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://3f8kbtu2ekgm"]
+
+[ext_resource type="Texture2D" uid="uid://bw7kuvt2cg6nt" path="res://assets/ui/vullet.png" id="1_2yhj5"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_a8hq2"]
+
+[resource]
+script = ExtResource("1_a8hq2")
+item_id = &"upg_degats_contact_1"
+nom_affiche = "boost contact 1"
+icone = ExtResource("1_2yhj5")
+afficher_sprite_loot = false
+afficher_notification_collecte = true
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

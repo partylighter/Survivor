@@ -302,17 +302,22 @@ func vider() -> void:
 
 func _appliquer_visuel() -> void:
 	if _sprite_cache != null:
-		_sprite_cache.visible = afficher_sprite_loot
-		_sprite_cache.texture = icone if icone != null else _sprite_texture_defaut
-		_sprite_cache.modulate = Color(
-			couleur.r,
-			couleur.g,
-			couleur.b,
-			couleur.a * _sprite_couleur_defaut.a
-		)
-		_sprite_cache.scale = _sprite_echelle_defaut * echelle
+		var utiliser_visuel_ressource: bool = afficher_sprite_loot and icone != null
+		_sprite_cache.visible = true
+		_sprite_cache.texture = icone if utiliser_visuel_ressource else _sprite_texture_defaut
+		if utiliser_visuel_ressource:
+			_sprite_cache.modulate = Color(
+				couleur.r,
+				couleur.g,
+				couleur.b,
+				couleur.a * _sprite_couleur_defaut.a
+			)
+			_sprite_cache.scale = _sprite_echelle_defaut * echelle
+		else:
+			_sprite_cache.modulate = _sprite_couleur_defaut
+			_sprite_cache.scale = _sprite_echelle_defaut
 	if _label_cache != null:
 		_label_cache.visible = afficher_sprite_loot
-		_label_cache.text = nom_affiche if nom_affiche != "" else _label_texte_defaut
+		_label_cache.text = nom_affiche if afficher_sprite_loot and nom_affiche != "" else _label_texte_defaut
 	if anim != null and anim.has_method("_sync_base_visuel"):
 		anim.call("_sync_base_visuel")
