@@ -14,16 +14,22 @@ radius = 46.34
 
 [node name="EnemyC" type="CharacterBody2D" unique_id=1359294128]
 collision_layer = 64
-collision_mask = 64
+collision_mask = 0
 script = ExtResource("1_ic1sw")
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Sprite2D")
+rayon_collision_px = 68.0
 speed = 900.0
+intervalle_tick_ia_frames = 3
 recul_amorti = 5.0
 recul_max = 1500.0
 recul_knockback_dash_mult = 0.5
 secousse_force_px = 30.0
 flash_couleur = Color(2.2500002, 2.2500002, 2.2500002, 1)
+distance_arret_joueur_px = 160.0
+distance_ralentir_joueur_px = 320.0
+offset_cible_max_px = 190.0
+offset_cible_refresh_s = 0.75
 base_marge_px = 1000.0
 mort_delai_pool_s = 0.5
 recul_amorti_mort = 20.0

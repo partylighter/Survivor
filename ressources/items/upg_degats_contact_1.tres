@@ -6,8 +6,10 @@
 script = ExtResource("1_nw503")
 id = &"upg_degats_contact_1"
 prop = &"degats"
-mode = 2
 valeur = 2.0
-slot = &"contact"
-max_stacks = 10
+slot = &"contact_degats"
+max_stacks = 999999
+cout_xp_base = 3
+cout_xp_add_par_niveau = 2
+cout_xp_max = 15
 metadata/_custom_type_script = "uid://3drknm51cgh8"

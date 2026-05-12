@@ -12,6 +12,11 @@ enum Mode { SET, ADD, MUL }
 @export var slot: StringName = &"default"
 @export_range(1, 999999999999, 1) var max_stacks: int = 1
 
+@export_group("Progression XP")
+@export var cout_xp_base: int = 1
+@export var cout_xp_add_par_niveau: int = 0
+@export var cout_xp_max: int = 1
+
 func is_valid() -> bool:
 	return id != &"" and prop != &""
 
@@ -73,6 +78,12 @@ func apply_to(obj: Object, stacks: int = 1) -> bool:
 		return true
 
 	return false
+
+func get_cout_xp_pour_niveau(niveau_actuel: int) -> int:
+	var cout: int = maxi(cout_xp_base + maxi(niveau_actuel, 0) * cout_xp_add_par_niveau, 1)
+	if cout_xp_max > 0:
+		cout = mini(cout, cout_xp_max)
+	return cout
 
 func _has_prop(obj: Object, p: StringName) -> bool:
 	var plist := obj.get_property_list()

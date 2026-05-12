@@ -45,6 +45,16 @@ class_name CamPlayer
 @export_range(0.0, 2000.0, 1.0) var zoom_in_speed_threshold: float = 12.0
 @export_range(0.0, 10.0, 0.1) var zoom_delay_release_mul: float = 3.0
 
+@export_group("Camera deplacement")
+@export_range(0.0, 1.0, 0.01) var intensite_camera_deplacement: float = 0.65
+@export_range(0.0, 120.0, 1.0) var balancement_lateral_px: float = 34.0
+@export_range(0.0, 120.0, 1.0) var balancement_vertical_px: float = 22.0
+@export_range(0.0, 80.0, 1.0) var secousse_deplacement_px: float = 18.0
+@export_range(0.0, 20.0, 0.1) var frequence_balancement_hz: float = 4.2
+@export_range(0.0, 40.0, 0.1) var frequence_secousse_hz: float = 13.0
+@export_range(0.0, 260.0, 1.0) var recul_dash_camera_px: float = 135.0
+@export_range(0.01, 1.0, 0.01) var duree_recul_dash_s: float = 0.16
+
 @export_group("Shake")
 @export var shake_force_px: float = 10.0
 @export var shake_duree_s: float = 0.14
@@ -71,6 +81,13 @@ var _zoom_moving: bool = false
 var _shake_t: float = 0.0
 var _shake_seed: float = 0.0
 var _shake_amp_now: float = 0.0
+var _temps_balancement: float = 0.0
+var _temps_secousse_deplacement: float = 0.0
+var _offset_balancement: Vector2 = Vector2.ZERO
+var _offset_recul_dash: Vector2 = Vector2.ZERO
+var _dash_etait_actif: bool = false
+var _recul_dash_t: float = 0.0
+var _direction_recul_dash: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
 	add_to_group(&"cam_player")
@@ -125,6 +142,7 @@ func _process(dt: float) -> void:
 	if target != _last_target:
 		_last_target = target
 		_has_last = false
+		_offset_balancement = Vector2.ZERO
 
 	var in_drive: bool = _joueur.est_en_conduite()
 
@@ -133,6 +151,8 @@ func _process(dt: float) -> void:
 
 	var vel: Vector2 = _get_target_velocity(target, dt)
 	var speed: float = vel.length()
+	var vitesse_ref: float = _get_vitesse_reference(in_drive)
+	var intensite_vitesse: float = clampf(speed / maxf(vitesse_ref, 1.0), 0.0, 1.45)
 
 	var dir: Vector2 = Vector2.ZERO
 	if speed > 0.001:
@@ -152,6 +172,8 @@ func _process(dt: float) -> void:
 	var mouse_look: float = mouse_look_conduite_px if in_drive else mouse_look_sol_px
 
 	var desired_offset: Vector2 = dir * look_ahead + mouse_norm * mouse_look
+	desired_offset += _calculer_offset_balancement(dir, intensite_vitesse, dt)
+	desired_offset += _calculer_recul_dash(dt)
 	desired_offset = desired_offset.limit_length(max_offset_px)
 
 	var a_off: float = 1.0 - exp(-offset_speed * dt)
@@ -233,3 +255,54 @@ func _get_mouse_norm() -> Vector2:
 		clampf(d.x * _vp_inv_center.x, -1.0, 1.0),
 		clampf(d.y * _vp_inv_center.y, -1.0, 1.0)
 	)
+
+func _get_vitesse_reference(in_drive: bool) -> float:
+	if in_drive:
+		return 900.0
+	if _joueur != null and _joueur.stats != null:
+		return maxf(_joueur.stats.get_vitesse_effective(), 1.0)
+	return 450.0
+
+func _calculer_offset_balancement(direction_vitesse: Vector2, intensite_vitesse: float, dt: float) -> Vector2:
+	var cible: Vector2 = Vector2.ZERO
+	var force: float = clampf(intensite_vitesse, 0.0, 1.0) * intensite_camera_deplacement
+	if force > 0.02 and direction_vitesse.length_squared() > 0.0001:
+		_temps_balancement += dt * frequence_balancement_hz * TAU * lerpf(0.55, 1.35, force)
+		_temps_secousse_deplacement += dt * frequence_secousse_hz * TAU * lerpf(0.75, 1.65, force)
+		var cote: Vector2 = Vector2(-direction_vitesse.y, direction_vitesse.x)
+		var battement_lateral: float = sin(_temps_balancement)
+		var battement_vertical: float = sin(_temps_balancement * 2.0)
+		var secousse_x: float = sin(_temps_secousse_deplacement * 1.13)
+		var secousse_y: float = cos(_temps_secousse_deplacement * 0.91)
+		cible = cote * battement_lateral * balancement_lateral_px * force
+		cible.y += -abs(battement_vertical) * balancement_vertical_px * force
+		cible += Vector2(secousse_x, secousse_y) * secousse_deplacement_px * force
+	else:
+		_temps_balancement = 0.0
+		_temps_secousse_deplacement = 0.0
+
+	var lissage: float = 1.0 - exp(-12.0 * dt)
+	_offset_balancement = _offset_balancement.lerp(cible, lissage)
+	return _offset_balancement
+
+func _calculer_recul_dash(dt: float) -> Vector2:
+	var dash_actif: bool = _joueur != null and _joueur.dash_t_restant_s > 0.0
+	if dash_actif and not _dash_etait_actif:
+		_recul_dash_t = duree_recul_dash_s
+		_direction_recul_dash = _joueur.dash_direction
+
+	_dash_etait_actif = dash_actif
+	if _recul_dash_t <= 0.0:
+		_offset_recul_dash = _offset_recul_dash.lerp(Vector2.ZERO, 1.0 - exp(-16.0 * dt))
+		return _offset_recul_dash
+
+	_recul_dash_t = maxf(_recul_dash_t - dt, 0.0)
+	var k: float = _recul_dash_t / maxf(duree_recul_dash_s, 0.001)
+	var direction: Vector2 = _direction_recul_dash
+	if direction.length_squared() <= 0.0001:
+		direction = Vector2.RIGHT
+	else:
+		direction = direction.normalized()
+	var cible: Vector2 = -direction * recul_dash_camera_px * k
+	_offset_recul_dash = _offset_recul_dash.lerp(cible, 1.0 - exp(-28.0 * dt))
+	return _offset_recul_dash

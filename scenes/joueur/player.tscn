@@ -79,6 +79,7 @@ chemin_soif = NodePath("Soif")
 collision_ennemis_actif = false
 limite_haut = -1200.0
 limite_bas = 1200.0
+visuel_deplacement_actif = false
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true
@@ -200,20 +201,26 @@ max_pv = 999999999
 script = ExtResource("9_7tfl1")
 pv_max_base = 999999999
 vitesse_base = 1180.0
+dash_cooldown_base = 0.3
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=85766498]
 script = ExtResource("12_t6q27")
-acceleration_px_s2 = 11500.0
+acceleration_px_s2 = 23500.0
 deceleration_px_s2 = 8500.0
 freinage_virage_mult = 2.0
 vitesse_cote_mult = 0.87
 vitesse_reculons_mult = 0.75
 elan_depart_actif = false
+elan_depart_impulsion_px_s = 2000.0
+elan_depart_plafond_mult = 500.0
+elan_depart_vitesse_max_declenche_px_s = 5000.0
+elan_depart_blocage_s = 1.0
 dash_vitesse_fin_mult = 0.5
 dash_knockback_force = 10000.0
 dash_knockback_rayon_px = 500.0
 dash_knockback_force_bord_mult = 0.55
+dash_recharge_pendant_dash = true
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1157013637]

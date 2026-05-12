@@ -242,7 +242,7 @@ func re_appliquer() -> void:
 			mod_hitbox_monitoring = true
 		if upg.cible != UpgradeData.Target.ARME: 
 			continue
-		if upg.slot != &"contact":
+		if not String(upg.slot).begins_with("contact"):
 			continue
 
 		upg.apply_to(self, stacks)

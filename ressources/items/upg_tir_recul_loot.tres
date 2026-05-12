@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bkbbclwh7vcv2" path="res://assets/ui/armtir.png" id="2"]
+
+[resource]
+script = ExtResource("1")
+item_id = &"upg_tir_recul"
+poids = 0.45
+nom_affiche = "recul tir"
+icone = ExtResource("2")
+afficher_sprite_loot = false
+afficher_notification_collecte = true
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"

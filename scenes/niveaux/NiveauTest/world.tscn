@@ -32,7 +32,6 @@
 [ext_resource type="Resource" uid="uid://c0orbebnrr13t" path="res://ressources/items/Bouteille eau.tres" id="22_5o3x5"]
 [ext_resource type="Resource" uid="uid://ddun7xohjqhsl" path="res://ressources/items/upg_degat_tir_visuel.tres" id="22_7isto"]
 [ext_resource type="Script" uid="uid://c3n45jyngklmv" path="res://scripts/gestionnaires/en_jeu/TouchesHUDDisplayer.gd" id="24_5r2b3"]
-[ext_resource type="PackedScene" uid="uid://c30q3eslekhjr" path="res://scenes/menus/labolo_menu.tscn" id="24_dwlrb"]
 [ext_resource type="Resource" uid="uid://3f8kbtu2ekgm" path="res://ressources/items/uppg_degat_contact_visuel.tres" id="24_oc1kx"]
 [ext_resource type="Script" uid="uid://b3dp2irf05ry" path="res://scripts/gestionnaires/en_jeu/LootPickupNotifier.gd" id="28_upkmr"]
 [ext_resource type="Script" uid="uid://fg6vtmeufp88" path="res://scripts/gestionnaires/en_jeu/ArmeTirStatsDisplayer.gd" id="29_ild1w"]
@@ -40,6 +39,17 @@
 [ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://shaders/BandesNoires.gdshader" id="31_b3mfv"]
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
 [ext_resource type="Script" uid="uid://dx4b0one3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
+[ext_resource type="Resource" uid="uid://csuy35xqfklta" path="res://ressources/items/upg_tir_cadence.tres" id="40_tir_cad"]
+[ext_resource type="Resource" uid="uid://b7u1io6yqtqqu" path="res://ressources/items/upg_tir_multitir.tres" id="41_tir_multi"]
+[ext_resource type="Resource" uid="uid://c5fw0b848gtog" path="res://ressources/items/upg_tir_perforation.tres" id="42_tir_perf"]
+[ext_resource type="Resource" uid="uid://c5fq8bi1xgco1" path="res://ressources/items/upg_tir_dispersion.tres" id="43_tir_disp"]
+[ext_resource type="Resource" uid="uid://bmip3mwiw0hv0" path="res://ressources/items/upg_tir_vitesse_projectile.tres" id="44_tir_vit"]
+[ext_resource type="Resource" uid="uid://f1hhqlfd17bn" path="res://ressources/items/upg_tir_duree_vie.tres" id="45_tir_vie"]
+[ext_resource type="Resource" uid="uid://dgxfyt727m1gs" path="res://ressources/items/upg_tir_zone_scan.tres" id="46_tir_zone"]
+[ext_resource type="Resource" uid="uid://b0nccksqltw5c" path="res://ressources/items/upg_tir_recul.tres" id="47_tir_recul"]
+[ext_resource type="Resource" uid="uid://bmcftjh5j6m8e" path="res://ressources/items/upg_contact_cadence.tres" id="48_contact_cad"]
+[ext_resource type="Resource" uid="uid://dmbiyubketrh5" path="res://ressources/items/upg_contact_recul.tres" id="49_contact_recul"]
+[ext_resource type="Resource" uid="uid://c5c20dbjuovae" path="res://ressources/items/upg_contact_duree_active.tres" id="50_contact_duree"]
 
 [sub_resource type="Resource" id="Resource_yovrb"]
 script = ExtResource("12_yovrb")
@@ -76,7 +86,7 @@ metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 script = ExtResource("11_22h11")
 proba_C = 0.0
 proba_B = 1.0
-upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("22_7isto")])
+upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("22_7isto"), ExtResource("24_oc1kx")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_rsdp2"]
@@ -84,7 +94,7 @@ script = ExtResource("11_22h11")
 proba_C = 0.39
 proba_B = 0.56
 conso_C = Array[ExtResource("11_op4qr")]([ExtResource("22_5o3x5")])
-upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("24_oc1kx")])
+upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("22_7isto"), ExtResource("24_oc1kx")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_bjm5b"]
@@ -128,7 +138,6 @@ scene_contenu = ExtResource("9_30tab")
 
 [node name="Player" parent="." unique_id=581119379 instance=ExtResource("1_nnsk1")]
 chemin_base_vehicle = NodePath("../Base")
-visuel_deplacement_actif = false
 
 [node name="Camera2D2" type="Camera2D" parent="Player" unique_id=575527116]
 limit_left = -100000000
@@ -137,21 +146,21 @@ limit_right = 100000000
 limit_bottom = 1700
 script = ExtResource("6_b3mfv")
 chemin_joueur = NodePath("..")
-follow_speed = 1.2000000000000002
+follow_speed = 3.0
 limites_y_actives = true
 limite_haute_y = -1700
 limite_basse_y = 1700
-look_ahead_sol_px = 700.0
-mouse_look_sol_px = 2000.0
-mouse_influence_y = 1.28
-max_offset_px = 625.0
-offset_speed = 3.1
-zoom_sol = 0.51
-zoom_conduite = 0.7000000000000001
-zoom_move_sol = 0.55
-zoom_move_conduite = 0.5
-zoom_speed = 4.0
-zoom_in_delay_s = 6.0
+mouse_look_conduite_px = 300.0
+mouse_deadzone = 0.0
+mouse_influence_y = 2.0
+zoom_sol = 0.9
+zoom_move_sol = 0.8
+intensite_camera_deplacement = 1.0
+frequence_balancement_hz = 20.0
+frequence_secousse_hz = 27.6
+recul_dash_camera_px = 260.0
+shake_per_damage_px = 2.0
+shake_min_damage_for_full = 96.0
 
 [node name="Base" parent="." unique_id=2051095588 instance=ExtResource("6_rsdp2")]
 position = Vector2(63788, 45778)
@@ -164,10 +173,16 @@ rayon_spawn_min = 3500.0
 rayon_spawn_max = 4000.0
 demi_hauteur_bande_spawn = 2500.0
 rayon_disparition = 13000.0
-budget_par_frame = 500
+budget_par_frame = 160
 max_full_actifs = 500
 marge_visible_ecran_px = 12000.0
 marge_buffer_ecran_px = 10000.0
+collisions_foule_actives = true
+budget_foule_par_frame = 160
+taille_cellule_foule_px = 160.0
+voisins_foule_max_par_ennemi = 6
+correction_foule = 0.45
+penetration_max_corrigee_px = 30.0
 mode_vagues = false
 interlude_s = 0.0
 croissance_taux = 1.08
@@ -196,7 +211,7 @@ metadata/_custom_type_script = "uid://1j4gtocrueg1"
 [node name="UpgradeRegistry" type="Node" parent="." unique_id=2043351419]
 script = ExtResource("12_2ks8m")
 debug_registry = true
-upgrades = Array[ExtResource("13_ixded")]([ExtResource("14_ixded"), ExtResource("15_lougb")])
+upgrades = Array[ExtResource("13_ixded")]([ExtResource("14_ixded"), ExtResource("15_lougb"), ExtResource("40_tir_cad"), ExtResource("41_tir_multi"), ExtResource("42_tir_perf"), ExtResource("43_tir_disp"), ExtResource("44_tir_vit"), ExtResource("45_tir_vie"), ExtResource("46_tir_zone"), ExtResource("47_tir_recul"), ExtResource("48_contact_cad"), ExtResource("49_contact_recul"), ExtResource("50_contact_duree")])
 metadata/_custom_type_script = "uid://dcilq6nxyvo36"
 
 [node name="GestionnaireLootDrops" type="Node" parent="." unique_id=700485635]
@@ -205,8 +220,6 @@ scene_loot = ExtResource("9_075h3")
 offset_spawn_px = 35.0
 pool_taille = 3000
 parent_loot_path = NodePath("../ParentLootPath")
-tirages_max_type_C = 50
-tirages_max_type_B = 50
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")
@@ -280,11 +293,6 @@ chemin_ennemis = NodePath("../Gestionnaire Enemies")
 [node name="PerfDisplayer" parent="." unique_id=1367246842 instance=ExtResource("7_i7xtm")]
 layer = 2
 ui_position = Vector2(16, 150)
-
-[node name="LaboloMenu" parent="." unique_id=1988590845 instance=ExtResource("24_dwlrb")]
-layer = 2
-visible = false
-debug_labolo = false
 
 [node name="TouchesHUDDisplayer" type="CanvasLayer" parent="." unique_id=1596464376]
 layer = 2

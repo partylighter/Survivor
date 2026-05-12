@@ -242,7 +242,7 @@ func _resoudre_collisions_ennemis(p: Vector2, dt: float, pousser_ennemi: bool) -
 
 		for i in range(checks):
 			var e := enemies[(start + i) % nE] as Enemy
-			if e == null or not is_instance_valid(e) or e.deja_mort:
+			if e == null or not is_instance_valid(e) or not e.is_alive():
 				continue
 
 			var er: float = max(e.rayon_collision_px, 0.0)

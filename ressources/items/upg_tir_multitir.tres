@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://b7u1io6yqtqqu"]
+
+[ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"upg_tir_multitir"
+prop = &"nb_balles"
+valeur = 1.0
+slot = &"tir_multitir"
+max_stacks = 999999
+cout_xp_base = 8
+cout_xp_add_par_niveau = 4
+cout_xp_max = 30
+metadata/_custom_type_script = "uid://3drknm51cgh8"

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="UpgradeData" format=3 uid="uid://c5fw0b848gtog"]
+
+[ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"upg_tir_perforation"
+cible = 1
+prop = &"contacts_avant_destruction"
+valeur = 1.0
+slot = &"tir_perforation"
+max_stacks = 999999
+cout_xp_base = 6
+cout_xp_add_par_niveau = 3
+cout_xp_max = 24
+metadata/_custom_type_script = "uid://3drknm51cgh8"

@@ -53,6 +53,7 @@ enum State {
 @export var vitesse_rotation_rad_s:   float = 10.0
 @export var wobble_angle_rad:         float = 0.12
 @export var wobble_freq_hz:           float = 1.3
+@export_range(1, 8, 1) var intervalle_tick_ia_frames: int = 2
 
 # ---------------------------------------------------------------------------
 # Exports — Impact
@@ -153,6 +154,8 @@ var _t_offset:           float   = 0.0
 var _wobble_t:     float = 0.0
 var _wobble_phase: float = 0.0
 var _wobble_sign:  float = 1.0
+var _decalage_tick_ia: int = 0
+var _dt_tick_ia_accumule: float = 0.0
 
 # Effets visuels
 var _secousse_t:             float   = 0.0
@@ -227,6 +230,7 @@ func _ready() -> void:
 	_wobble_phase = randf() * TAU
 	_wobble_sign  = -1.0 if randf() < 0.5 else 1.0
 	_wobble_t     = randf() * 10.0
+	_decalage_tick_ia = randi() % max(intervalle_tick_ia_frames, 1)
 
 # ===========================================================================
 # API publique
@@ -315,6 +319,8 @@ func _set_state(new_state: State) -> void:
 			_reset_visual_state()
 			if sprite != null:
 				sprite.visible = true
+			_dt_tick_ia_accumule = 0.0
+			_decalage_tick_ia = randi() % max(intervalle_tick_ia_frames, 1)
 			_doit_emit_reapparu_next_frame = true
 
 		State.DYING:
@@ -357,7 +363,7 @@ func _physics_process(dt: float) -> void:
 
 	match _state:
 		State.ALIVE, State.STUNNED:
-			_tick_ia(dt)
+			_tick_ia_alterne(dt)
 			_tick_physics_commun(dt)
 		State.DYING:
 			_tick_physics_commun(dt)
@@ -367,6 +373,20 @@ func _physics_process(dt: float) -> void:
 # ===========================================================================
 # IA (uniquement en ALIVE / STUNNED)
 # ===========================================================================
+
+func _tick_ia_alterne(dt: float) -> void:
+	var intervalle: int = max(intervalle_tick_ia_frames, 1)
+	if intervalle <= 1:
+		_tick_ia(dt)
+		return
+
+	_dt_tick_ia_accumule += dt
+	var frame: int = Engine.get_physics_frames()
+	if ((frame + _decalage_tick_ia) % intervalle) != 0:
+		return
+
+	_tick_ia(_dt_tick_ia_accumule)
+	_dt_tick_ia_accumule = 0.0
 
 func _tick_ia(dt: float) -> void:
 	var dist_player:   float  = 999999.0
@@ -473,7 +493,7 @@ func _tick_ia(dt: float) -> void:
 				_vel_mouvement -= dir_to_player * (inward - speed * t2)
 
 # ===========================================================================
-# Tick commun — recul, pousse, effets visuels, base, move_and_slide
+# Tick commun — recul, pousse, effets visuels, base, deplacement
 # ===========================================================================
 
 func _tick_physics_commun(dt: float) -> void:
@@ -507,7 +527,7 @@ func _tick_physics_commun(dt: float) -> void:
 	if _state == State.DYING:
 		velocity = velocity.lerp(Vector2.ZERO, 1.0 - exp(-max(recul_amorti_mort, 0.0) * dt))
 
-	move_and_slide()
+	_appliquer_deplacement(dt)
 
 	if _state == State.DYING:
 		_mort_t = max(_mort_t - dt, 0.0)
@@ -567,6 +587,9 @@ func _tick_scale_impact(dt: float) -> void:
 
 	var s: Vector2 = _sprite_scale_neutre + _scale_offset
 	sprite.scale = Vector2(max(s.x, 0.05), max(s.y, 0.05))
+
+func _appliquer_deplacement(dt: float) -> void:
+	global_position += velocity * dt
 
 # ===========================================================================
 # Cible dynamique

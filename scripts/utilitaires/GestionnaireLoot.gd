@@ -74,6 +74,8 @@ var sante: Sante = null
 var soif_ref: Soif = null
 
 var stats_loot: Dictionary = {}
+var xp_upgrade: Dictionary = {}
+var niveau_upgrade: Dictionary = {}
 
 var regen_time_left: float = 0.0
 var regen_heal_per_sec: float = 0.0
@@ -197,13 +199,14 @@ func on_loot_collecte(payload: Dictionary) -> void:
 		_nom_par_id[identifiant] = nom
 
 	emit_signal("loot_collecte", payload)
-	_enregistrer_loot(identifiant, quantite)
 
 	match type_item:
 		Loot.TypeItem.CONSO:
+			_enregistrer_loot(identifiant, quantite)
 			_appliquer_consommable(identifiant, quantite)
 		Loot.TypeItem.UPGRADE:
-			_appliquer_amelioration(identifiant, quantite)
+			if not _appliquer_amelioration(identifiant, quantite):
+				_enregistrer_loot(identifiant, quantite)
 		Loot.TypeItem.ARME:
 			if scene_contenu:
 				_generer_arme_au_sol(scene_contenu)
@@ -480,16 +483,74 @@ func on_sortie_vehicule() -> void:
 	_vehicule_actuel      = null
 	_carburant_base_cache = null
 
-func _appliquer_amelioration(identifiant: StringName, quantite: int) -> void:
+func _appliquer_amelioration(identifiant: StringName, quantite: int) -> bool:
 	match identifiant:
 		ID_UP_CARB_1, ID_CARB_1:
 			ajouter_carburant_stock(1, quantite)
+			return true
 		ID_UP_CARB_2, ID_CARB_2:
 			ajouter_carburant_stock(2, quantite)
+			return true
 		ID_UP_CARB_3, ID_CARB_3:
 			ajouter_carburant_stock(3, quantite)
+			return true
 		_:
-			pass
+			return _appliquer_upgrade_arme_auto(identifiant, quantite)
+
+func _appliquer_upgrade_arme_auto(identifiant: StringName, quantite: int) -> bool:
+	var reg := get_tree().get_first_node_in_group("upgrade_registry") as UpgradeRegistry
+	if reg == null:
+		return false
+
+	var upg := reg.get_upgrade(identifiant)
+	if upg == null:
+		return false
+
+	var q: int = maxi(quantite, 0)
+	if q <= 0:
+		return true
+
+	var slot_txt: String = String(upg.slot)
+	var groupe_manager: StringName = &""
+	if slot_txt.begins_with("tir"):
+		groupe_manager = &"upg_arme_tir"
+	elif slot_txt.begins_with("contact"):
+		groupe_manager = &"upg_arme_contact"
+	else:
+		return false
+
+	var manager := get_tree().get_first_node_in_group(groupe_manager)
+	if manager == null or not is_instance_valid(manager):
+		return false
+
+	var xp_actuelle: int = int(xp_upgrade.get(identifiant, 0)) + q
+	var niveau_actuel: int = int(niveau_upgrade.get(identifiant, 0))
+	var niveaux_gagnes: int = 0
+
+	while true:
+		var cout: int = upg.get_cout_xp_pour_niveau(niveau_actuel)
+		if xp_actuelle < cout:
+			break
+		xp_actuelle -= cout
+		niveau_actuel += 1
+		niveaux_gagnes += 1
+
+	xp_upgrade[identifiant] = xp_actuelle
+	niveau_upgrade[identifiant] = niveau_actuel
+
+	if niveaux_gagnes > 0:
+		if manager.has_method("ajouter_upgrade_par_id"):
+			manager.call("ajouter_upgrade_par_id", identifiant, niveaux_gagnes)
+		if manager.has_method("re_appliquer"):
+			manager.call("re_appliquer")
+
+	if debug_loot:
+		print("[Loot][XP Upgrade] id=", String(identifiant),
+			" xp=", xp_actuelle,
+			"/", upg.get_cout_xp_pour_niveau(niveau_actuel),
+			" niveau=", niveau_actuel,
+			" gagne=", niveaux_gagnes)
+	return true
 
 func _debloquer_arme_par_id(identifiant: StringName, rarete: int, quantite: int) -> void:
 	_d_loot("[Loot] arme logique : %s rarete=%d x%d" % [str(identifiant), rarete, quantite])

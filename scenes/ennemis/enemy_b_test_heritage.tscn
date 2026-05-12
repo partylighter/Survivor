@@ -14,7 +14,13 @@ script = ExtResource("1_e2sh2")
 type_ennemi = 1
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Icon")
+rayon_collision_px = 68.0
 speed = 950.0
+intervalle_tick_ia_frames = 3
+distance_arret_joueur_px = 160.0
+distance_ralentir_joueur_px = 320.0
+offset_cible_max_px = 190.0
+offset_cible_refresh_s = 0.75
 metadata/_custom_type_script = "uid://bflkdxpp0ja41"
 
 [node name="Sante" type="Node" parent="." unique_id=1107695323]
