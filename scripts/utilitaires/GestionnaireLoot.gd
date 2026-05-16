@@ -117,6 +117,12 @@ func _process(delta: float) -> void:
 func _tick_actifs() -> bool:
 	return regen_time_left > 0.0 or invincible_time_left > 0.0 or rage_time_left > 0.0
 
+func est_invulnerable_aux_degats() -> bool:
+	return invincible_time_left > 0.0
+
+func get_invulnerabilite_restant_s() -> float:
+	return maxf(invincible_time_left, 0.0)
+
 func _ensure_refs() -> void:
 	if joueur == null or not is_instance_valid(joueur):
 		joueur = get_parent() as Player

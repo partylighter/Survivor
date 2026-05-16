@@ -35,17 +35,34 @@ func hit_center() -> Vector2:
 func hit_radius() -> float:
 	return max(hit_radius_px, 0.0)
 
-func tek_it(damage: int, source: Node) -> void:
+func get_invulnerabilite_restant_s() -> float:
+	return maxf(_i_t, 0.0)
+
+func tek_it(damage: int, source: Node) -> bool:
+	if damage <= 0:
+		return false
 	if _i_t > 0.0:
-		return
-	if sante != null:
-		sante.apply_damage(damage, source)
-		emit_signal("hit_received", damage, source)
+		return false
+	if _hote_est_invulnerable():
+		return false
+	if sante == null:
+		return false
+	sante.apply_damage(damage, source)
+	emit_signal("hit_received", damage, source)
+	_i_t = maxf(invincibilite_s, 0.0)
+	if _i_t > 0.0:
+		set_physics_process(true)
 	if groupe_hurtbox == &"player_hurtbox":
 		var cam := get_tree().get_first_node_in_group(&"cam_player") as CamPlayer
 		if cam != null:
 			cam.kick_shake_from_damage(damage)
+	return true
 
+func _hote_est_invulnerable() -> bool:
+	var hote: Node = get_parent()
+	if hote != null and hote.has_method("est_invulnerable_aux_degats"):
+		return bool(hote.call("est_invulnerable_aux_degats"))
+	return false
 
 
 func set_actif(v: bool) -> void:

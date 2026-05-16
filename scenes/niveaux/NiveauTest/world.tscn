@@ -117,6 +117,21 @@ shader_parameter/bande_gauche_px = 0.0
 shader_parameter/bande_droite_px = 0.0
 shader_parameter/couleur_bandes = Color(0, 0, 0, 1)
 
+[sub_resource type="Environment" id="Environment_f8f2q"]
+background_mode = 3
+tonemap_mode = 2
+tonemap_exposure = 0.99
+tonemap_white = 16.0
+glow_enabled = true
+glow_levels/1 = 1.4
+glow_levels/2 = 1.2
+glow_levels/7 = 0.2
+glow_intensity = 0.2
+glow_bloom = 0.15
+adjustment_enabled = true
+adjustment_contrast = 1.05
+adjustment_saturation = 1.18
+
 [node name="World" type="Node2D" unique_id=2023534950]
 
 [node name="Icon" type="Sprite2D" parent="." unique_id=757728578]
@@ -150,11 +165,16 @@ follow_speed = 3.0
 limites_y_actives = true
 limite_haute_y = -1700
 limite_basse_y = 1700
-mouse_look_conduite_px = 300.0
+mouse_look_sol_px = 500.0
 mouse_deadzone = 0.0
 mouse_influence_y = 2.0
-zoom_sol = 0.9
-zoom_move_sol = 0.8
+max_offset_px = 2000.0
+offset_speed = 4.0
+zoom_sol = 0.8
+zoom_conduite = 0.8500000000000001
+zoom_move_sol = 0.7000000000000001
+zoom_move_conduite = 0.7000000000000001
+zoom_speed = 0.1
 intensite_camera_deplacement = 1.0
 frequence_balancement_hz = 20.0
 frequence_secousse_hz = 27.6
@@ -334,10 +354,13 @@ metadata/_custom_type_script = "uid://b3dp2irf05ry"
 
 [node name="CanvasLayer2" type="CanvasLayer" parent="." unique_id=1820510581]
 
-[node name="ColorRect" type="ColorRect" parent="CanvasLayer2" unique_id=1911715057]
+[node name="ColorRect" type="ColorRect" parent="CanvasLayer2" unique_id=1911715057 groups=["bandes_noires_dash"]]
 material = SubResource("ShaderMaterial_ck2ah")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=54273485]
+environment = SubResource("Environment_f8f2q")

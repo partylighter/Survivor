@@ -15,6 +15,8 @@
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/gestionnaires/en_jeu/LootDisplayer.gd" id="11_n7rn1"]
 [ext_resource type="Script" uid="uid://dqvkgiskf54md" path="res://scripts/joueur/DeplacementJoueur.gd" id="12_t6q27"]
 [ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/gestionnaires/en_jeu/StatsJoueurDisplayer.gd" id="13_jxtnq"]
+[ext_resource type="Script" uid="uid://0qijcyr7hxjj" path="res://scripts/gestionnaires/en_jeu/effet_dash_displayer.gd" id="14_dash"]
+[ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="15_dash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -66,6 +68,20 @@ size = Vector2(131, 131)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_wwtew"]
 radius = 473.482
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dash"]
+shader = ExtResource("15_dash")
+shader_parameter/intensite = 0.0
+shader_parameter/progression_onde = 0.0
+shader_parameter/direction_dash = Vector2(1, 0)
+shader_parameter/distorsion_px = 170.0
+shader_parameter/epaisseur_onde = 0.16
+shader_parameter/aberration_px = 8.0
+shader_parameter/vignette_intensite = 0.22
+shader_parameter/vignette_opacite = 1.0
+shader_parameter/vignette_depart = 0.48
+shader_parameter/vignette_fin = 1.05
+shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
 
 [node name="Player" type="CharacterBody2D" unique_id=1666505051]
 collision_layer = 2
@@ -238,6 +254,25 @@ carburant_par_item_1 = 2.0
 carburant_par_item_2 = 6.0
 carburant_par_item_3 = 10.0
 metadata/_custom_type_script = "uid://d2qt2wohmdfas"
+
+[node name="EffetDashDisplayer" type="CanvasLayer" parent="." unique_id=654285535]
+script = ExtResource("14_dash")
+intensite_depart = 0.3
+duree_pulse_s = 1.45
+aberration_dash_px = 150.0
+vignette_intensite = 1.0
+bonus_bandes_dash_px = 40.0
+duree_resserrement_bandes_s = 0.2
+duree_desserrement_bandes_s = 0.3
+
+[node name="RectDash" type="ColorRect" parent="EffetDashDisplayer" unique_id=364777308]
+material = SubResource("ShaderMaterial_dash")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="LootDisplayer" type="CanvasLayer" parent="." unique_id=1078718419]
 script = ExtResource("11_n7rn1")

@@ -38,6 +38,8 @@ var dash_t_restant_s: float = 0.0
 var dash_direction: Vector2 = Vector2.ZERO
 var dash_infini_actif: bool = false
 var dash_autorise: bool = true
+@export var invulnerabilite_pendant_dash: bool = true
+@export var invulnerabilite_apres_dash_s: float = 0.18
 
 @export_group("Visuel deplacement")
 @export var visuel_deplacement_actif: bool = true
@@ -62,6 +64,8 @@ var _recul_externe: Vector2 = Vector2.ZERO
 var _sprite_position_neutre: Vector2 = Vector2.ZERO
 var _sprite_scale_neutre: Vector2 = Vector2.ONE
 var _temps_visuel_deplacement: float = 0.0
+var _dash_etait_actif: bool = false
+var _invulnerabilite_apres_dash_restant_s: float = 0.0
 
 # Limites horizontales — contrôlées par GestionnaireZones pour les zones boss.
 # Valeurs par défaut = pas de contrainte.
@@ -119,6 +123,7 @@ func mourir() -> void:
 func _physics_process(dt: float) -> void:
 	if gestion_deplacement:
 		gestion_deplacement.traiter(self, stats, dt)
+	_mettre_a_jour_invulnerabilite_dash(dt)
 	_mettre_a_jour_visuel_deplacement(dt)
 
 func set_base_vehicle(n: Node2D) -> void:
@@ -146,6 +151,23 @@ func set_dash_autorise(actif: bool) -> void:
 		dash_t_restant_s = 0.0
 		dash_direction = Vector2.ZERO
 
+func est_invulnerable_aux_degats() -> bool:
+	if invulnerabilite_pendant_dash and dash_t_restant_s > 0.0:
+		return true
+	if gestionnaire_loot != null and gestionnaire_loot.has_method("est_invulnerable_aux_degats"):
+		if bool(gestionnaire_loot.call("est_invulnerable_aux_degats")):
+			return true
+	return _invulnerabilite_apres_dash_restant_s > 0.0
+
+func get_invulnerabilite_restant_s() -> float:
+	var restant: float = 0.0
+	if invulnerabilite_pendant_dash:
+		restant = maxf(restant, dash_t_restant_s)
+	restant = maxf(restant, _invulnerabilite_apres_dash_restant_s)
+	if gestionnaire_loot != null and gestionnaire_loot.has_method("get_invulnerabilite_restant_s"):
+		restant = maxf(restant, float(gestionnaire_loot.call("get_invulnerabilite_restant_s")))
+	return restant
+
 func on_loot_collected(payload: Dictionary) -> void:
 	if gestionnaire_loot:
 		gestionnaire_loot.on_loot_collecte(payload)
@@ -169,6 +191,14 @@ func appliquer_recul_depuis(source: Node2D, force: float) -> void:
 	if source == null or not is_instance_valid(source):
 		return
 	appliquer_recul(global_position - source.global_position, force)
+
+func _mettre_a_jour_invulnerabilite_dash(dt: float) -> void:
+	var dash_actif: bool = dash_t_restant_s > 0.0
+	if _dash_etait_actif and not dash_actif:
+		_invulnerabilite_apres_dash_restant_s = maxf(invulnerabilite_apres_dash_s, 0.0)
+	elif not dash_actif and _invulnerabilite_apres_dash_restant_s > 0.0:
+		_invulnerabilite_apres_dash_restant_s = maxf(0.0, _invulnerabilite_apres_dash_restant_s - dt)
+	_dash_etait_actif = dash_actif
 
 func tick_recul_externe(dt: float) -> Vector2:
 	var out: Vector2 = _recul_externe

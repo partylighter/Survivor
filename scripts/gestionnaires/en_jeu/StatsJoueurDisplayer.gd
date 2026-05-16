@@ -19,7 +19,7 @@ var _ui_visible: bool = true
 
 @export_group("Affichage")
 @export var ui_position: Vector2 = Vector2(16, 16)
-@export var ui_largeur_min_px: float = 520.0
+@export var ui_largeur_min_px: float = 640.0
 @export_range(8, 64, 1) var ui_taille_police: int = 14
 @export var ui_couleur_fond: Color = Color(0, 0, 0, 0.55)
 @export var ui_couleur_texte: Color = Color(1, 1, 1, 0.92)
@@ -32,6 +32,7 @@ var stats: StatsJoueur
 var sante: Sante
 var soif: Soif
 var joueur: Player
+var hurtbox_joueur: HurtBox
 
 var _panel: Panel
 var _margin: MarginContainer
@@ -102,6 +103,7 @@ func _creer_ui() -> void:
 	_add_pair("Vitesse", "—")
 	_add_pair("Chance", "—")
 	_add_pair("Dash", "—")
+	_add_pair("Invuln", "—")
 
 func _add_pair(k: String, v: String) -> void:
 	var box := VBoxContainer.new()
@@ -171,6 +173,11 @@ func _set_val(k: String, v: String) -> void:
 	if lab != null:
 		lab.text = v
 
+func _set_couleur_val(k: String, couleur: Color) -> void:
+	var lab := _pairs.get(k, null) as Label
+	if lab != null:
+		lab.add_theme_color_override("font_color", couleur)
+
 func _process(_dt: float) -> void:
 	if not actif or _panel == null or not _panel.visible:
 		return
@@ -185,6 +192,8 @@ func _process(_dt: float) -> void:
 		soif = get_node_or_null(chemin_soif) as Soif
 	if joueur == null or not is_instance_valid(joueur):
 		joueur = get_node_or_null(chemin_player) as Player
+	if hurtbox_joueur == null or not is_instance_valid(hurtbox_joueur):
+		hurtbox_joueur = _trouver_hurtbox_joueur()
 
 	_refresh()
 
@@ -233,6 +242,33 @@ func _refresh() -> void:
 	_set_val("Vitesse", "%.0f" % vitesse_now)
 	_set_val("Chance", "%.1f%%" % chance_now)
 	_set_val("Dash", "%d / %d" % [dash_actuel, dash_max])
+
+	var temps_invulnerable: float = _get_temps_invulnerable_restant()
+	if temps_invulnerable > 0.0:
+		_set_val("Invuln", "OUI %.2fs" % temps_invulnerable)
+		_set_couleur_val("Invuln", Color(0.35, 1.0, 0.65, 0.98))
+	else:
+		_set_val("Invuln", "NON")
+		_set_couleur_val("Invuln", Color(1.0, 0.55, 0.55, 0.92))
+
+func _get_temps_invulnerable_restant() -> float:
+	var restant: float = 0.0
+	if joueur != null and is_instance_valid(joueur) and joueur.has_method("get_invulnerabilite_restant_s"):
+		restant = maxf(restant, float(joueur.call("get_invulnerabilite_restant_s")))
+	if hurtbox_joueur != null and is_instance_valid(hurtbox_joueur):
+		restant = maxf(restant, hurtbox_joueur.get_invulnerabilite_restant_s())
+	return restant
+
+func _trouver_hurtbox_joueur() -> HurtBox:
+	if joueur == null or not is_instance_valid(joueur):
+		return null
+	var direct := joueur.get_node_or_null("Hurtbox") as HurtBox
+	if direct != null:
+		return direct
+	for enfant: Node in joueur.get_children():
+		if enfant is HurtBox:
+			return enfant as HurtBox
+	return null
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:

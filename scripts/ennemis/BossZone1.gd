@@ -225,7 +225,9 @@ func _resoudre_impact_attaque() -> void:
 	if global_position.distance_squared_to(centre) > rr * rr:
 		return
 
-	hb.tek_it(degats, self)
+	var hit_accepte: bool = hb.tek_it(degats, self)
+	if not hit_accepte:
+		return
 	var joueur: Node = hb.get_parent()
 	if joueur != null and joueur.has_method("appliquer_recul"):
 		var dir: Vector2 = centre - global_position

@@ -1,0 +1,525 @@
+Etat detaille du projet - MaximumOverdrive Survivor
+Date de lecture: 2026-05-12
+
+1. Vue generale
+
+Le projet est un jeu Godot 4.7 nomme "MaximumOverdrive Survivor", version 0.2.
+Le gameplay actuel est celui d'un survivor 2D horizontal avec joueur, horde
+d'ennemis, armes ramassables, drops, upgrades, zones, boss de zone, base
+conduisible et menus.
+
+La scene principale configuree dans project.godot est:
+res://scenes/niveaux/NiveauTest/world.tscn
+
+Point important: les scenes de splash screen et de menu titre existent, mais le
+projet demarre actuellement directement sur la scene de jeu. Si l'intention est
+de demarrer par le logo/menu, il faudra changer run/main_scene.
+
+Le projet est majoritairement en GDScript. Il reste une structure C# avec
+Survivor.csproj, Survivor.sln et un ProjectileSystem2D.cs, mais le coeur du jeu
+lu ici est en GDScript.
+
+2. Structure des dossiers
+
+assets:
+Contient les textures UI, sprites et imports visuels. On voit notamment les
+assets de logo, boutons de menu, particules et sprites de loot.
+
+documentation:
+Contient deja deux documents:
+- Documentation Loot et Drop systeme.txt
+- Documentation Systeme d'Upgrade.txt
+Ces documents couvrent surtout le loot/drop et le systeme d'upgrade.
+
+ressources:
+Contient les donnees .tres et les scripts de Resource:
+- LootItemEntry
+- LootTableEnemy
+- UpgradeData
+- profils visuels projectile
+- items et upgrades de tir/contact
+
+scenes:
+Contient les scenes de gameplay:
+- armes/contact et armes/tir
+- ennemis
+- gestionnaires en jeu
+- joueur et base
+- menus
+- niveau test world
+- performance
+- vfx projectile
+
+scripts:
+Contient les scripts classes et gestionnaires:
+- chargements_auto
+- ennemis
+- gestionnaires/en_jeu
+- gestionnaires/menus
+- joueur
+- menus
+- monde
+- performances
+- utilitaires/armement
+
+tests:
+Contient une scene de test et un script de test de gestion d'armes. Rien ne
+montre un framework de test automatise complet.
+
+3. Autoloads et configuration globale
+
+Autoloads declares dans project.godot:
+- AutoFps
+- GestionnaireRetour
+- AutoInput
+- GestionnaireMultiecran
+- EtatJeu
+- GestionnaireGraphisme
+
+Input map principale:
+- ZQSD pour deplacement
+- souris gauche/droite pour attaques main gauche/main droite
+- E pour ramasser
+- F/C pour lacher main gauche/droite
+- G/V pour jeter main gauche/droite
+- espace pour dash et interagir
+- fleche haut pour switch_mains
+- fleche bas pour menu_labo
+- clic molette pour mode_joint_armes
+- echap pour pause
+
+Physique:
+- physics_ticks_per_second = 30
+- viewport 1280x720, stretch viewport/expand
+
+4. Scene world
+
+La scene world contient:
+- Player
+- Camera2D enfant du Player
+- Base
+- Gestionnaire Enemies
+- ProjectileHub
+- ParentLootPath
+- GestionnaireZones
+- UpgradeRegistry
+- GestionnaireLootDrops
+- GestionnaireUpgradesArmeContact
+- GestioUpgArmeTir
+- StatsVagues
+- PauseManagerClass
+- LootManager
+- plusieurs HUD/debug displayers
+- DeathScreen
+- LootPickupNotifier
+- overlay visuel avec shader BandesNoires
+
+Le monde instancie aussi des loots et references d'armes de test. Le fichier
+world.tscn configure les tables de loot, zones, upgrades et scenes ennemies.
+
+5. Joueur
+
+Classe principale:
+scripts/joueur/player.gd
+class_name Player
+
+Le Player est un CharacterBody2D avec:
+- StatsJoueur
+- Sante
+- Soif
+- GestionnaireLoot
+- GestionDeplacementJoueur
+- GestionnaireArme
+- ControleAttaquesArmes
+- ZoneRamassage
+- barres PV/soif
+- HUD de stats
+
+Dans player.tscn, StatsJoueur a actuellement:
+- pv_max_base = 999999999
+- vitesse_base = 1180
+- dash_cooldown_base = 0.3
+
+Ca ressemble clairement a des valeurs de debug/test, pas a un equilibrage final.
+
+Le joueur sait:
+- mourir
+- transmettre le loot ramasse a GestionnaireLoot
+- fournir sa chance via get_luck()
+- recevoir du recul externe
+- resoudre les collisions mathematiques avec les ennemis
+- appliquer des limites verticales et horizontales
+- basculer la camera vers la base si elle est conduite
+
+La mort du joueur:
+- signale aux gestionnaires d'ennemis que le joueur est mort
+- coupe collisions, process, physics, input
+- desactive les nodes du groupe inputs_jeu
+- affiche DeathScreen si present
+
+6. Stats, sante, soif
+
+StatsJoueur:
+Stocke les stats de base et bonus add/mult:
+- PV max
+- vitesse
+- chance
+- regen PV
+- dash max
+- cooldown dash
+
+Sante:
+Gere PV, overheal, degats, soin et signal died. L'overheal absorbe les degats
+avant les PV.
+
+Soif:
+Gere une jauge de soif de 0 a soif_max. Le deplacement et le dash peuvent
+consommer de la soif. Si la soif tombe a zero, le signal died_of_thirst est
+emis, mais le joueur ne meurt de soif que si can_die_of_soif est actif.
+
+7. Deplacement joueur
+
+GestionDeplacementJoueur gere:
+- inertie
+- acceleration/deceleration
+- penalites laterales et marche arriere selon direction souris
+- elan au depart
+- dash
+- cout de soif par distance et par dash
+- knockback de dash sur les ennemis
+
+Le dash:
+- utilise les charges du joueur
+- peut etre infini via buff
+- pousse les ennemis dans un rayon
+- se recharge selon les stats
+
+Le Player ajoute ensuite:
+- recul externe
+- collisions mathematiques contre ennemis
+- barriere verticale
+- limite horizontale imposee par les zones boss
+
+8. Systeme d'armes
+
+GestionnaireArme gere deux mains:
+- arme_principale
+- arme_secondaire
+
+Il controle:
+- ramassage d'armes ou de loot de scene via ZoneRamassage
+- equipement sur socket droite/gauche
+- lacher
+- jeter
+- switch de mains
+- mode joint des armes
+- lissage et placement des armes autour du joueur selon la souris
+
+ControleAttaquesArmes:
+- clic droit toggle auto attaque main droite
+- clic gauche toggle auto attaque main gauche
+- appelle attaquer() sur les armes equipees si elles peuvent attaquer
+
+ArmeBase:
+Base commune avec degats, duree active, cooldown, recul, etat au sol/equipe.
+
+ArmeTir:
+Gere tir projectile ou hitscan:
+- pool de projectiles
+- multi-balles
+- dispersion
+- portee hitscan
+- perforation hitscan
+- effets de tir
+- runtime visuel des projectiles
+- application des upgrades tir avant attaque et sur projectiles
+
+ArmeContact:
+Gere une HitBoxContact:
+- applique les upgrades contact avant attaque
+- configure degats/recul/porteur
+- active la hitbox pendant duree_active_s
+- joue les effets de frappe
+
+Projectile:
+Node2D poolable:
+- vitesse
+- duree de vie
+- raycast continu
+- largeur de scan
+- nombre de rayons de scan
+- contacts avant destruction
+- anti double-hit sur meme cible
+- impact visuel
+- recul sur cible si la chaine de parents expose appliquer_recul_depuis()
+
+9. Ennemis
+
+Enemy est la classe de base:
+- types C, B, A, S, BOSS
+- machine d'etat ALIVE, STUNNED, DYING, DEAD
+- sante via node Sante
+- hurtbox et ContactDamage
+- poursuite du joueur avec acceleration/deceleration
+- wobble et offset de cible
+- recul, poussee, stun court
+- effets de hit visuel
+- blocage autour de la base
+- retour au pool apres mort
+
+GestionnaireEnnemis:
+- spawne et pool les ennemis
+- supporte mode vagues
+- supporte spawn continu
+- supporte spawn par zones via GestionnaireZones
+- gere LOD visible/buffer/lointain
+- limite le nombre d'ennemis actifs
+- budgete les updates et suppressions hors distance
+- signale mort, creation, retrait
+- demande les drops a GestionnaireLootDrops a la mort
+
+Des correctifs sont deja presents dans les commentaires:
+- fin de vague propre
+- spawn_force qui incremente les compteurs
+- budget qui ne saute pas d'ennemis apres swap remove
+- sauvegarde collision defensive pendant pool
+
+10. Zones et boss
+
+GestionnaireZones:
+- trie les ZoneDefinition par x_debut_px
+- detecte la zone active selon la position X du joueur
+- signale zone_changee
+- peut spawner un boss via GestionnaireEnnemis.spawn_scene_directe()
+- bloque l'avance vers la droite tant que le boss est vivant
+- debloque a la mort du boss
+- peut dessiner les zones en debug
+
+ZoneDefinition:
+- nom
+- bornes x_debut_px/x_fin_px
+- apparitions_par_sec
+- max_ennemis_zone
+- scenes et poids d'ennemis par zone
+- option boss: est_zone_boss, scene_boss, x_boss_spawn_px
+
+Dans world.tscn, au moins une zone boss est configuree avec boss_zone_1.tscn.
+
+11. Loot et drops
+
+GestionnaireLootDrops:
+- utilise une scene Loot unique
+- precharge un pool de Loot
+- budgete les activations de loot par frame
+- tire le nombre de drops selon le type d'ennemi
+- tire la rarete selon table, progression, chance joueur et pity system
+- choisit un LootItemEntry dans LootTableEnemy
+- transmet visuel, icone, couleur, nom, skin et notification au Loot
+
+Loot:
+- Node2D poolable
+- type_loot C/B/A/S
+- type_item CONSO/UPGRADE/ARME
+- item_id
+- quantite
+- magnet vers le joueur
+- duree de vie
+- collecte animee possible via LootAnim
+- payload envoye a Player.on_loot_collected()
+
+LootManager:
+Existe comme gestionnaire spatial de loots pour eviter que chaque loot fasse
+tout en process. Il est present dans world.tscn et les loots s'y inscrivent via
+le groupe loot_manager.
+
+GestionnaireLoot:
+- stocke stats_loot
+- emet loot_change et loot_collecte
+- applique consommables
+- route certains upgrades automatiquement
+- gere carburant stocke et transfert vers vehicule
+- conserve XP/niveau des upgrades
+
+Consommables implementes:
+- conso_heal
+- conso_overheal_1/2/3
+- conso_soif_1
+- conso_regen_1/2/3
+- conso_invincible_1/2/3
+- conso_rage_1/2/3
+
+Upgrades speciaux carburant:
+- upgrade_carburant_1 / carburant_1
+- upgrade_carburant_2 / carburant_2
+- upgrade_carburant_3 / carburant_3
+
+Les armes logiques par id sont encore seulement logguees dans
+_debloquer_arme_par_id(). Le vrai deblocage d'arme par identifiant n'est pas
+encore implemente.
+
+12. Systeme d'upgrade
+
+UpgradeData:
+Resource data-driven:
+- id
+- cible ARME ou PROJECTILE
+- prop
+- mode SET/ADD/MUL
+- valeur
+- slot
+- max_stacks
+- progression XP par niveau
+
+UpgradeRegistry:
+- node present dans world
+- groupe upgrade_registry
+- map id -> UpgradeData
+- rebuild au ready
+
+GestionnaireLoot utilise le registry:
+- si un loot upgrade correspond a UpgradeData, il ajoute de l'XP
+- quand assez d'XP est atteint, il appelle ajouter_upgrade_par_id() sur le bon
+  manager selon le slot
+- slot commencant par tir -> upg_arme_tir
+- slot commencant par contact -> upg_arme_contact
+
+GestionnaireUpgradesArmeTir:
+- groupe upg_arme_tir
+- supporte une voie manuelle par exports
+- supporte la voie registry
+- stocke les upgrades par slot
+- un slot remplace l'ancien id si different
+- applique sur l'arme de tir courante
+- applique aussi sur le pool et les projectiles actifs
+- restaure les props base avant reapplication pour eviter drift/stack abusif
+- expose un delta visuel projectile selon les stats
+
+GestionnaireUpgradesArmeContact:
+- groupe upg_arme_contact
+- lit UpgradeRegistry
+- cumule les stacks par id
+- reconfigure ses flags internes
+- applique sur ArmeContact et HitBoxContact
+
+Attention: UpgradeData.Target n'a que ARME et PROJECTILE. Pour le contact,
+les modifs hitbox sont quand meme representees comme ARME puis traduites par
+GestionnaireUpgradesArmeContact selon prop. C'est fonctionnel mais pas tres
+propre conceptuellement.
+
+13. Base / vehicule
+
+PlayerBase:
+- CharacterBody2D
+- groupe base_vehicle
+- peut etre controlee via SiegePilote
+- contient DeplacementBase, SanteBase, CarburantBase
+- consomme du carburant quand elle bouge
+- refuse le deplacement si reserve <= 0
+
+La base a aussi:
+- PortailBaseMonde
+- marqueurs spawn monde/base
+- collisions internes
+- affichage stats base
+
+GestionnaireLoot peut stocker du carburant puis le transferer vers CarburantBase
+quand le joueur entre dans le vehicule.
+
+14. Menus et UI
+
+Menus existants:
+- splash screen / boot
+- menu titre
+- parametres
+- graphisme
+- performance
+- touches
+- credits
+- pause
+- labolo_menu
+
+MenuTitre:
+- signaux jouer/parametres/credits/quitter
+- GestionnaireMenuTitre route vers world, parametres, credits ou quit
+- GestionnaireRetour garde un historique de scenes
+
+LaboloMenu:
+- menu d'upgrade par drag and drop
+- affiche les items de loot filtrables par prefixe upg_/upgrade_
+- route vers gestionnaire tir ou contact selon depot
+
+HUD/debug en jeu:
+- StatsJoueurDisplayer
+- StatsVagues
+- EnemyCountDisplayer
+- ArmeTirStatsDisplayer
+- ArmContactStatsDisplayer
+- ZoneDisplayer
+- PerfDisplayer
+- LootDisplayer
+- LootPickupNotifier
+- DeathScreen
+
+15. Effets visuels et performance
+
+Le projet contient plusieurs shaders de menu, glitch, bandes noires, lootanim,
+outline, tremblement, rendu.
+
+Le tir a un systeme visuel avance:
+- ProjectileVisualProfile
+- ProjectileVisualRuntime
+- ProjectileVisualDelta
+- ProjectileVisualController
+- VisualEffectRegistry
+- trails et impacts dans scenes/vfx/projectiles
+
+La performance est traitee serieusement cote gameplay:
+- pooling ennemis
+- pooling projectiles
+- pooling loots
+- budget de spawn loot par frame
+- budget de spawn ennemi par frame
+- LOD ennemis
+- cache pour certains acces couteux
+- ProjectileHub pour eviter des roots disperses
+
+16. Etat reel et risques visibles
+
+Le projet est deja assez avance cote systemes, mais il est encore dans un etat
+prototype/test. Les signes:
+- main_scene demarre directement sur world au lieu du flux splash/menu
+- pv_max_base du joueur est a 999999999
+- beaucoup de displayers debug sont presents dans world
+- noms mixtes francais/anglais et parfois incoherents
+- quelques fichiers ont accents et espaces dans les noms
+- il existe du C# mais le projet lu est surtout GDScript
+- l'arme logique par id n'est pas implementee
+- le contact upgrade fonctionne, mais la modelisation Target/prop reste un peu
+  forcee
+- certains documents existants s'affichent avec caracteres casses dans le
+  terminal, probablement un probleme d'encodage ou de lecture console
+
+17. Priorites conseillees
+
+1. Decider le vrai point d'entree: world direct pour debug ou splash/menu pour
+   build jouable.
+2. Remettre des stats joueur realistes ou isoler les valeurs debug dans une
+   scene de test.
+3. Stabiliser la convention de nommage: les scripts sont deja majoritairement
+   en francais, mais plusieurs classes/fichiers sont encore en anglais.
+4. Finir le deblocage d'armes par id dans GestionnaireLoot.
+5. Clarifier UpgradeData pour le contact: soit ajouter une cible HITBOX, soit
+   assumer officiellement que contact passe par cible ARME.
+6. Garder les displayers debug utiles, mais prevoir un mode debug propre pour
+   ne pas polluer la scene finale.
+7. Ajouter des tests de non-regression pour loot, upgrades, pooling projectile
+   et fin de vague.
+
+18. Resume court
+
+Le projet possede deja une base solide: joueur mobile, dash, soif, sante,
+armes a deux mains, tir/contact, projectiles pooles, ennemis pooles, vagues,
+zones, boss, loot, consommables, upgrades data-driven, base conduisible,
+menus et HUD. Ce qui manque surtout maintenant, c'est de nettoyer l'entree du
+jeu, enlever les valeurs de debug, verrouiller les conventions, finir quelques
+routes gameplay incompletes et tester les systemes sensibles.

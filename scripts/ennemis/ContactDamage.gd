@@ -8,6 +8,7 @@ class_name ContactDamage
 @export var check_interval_s: float = 0.08
 @export var enemy_hit_offset_px: Vector2 = Vector2.ZERO
 @export var enemy_hit_radius_px: float = 14.0
+@export var recul_joueur_force: float = 260.0
 @export var groupe_hurtbox_joueur: StringName = &"player_hurtbox"
 @export_node_path("Node2D") var chemin_enemy: NodePath = NodePath("..")
 @export var debug_contact: bool = false
@@ -124,10 +125,12 @@ func _physics_process(_dt: float) -> void:
 
 	var rr: float = max(enemy_hit_radius_px, 0.0) + player_hurtbox.hit_radius()
 	if d2 <= rr * rr:
-		player_hurtbox.tek_it(degats_contact, enemy)
-		_frames_since_hit = 0
-		if debug_contact:
-			_dbg("HIT dmg=" + str(degats_contact))
+		var hit_accepte: bool = player_hurtbox.tek_it(degats_contact, enemy)
+		if hit_accepte:
+			_appliquer_recul_joueur(player_hurtbox, ec)
+			_frames_since_hit = 0
+			if debug_contact:
+				_dbg("HIT dmg=" + str(degats_contact))
 
 # ===========================================================================
 # Utilitaires
@@ -162,6 +165,22 @@ func _get_player_hurtbox() -> HurtBox:
 
 	_hurtbox_cache = get_tree().get_first_node_in_group(groupe_hurtbox_joueur) as HurtBox
 	return _hurtbox_cache
+
+func _appliquer_recul_joueur(hb: HurtBox, origine: Vector2) -> void:
+	if recul_joueur_force <= 0.0 or hb == null:
+		return
+
+	var joueur: Node = hb.get_parent()
+	if joueur == null or not joueur.has_method("appliquer_recul"):
+		return
+
+	var dir: Vector2 = hb.hit_center() - origine
+	if dir.length_squared() <= 0.0001 and enemy != null:
+		dir = hb.hit_center() - enemy.global_position
+	if dir.length_squared() <= 0.0001:
+		dir = Vector2.RIGHT
+
+	joueur.call("appliquer_recul", dir, recul_joueur_force)
 
 func _dbg(msg: String) -> void:
 	if not debug_contact:
