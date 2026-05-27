@@ -5,9 +5,11 @@
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_qhqgy"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_dqkch"]
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/utilitaires/bar_pv.gd" id="6_tuyoq"]
+[ext_resource type="Texture2D" uid="uid://bnl1vttrlllfm" path="res://assets/player/L main.png" id="7_3r75y"]
 [ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/gestionnaires/en_jeu/GestionnaireArme.gd" id="7_a06cl"]
 [ext_resource type="Script" uid="uid://cjws7v4t0wqu7" path="res://scripts/utilitaires/BarSoif.gd" id="7_wyey8"]
 [ext_resource type="Script" uid="uid://cutwnejqju7sh" path="res://scripts/utilitaires/Soif.gd" id="8_1bwnf"]
+[ext_resource type="Texture2D" uid="uid://ctq7khq31hwrk" path="res://assets/player/R main.png" id="8_6qdwr"]
 [ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/gestionnaires/en_jeu/ZoneRamassage.gd" id="8_dl1wr"]
 [ext_resource type="Script" uid="uid://chnxmpb8md2vh" path="res://scripts/joueur/StatsJoueur.gd" id="9_7tfl1"]
 [ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/utilitaires/armement/ControleAttaquesArmes.gd" id="9_wwtew"]
@@ -17,6 +19,8 @@
 [ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/gestionnaires/en_jeu/StatsJoueurDisplayer.gd" id="13_jxtnq"]
 [ext_resource type="Script" uid="uid://0qijcyr7hxjj" path="res://scripts/gestionnaires/en_jeu/effet_dash_displayer.gd" id="14_dash"]
 [ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="15_dash"]
+[ext_resource type="Texture2D" uid="uid://1s5vl1ymqtq6" path="res://assets/player/torse.png" id="20_p6id3"]
+[ext_resource type="Texture2D" uid="uid://cku6fruc3stgx" path="res://assets/player/tete.png" id="21_wucgo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -97,6 +101,8 @@ limite_haut = -1200.0
 limite_bas = 1200.0
 visuel_deplacement_actif = false
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=418544805]
+
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1398848889]
 unique_name_in_owner = true
 offset_left = 69.0
@@ -175,7 +181,7 @@ script = ExtResource("7_a06cl")
 chemin_socket_principale = NodePath("SocketDroite")
 chemin_socket_secondaire = NodePath("SocketGauche")
 chemin_zone = NodePath("../ZoneRamassage")
-chemin_pivot = NodePath("SocketDroite/Sprite2D2")
+chemin_pivot = NodePath("SocketDroite/spritemaindroite")
 pivot_mode = 2
 distance_min = 0.0
 distance_max = 400.0
@@ -186,17 +192,18 @@ metadata/_custom_type_script = "uid://ca27wv5y28koq"
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme" unique_id=1473468658]
 position = Vector2(-155, 0)
 
-[node name="Sprite2D" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=829007635]
-visible = false
-texture = ExtResource("2_qhqgy")
+[node name="spritemaingauche" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=829007635]
+z_index = 1
+scale = Vector2(7.26, 7.26)
+texture = ExtResource("7_3r75y")
 
 [node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=77895239]
 position = Vector2(148, 0)
 
-[node name="Sprite2D2" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=788168865]
-visible = false
-position = Vector2(-1, 0)
-texture = ExtResource("2_qhqgy")
+[node name="spritemaindroite" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=788168865]
+z_index = 1
+scale = Vector2(7.26, 7.26)
+texture = ExtResource("8_6qdwr")
 
 [node name="BarSoif" type="Node" parent="." unique_id=486784793]
 script = ExtResource("7_wyey8")
@@ -290,3 +297,14 @@ ui_position = Vector2(16, 450)
 ui_couleur_fond = Color(0, 0, 0, 1)
 ui_couleur_texte = Color(1, 0, 1, 1)
 metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
+
+[node name="SpritePlayer" type="Node2D" parent="." unique_id=687003242]
+position = Vector2(1, 109)
+scale = Vector2(7.265, 7.265)
+
+[node name="torse" type="Sprite2D" parent="SpritePlayer" unique_id=1373790341]
+texture = ExtResource("20_p6id3")
+
+[node name="tete" type="Sprite2D" parent="SpritePlayer" unique_id=687187973]
+position = Vector2(0, 1.2388163)
+texture = ExtResource("21_wucgo")
