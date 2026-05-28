@@ -76,6 +76,7 @@ grow_vertical = 2
 script = ExtResource("1_xoowx")
 chemin_btn_resolution = NodePath("Root/VBoxContainer/btn_res")
 chemin_btn_mode = NodePath("Root/VBoxContainer/btn_mode")
+chemin_btn_glow = NodePath("Root/VBoxContainer/btn_glow")
 chemin_btn_appliquer = NodePath("Root/HBoxContainer/appliquer")
 chemin_btn_reinitialiser = NodePath("Root/HBoxContainer/reinitialiser")
 
@@ -95,9 +96,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -121.0
-offset_top = -71.0
+offset_top = -110.0
 offset_right = 121.0
-offset_bottom = 71.0
+offset_bottom = 110.0
 grow_horizontal = 2
 grow_vertical = 2
 theme = SubResource("Theme_2d33v")
@@ -110,6 +111,10 @@ text = "res_btn"
 [node name="btn_mode" type="Button" parent="Root/VBoxContainer" unique_id=1042320154]
 layout_mode = 2
 text = "mode_btn"
+
+[node name="btn_glow" type="Button" parent="Root/VBoxContainer"]
+layout_mode = 2
+text = "glow_btn"
 
 [node name="HBoxContainer" type="HBoxContainer" parent="Root" unique_id=2061830459]
 layout_mode = 1

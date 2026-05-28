@@ -180,7 +180,7 @@ text = "By PARTYLIGHTER"
 [node name="Label Game Version" type="Label" parent="VBoxContainer" unique_id=1692201637]
 layout_mode = 2
 theme_override_font_sizes/font_size = 28
-text = "Version 0.1.2"
+text = "Version 0.3"
 
 [node name="glitch_controller_team" type="Node" parent="." unique_id=1960832793]
 script = ExtResource("12_ochwo")

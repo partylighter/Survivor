@@ -195,10 +195,10 @@ var _mort_t:                        float = 0.0
 # ---------------------------------------------------------------------------
 
 @onready var sante:          Sante         = get_node_or_null(chemin_sante)    as Sante
-@onready var target:         Player        = _find_player(get_tree().current_scene)
 @onready var sprite:         Sprite2D      = get_node_or_null(chemin_sprite)   as Sprite2D
 @onready var hurtbox:        HurtBox       = get_node_or_null("HurtBox")       as HurtBox
 @onready var contact_damage: ContactDamage = get_node_or_null("ContactDamage") as ContactDamage
+var target: Player = null
 
 # ===========================================================================
 # Initialisation
@@ -206,6 +206,8 @@ var _mort_t:                        float = 0.0
 
 func _ready() -> void:
 	add_to_group("enemy")
+	if target == null:
+		target = get_tree().get_first_node_in_group("joueur_principal") as Player
 
 	# Cache rayon base — recalculé une seule fois ici
 	_base_r_cache  = max(base_rayon_px, 0.0) + max(base_marge_px, 0.0)
@@ -292,6 +294,9 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 
 func reactiver_apres_pool() -> void:
 	_set_state(State.ALIVE)
+
+func definir_cible_joueur(nouveau_joueur: Node2D) -> void:
+	target = nouveau_joueur as Player
 
 # ===========================================================================
 # Machine d'états — transition centrale
@@ -730,12 +735,3 @@ func _reset_visual_state() -> void:
 	_wobble_phase = randf() * TAU
 	_wobble_sign  = -1.0 if randf() < 0.5 else 1.0
 	_wobble_t     = randf() * 10.0
-
-func _find_player(n: Node) -> Player:
-	if n is Player:
-		return n
-	for c: Node in n.get_children():
-		var p: Player = _find_player(c)
-		if p:
-			return p
-	return null

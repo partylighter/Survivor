@@ -14,9 +14,9 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 [application]
 
-config/name="MaximumOverdrive Survivor"
-config/description="Survivor"
-config/version="0.2"
+config/name="La Petite Grande Aventure : Acte 1"
+config/description="La Petite Grande Aventure : Acte 1"
+config/version="0.3"
 run/main_scene="uid://0182ilsqlcwo"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0, 0, 0, 1)
@@ -36,10 +36,6 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
-
-[dotnet]
-
-project/assembly_name="Survivor"
 
 [gui]
 

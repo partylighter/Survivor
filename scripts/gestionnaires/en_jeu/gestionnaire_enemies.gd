@@ -25,6 +25,8 @@ signal limite_atteinte()
 
 @export var budget_par_frame: int = 200
 @export var max_spawn_par_frame: int = 15
+@export var prechauffage_pool_par_type: int = 0
+@export var prechauffage_pool_par_frame: int = 12
 
 @export var max_full_actifs: int = 30
 @export var max_buffer_actifs: int = 60
@@ -44,6 +46,14 @@ signal limite_atteinte()
 @export var voisins_foule_max_par_ennemi: int = 4
 @export_range(0.0, 1.0, 0.05) var correction_foule: float = 0.75
 @export var penetration_max_corrigee_px: float = 28.0
+@export_group("Foule math auto")
+@export var auto_budget_foule: bool = true
+@export var auto_foule_ennemis_min: int = 120
+@export var auto_foule_ennemis_max: int = 500
+@export var auto_foule_budget_min: int = 32
+@export var auto_foule_budget_max: int = 128
+@export_range(1, 12, 1) var auto_foule_intervalle_max_frames: int = 6
+@export_range(1, 8, 1) var auto_foule_voisins_min: int = 2
 
 @export_group("Vagues")
 @export var mode_vagues: bool = true
@@ -78,6 +88,9 @@ var _lod_modes: Dictionary = {}
 var _grille_foule: Dictionary = {}
 var _curseur_foule: int = 0
 var _frame_foule: int = 0
+var _prechauffage_type_idx: int = 0
+var _prechauffage_restant_type: int = 0
+var _prechauffage_termine: bool = true
 
 var _rect_visible_cache: Rect2 = Rect2()
 var _rect_buffer_cache: Rect2 = Rect2()
@@ -153,6 +166,7 @@ func _ready() -> void:
 
 func _process(dt: float) -> void:
 	temps_total_s += dt
+	_processer_prechauffage_pool()
 	if joueur_mort:
 		return
 
@@ -174,12 +188,14 @@ func _process(dt: float) -> void:
 			_tick_spawn_zone(dt)
 		else:
 			accumulateur += apparitions_par_sec * dt
-			while accumulateur >= 1.0:
+			var crees_ce_frame: int = 0
+			while accumulateur >= 1.0 and crees_ce_frame < max_spawn_par_frame:
 				accumulateur -= 1.0
 				if ennemis.size() >= max_ennemis:
 					emit_signal("limite_atteinte")
 					break
 				_creer_ennemi()
+				crees_ce_frame += 1
 
 	if _lod_frame == 0:
 		_appliquer_lod()
@@ -291,6 +307,43 @@ func _init_pools() -> void:
 	pools.clear()
 	for _i: int in range(scenes_ennemis.size()):
 		pools.append([])
+	_prechauffage_type_idx = 0
+	_prechauffage_restant_type = max(prechauffage_pool_par_type, 0)
+	_prechauffage_termine = scenes_ennemis.is_empty() or prechauffage_pool_par_type <= 0
+
+func _processer_prechauffage_pool() -> void:
+	if _prechauffage_termine:
+		return
+	var budget: int = max(prechauffage_pool_par_frame, 1)
+	while budget > 0 and _prechauffage_type_idx < scenes_ennemis.size():
+		if _prechauffage_restant_type <= 0:
+			_prechauffage_type_idx += 1
+			_prechauffage_restant_type = max(prechauffage_pool_par_type, 0)
+			continue
+		var scene: PackedScene = scenes_ennemis[_prechauffage_type_idx]
+		if scene == null:
+			_prechauffage_restant_type = 0
+			continue
+		var e: Node2D = scene.instantiate() as Node2D
+		if e != null:
+			e.set_meta("type_idx", _prechauffage_type_idx)
+			add_child(e)
+			_configurer_ennemi_nouveau(e)
+			_activer_ennemi(e, false)
+			if e.is_in_group("enemy"):
+				e.remove_from_group("enemy")
+			e.hide()
+			pools[_prechauffage_type_idx].append(e)
+		_prechauffage_restant_type -= 1
+		budget -= 1
+	_prechauffage_termine = _prechauffage_type_idx >= scenes_ennemis.size()
+
+func _configurer_ennemi_nouveau(e: Node2D) -> void:
+	if e == null:
+		return
+	if e.has_method("definir_cible_joueur"):
+		e.call("definir_cible_joueur", joueur)
+	_connecter_signaux(e)
 
 func _prendre_depuis_pool(type_idx: int) -> Node2D:
 	if type_idx < 0 or type_idx >= pools.size():
@@ -329,6 +382,8 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 
 	if e.get_parent() != self:
 		add_child(e)
+	if est_nouveau:
+		_configurer_ennemi_nouveau(e)
 
 	_activer_ennemi(e, true)
 
@@ -341,9 +396,6 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 
 	for k in metas.keys():
 		e.set_meta(k, metas[k])
-
-	if est_nouveau:
-		_connecter_signaux(e)
 
 	# [CORRECTIF BUG 6] spawn_force n'incrémentait pas les compteurs de vague,
 	# ce qui faussait les conditions de fin (max_vivants, total_max).
@@ -387,12 +439,14 @@ func _tick_spawn_zone(dt: float) -> void:
 		return
 
 	accumulateur += zone.apparitions_par_sec * dt
-	while accumulateur >= 1.0:
+	var crees_ce_frame: int = 0
+	while accumulateur >= 1.0 and crees_ce_frame < max_spawn_par_frame:
 		accumulateur -= 1.0
 		if ennemis.size() >= cap:
 			break
 		var idx: int = _choisir_type_pour_zone(zone)
 		_creer_ennemi_index(idx, rayon_spawn_min, rayon_spawn_max)
+		crees_ce_frame += 1
 
 func _choisir_type_pour_zone(zone: ZoneDefinition) -> int:
 	if zone == null:
@@ -473,12 +527,12 @@ func spawn_scene_directe(scene: PackedScene, pos: Vector2) -> Node2D:
 	if e.has_method("reactiver_apres_pool"):
 		e.call("reactiver_apres_pool")
 	add_child(e)
+	_configurer_ennemi_nouveau(e)
 	_activer_ennemi(e, true)
 	ennemis.append(e)
 	_ennemis_set[e] = true
 	e.set_meta("vague_id", -1)
 	_lod_modes[e] = -1
-	_connecter_signaux(e)
 	_appliquer_lod_immediat_sur_ennemi(e)
 	emit_signal("ennemi_cree", e)
 	return e
@@ -512,6 +566,8 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 
 	if e.get_parent() != self:
 		add_child(e)
+	if est_nouveau:
+		_configurer_ennemi_nouveau(e)
 
 	_activer_ennemi(e, true)
 
@@ -521,9 +577,6 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 
 	e.set_meta("vague_id", i_vague if mode_vagues else -1)
 	_lod_modes[e] = -1
-
-	if est_nouveau:
-		_connecter_signaux(e)
 
 	_appliquer_lod_immediat_sur_ennemi(e)
 
@@ -552,10 +605,10 @@ func _rendre_a_pool(e: Node2D) -> void:
 	if e is Enemy:
 		(e as Enemy).set_combat_state(false, false)
 	_activer_ennemi(e, false)
+	if e.is_in_group("enemy"):
+		e.remove_from_group("enemy")
+	e.hide()
 	_lod_modes.erase(e)
-
-	if e.get_parent() == self:
-		remove_child(e)
 
 	if type_idx >= 0 and type_idx < pools.size():
 		if is_instance_valid(e):
@@ -769,7 +822,8 @@ func _resoudre_collisions_foule(dt: float) -> void:
 	if not collisions_foule_actives or ennemis.size() <= 1:
 		return
 
-	var intervalle: int = max(intervalle_foule_frames, 1)
+	var reglages: Dictionary = _get_reglages_foule()
+	var intervalle: int = int(reglages.get("intervalle", 1))
 	_frame_foule = (_frame_foule + 1) % intervalle
 	if _frame_foule != 0:
 		return
@@ -777,7 +831,7 @@ func _resoudre_collisions_foule(dt: float) -> void:
 	var cellule: float = max(taille_cellule_foule_px, 8.0)
 	_reconstruire_grille_foule(cellule)
 
-	var quota: int = min(max(budget_foule_par_frame, 0), ennemis.size())
+	var quota: int = min(int(reglages.get("budget", budget_foule_par_frame)), ennemis.size())
 	if quota <= 0:
 		return
 
@@ -787,9 +841,31 @@ func _resoudre_collisions_foule(dt: float) -> void:
 		var e: Node2D = ennemis[idx]
 		if not _ennemi_foule_valide(e):
 			continue
-		_resoudre_ennemi_foule(e, cellule, dt)
+		_resoudre_ennemi_foule(e, cellule, dt, int(reglages.get("voisins_max", voisins_foule_max_par_ennemi)))
 
 	_curseur_foule = (start + quota) % max(ennemis.size(), 1)
+
+func _get_reglages_foule() -> Dictionary:
+	var budget: int = max(budget_foule_par_frame, 0)
+	var intervalle: int = max(intervalle_foule_frames, 1)
+	var voisins: int = max(voisins_foule_max_par_ennemi, 1)
+	if not auto_budget_foule:
+		return {"budget": budget, "intervalle": intervalle, "voisins_max": voisins}
+	var nb: int = ennemis.size()
+	var min_nb: int = max(auto_foule_ennemis_min, 1)
+	var max_nb: int = max(auto_foule_ennemis_max, min_nb + 1)
+	var t: float = clamp(float(nb - min_nb) / float(max_nb - min_nb), 0.0, 1.0)
+	var budget_min: int = clamp(auto_foule_budget_min, 0, budget)
+	var budget_max: int = max(auto_foule_budget_max, budget_min)
+	var budget_auto: int = int(round(lerp(float(budget_max), float(budget_min), t)))
+	var intervalle_auto: int = int(round(lerp(float(intervalle), float(max(auto_foule_intervalle_max_frames, intervalle)), t)))
+	var voisins_min: int = clamp(auto_foule_voisins_min, 1, voisins)
+	var voisins_auto: int = int(round(lerp(float(voisins), float(voisins_min), t)))
+	return {
+		"budget": max(budget_auto, 0),
+		"intervalle": max(intervalle_auto, 1),
+		"voisins_max": max(voisins_auto, 1)
+	}
 
 func _reconstruire_grille_foule(cellule: float) -> void:
 	_grille_foule.clear()
@@ -801,13 +877,13 @@ func _reconstruire_grille_foule(cellule: float) -> void:
 		liste.append(e)
 		_grille_foule[cle] = liste
 
-func _resoudre_ennemi_foule(e: Node2D, cellule: float, dt: float) -> void:
+func _resoudre_ennemi_foule(e: Node2D, cellule: float, dt: float, voisins_max_effectif: int) -> void:
 	var pos: Vector2 = e.global_position
 	var cle: Vector2i = _cle_foule(e.global_position, cellule)
 	var rayon_e: float = _rayon_foule(e)
 	var id_e: int = e.get_instance_id()
 	var voisins_corriges: int = 0
-	var voisins_max: int = max(voisins_foule_max_par_ennemi, 1)
+	var voisins_max: int = max(voisins_max_effectif, 1)
 
 	var local_x: float = pos.x - float(cle.x) * cellule
 	var local_y: float = pos.y - float(cle.y) * cellule

@@ -55,6 +55,8 @@
 script = ExtResource("12_yovrb")
 nom = &"zone1"
 x_fin_px = 30000.0
+apparitions_par_sec = 15.0
+max_ennemis_zone = 150
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
 poids = null
 est_zone_boss = true
@@ -117,21 +119,6 @@ shader_parameter/bande_gauche_px = 0.0
 shader_parameter/bande_droite_px = 0.0
 shader_parameter/couleur_bandes = Color(0, 0, 0, 1)
 
-[sub_resource type="Environment" id="Environment_f8f2q"]
-background_mode = 3
-tonemap_mode = 2
-tonemap_exposure = 0.99
-tonemap_white = 16.0
-glow_enabled = true
-glow_levels/1 = 1.4
-glow_levels/2 = 1.2
-glow_levels/7 = 0.2
-glow_intensity = 0.2
-glow_bloom = 0.15
-adjustment_enabled = true
-adjustment_contrast = 1.05
-adjustment_saturation = 1.18
-
 [node name="World" type="Node2D" unique_id=2023534950]
 
 [node name="Icon" type="Sprite2D" parent="." unique_id=757728578]
@@ -170,9 +157,9 @@ mouse_deadzone = 0.0
 mouse_influence_y = 2.0
 max_offset_px = 2000.0
 offset_speed = 4.0
-zoom_sol = 0.8
+zoom_sol = 0.5
 zoom_conduite = 0.8500000000000001
-zoom_move_sol = 0.7000000000000001
+zoom_move_sol = 0.55
 zoom_move_conduite = 0.7000000000000001
 zoom_speed = 0.1
 intensite_camera_deplacement = 1.0
@@ -194,7 +181,10 @@ rayon_spawn_max = 4000.0
 demi_hauteur_bande_spawn = 2500.0
 rayon_disparition = 13000.0
 budget_par_frame = 160
-max_full_actifs = 500
+prechauffage_pool_par_type = 180
+prechauffage_pool_par_frame = 10
+max_full_actifs = 250
+max_buffer_actifs = 500
 marge_visible_ecran_px = 12000.0
 marge_buffer_ecran_px = 10000.0
 collisions_foule_actives = true
@@ -203,6 +193,10 @@ taille_cellule_foule_px = 160.0
 voisins_foule_max_par_ennemi = 6
 correction_foule = 0.45
 penetration_max_corrigee_px = 30.0
+auto_foule_ennemis_min = 180
+auto_foule_budget_min = 40
+auto_foule_budget_max = 160
+auto_foule_intervalle_max_frames = 5
 mode_vagues = false
 interlude_s = 0.0
 croissance_taux = 1.08
@@ -361,6 +355,3 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=54273485]
-environment = SubResource("Environment_f8f2q")

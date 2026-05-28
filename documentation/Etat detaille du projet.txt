@@ -1,9 +1,9 @@
-Etat detaille du projet - MaximumOverdrive Survivor
+Etat detaille du projet - La Petite Grande Aventure : Acte 1
 Date de lecture: 2026-05-12
 
 1. Vue generale
 
-Le projet est un jeu Godot 4.7 nomme "MaximumOverdrive Survivor", version 0.2.
+Le projet est un jeu Godot 4.7 nomme "La Petite Grande Aventure : Acte 1", version 0.3.
 Le gameplay actuel est celui d'un survivor 2D horizontal avec joueur, horde
 d'ennemis, armes ramassables, drops, upgrades, zones, boss de zone, base
 conduisible et menus.
@@ -15,9 +15,7 @@ Point important: les scenes de splash screen et de menu titre existent, mais le
 projet demarre actuellement directement sur la scene de jeu. Si l'intention est
 de demarrer par le logo/menu, il faudra changer run/main_scene.
 
-Le projet est majoritairement en GDScript. Il reste une structure C# avec
-Survivor.csproj, Survivor.sln et un ProjectileSystem2D.cs, mais le coeur du jeu
-lu ici est en GDScript.
+Le projet est en GDScript. Les anciens elements externes ont ete retires.
 
 2. Structure des dossiers
 
@@ -492,7 +490,7 @@ prototype/test. Les signes:
 - beaucoup de displayers debug sont presents dans world
 - noms mixtes francais/anglais et parfois incoherents
 - quelques fichiers ont accents et espaces dans les noms
-- il existe du C# mais le projet lu est surtout GDScript
+- les anciens elements externes ont ete retires
 - l'arme logique par id n'est pas implementee
 - le contact upgrade fonctionne, mais la modelisation Target/prop reste un peu
   forcee

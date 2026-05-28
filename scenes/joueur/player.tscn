@@ -299,6 +299,7 @@ ui_couleur_texte = Color(1, 0, 1, 1)
 metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
 
 [node name="SpritePlayer" type="Node2D" parent="." unique_id=687003242]
+visible = false
 position = Vector2(1, 109)
 scale = Vector2(7.265, 7.265)
 

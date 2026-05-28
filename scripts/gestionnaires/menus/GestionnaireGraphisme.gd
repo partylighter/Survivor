@@ -4,6 +4,7 @@ const CONFIG_PATH: String = "user://display.cfg"
 
 const DEFAULT_RESOLUTION: Vector2i = Vector2i(1920, 1080)
 const DEFAULT_FULLSCREEN: bool = true
+const DEFAULT_GLOW_ACTIF: bool = true
 
 const BASE_CANVAS_SIZE: Vector2i = Vector2i(1920, 1080)
 
@@ -22,9 +23,13 @@ var resolutions: Array[Vector2i] = [
 
 var resolution_index: int = 0
 var fullscreen: bool = DEFAULT_FULLSCREEN
+var glow_actif: bool = DEFAULT_GLOW_ACTIF
 
 var _preview_res_index: int = 0
 var _preview_fullscreen: bool = DEFAULT_FULLSCREEN
+var _preview_glow_actif: bool = DEFAULT_GLOW_ACTIF
+var _world_environment: WorldEnvironment
+var _environment: Environment
 
 func _ready() -> void:
 	resolution_index = _get_default_res_index()
@@ -32,6 +37,7 @@ func _ready() -> void:
 	load_settings()
 	_preview_res_index = resolution_index
 	_preview_fullscreen = fullscreen
+	_preview_glow_actif = glow_actif
 	_clamp_indices_for_current_screen()
 	apply_current()
 
@@ -59,6 +65,9 @@ func toggle_fullscreen_preview() -> void:
 		var w := get_tree().root.get_window()
 		_preview_res_index = _clamp_res_index_to_fit(w.current_screen, _preview_res_index)
 
+func toggle_glow_preview() -> void:
+	_preview_glow_actif = not _preview_glow_actif
+
 func get_preview_resolution() -> Vector2i:
 	if resolutions.is_empty():
 		return DEFAULT_RESOLUTION
@@ -68,11 +77,15 @@ func get_preview_resolution() -> Vector2i:
 func get_preview_fullscreen() -> bool:
 	return _preview_fullscreen
 
+func get_preview_glow_actif() -> bool:
+	return _preview_glow_actif
+
 func has_pending_changes() -> bool:
-	return _preview_res_index != resolution_index or _preview_fullscreen != fullscreen
+	return _preview_res_index != resolution_index or _preview_fullscreen != fullscreen or _preview_glow_actif != glow_actif
 
 func apply_and_save() -> void:
 	fullscreen = _preview_fullscreen
+	glow_actif = _preview_glow_actif
 
 	var w := get_tree().root.get_window()
 	if fullscreen:
@@ -88,13 +101,15 @@ func apply_and_save() -> void:
 func reset_defaults() -> void:
 	_preview_res_index = _get_default_res_index()
 	_preview_fullscreen = DEFAULT_FULLSCREEN
+	_preview_glow_actif = DEFAULT_GLOW_ACTIF
 
 func cancel_preview() -> void:
 	_preview_res_index = resolution_index
 	_preview_fullscreen = fullscreen
+	_preview_glow_actif = glow_actif
 
 func is_using_defaults() -> bool:
-	return resolution_index == _get_default_res_index() and fullscreen == DEFAULT_FULLSCREEN
+	return resolution_index == _get_default_res_index() and fullscreen == DEFAULT_FULLSCREEN and glow_actif == DEFAULT_GLOW_ACTIF
 
 func apply_current() -> void:
 	call_deferred("_apply_deferred")
@@ -130,6 +145,7 @@ func apply_to_window(w: Window) -> void:
 func _apply_deferred() -> void:
 	var w: Window = get_tree().root.get_window()
 	apply_to_window(w)
+	_apply_world_environment()
 
 func get_current_resolution() -> Vector2i:
 	if resolutions.is_empty():
@@ -143,6 +159,7 @@ func save_settings() -> void:
 	cfg.set_value("display", "resolution_x", r.x)
 	cfg.set_value("display", "resolution_y", r.y)
 	cfg.set_value("display", "fullscreen", fullscreen)
+	cfg.set_value("display", "glow_actif", glow_actif)
 	cfg.save(CONFIG_PATH)
 
 func load_settings() -> void:
@@ -157,6 +174,34 @@ func load_settings() -> void:
 	var ry: int = int(cfg.get_value("display", "resolution_y", DEFAULT_RESOLUTION.y))
 	resolution_index = _find_resolution_index(Vector2i(rx, ry))
 	fullscreen = bool(cfg.get_value("display", "fullscreen", DEFAULT_FULLSCREEN))
+	glow_actif = bool(cfg.get_value("display", "glow_actif", DEFAULT_GLOW_ACTIF))
+
+func _apply_world_environment() -> void:
+	if _world_environment == null or not is_instance_valid(_world_environment):
+		_world_environment = WorldEnvironment.new()
+		_world_environment.name = "WorldEnvironmentGlobal"
+		get_tree().root.add_child(_world_environment)
+	if _environment == null:
+		_environment = _creer_environment_par_defaut()
+	_world_environment.environment = _environment
+	_environment.glow_enabled = glow_actif
+
+func _creer_environment_par_defaut() -> Environment:
+	var env := Environment.new()
+	env.background_mode = Environment.BG_CANVAS
+	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.tonemap_exposure = 0.99
+	env.tonemap_white = 16.0
+	env.glow_enabled = glow_actif
+	env.set("glow_levels/1", 1.4)
+	env.set("glow_levels/2", 1.2)
+	env.set("glow_levels/7", 0.2)
+	env.glow_intensity = 0.2
+	env.glow_bloom = 0.15
+	env.adjustment_enabled = true
+	env.adjustment_contrast = 1.05
+	env.adjustment_saturation = 1.18
+	return env
 
 func _find_resolution_index(r: Vector2i) -> int:
 	for i in range(resolutions.size()):

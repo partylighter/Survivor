@@ -1,0 +1,896 @@
+[gd_scene format=3 uid="uid://cgqs200twliqw"]
+
+[ext_resource type="Script" uid="uid://bipqxbsuf07a5" path="res://scripts/joueur/archere.gd" id="1_qjs34"]
+[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="2_1g8fy"]
+[ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="3_dhqrj"]
+[ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/gestionnaires/en_jeu/ZoneRamassage.gd" id="4_alfpc"]
+[ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/utilitaires/bar_pv.gd" id="5_2qddb"]
+[ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/gestionnaires/en_jeu/GestionnaireArme.gd" id="6_i13yx"]
+[ext_resource type="Texture2D" uid="uid://b38kijqfiqalk" path="res://assets/archere/main gauche.png" id="7_i13yx"]
+[ext_resource type="Texture2D" uid="uid://dhr8nbfx75o8i" path="res://assets/archere/main droite.png" id="8_pkql5"]
+[ext_resource type="Script" uid="uid://cjws7v4t0wqu7" path="res://scripts/utilitaires/BarSoif.gd" id="9_s88oj"]
+[ext_resource type="Script" uid="uid://cutwnejqju7sh" path="res://scripts/utilitaires/Soif.gd" id="10_hveao"]
+[ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="11_d1jmq"]
+[ext_resource type="Script" uid="uid://chnxmpb8md2vh" path="res://scripts/joueur/StatsJoueur.gd" id="12_ggrrm"]
+[ext_resource type="Script" uid="uid://dqvkgiskf54md" path="res://scripts/joueur/DeplacementJoueur.gd" id="13_xeymn"]
+[ext_resource type="Script" uid="uid://bbaqmw4o6hmh8" path="res://scripts/utilitaires/armement/ControleAttaquesArmes.gd" id="14_3s74m"]
+[ext_resource type="Script" uid="uid://d2qt2wohmdfas" path="res://scripts/utilitaires/GestionnaireLoot.gd" id="15_6qcki"]
+[ext_resource type="Script" uid="uid://0qijcyr7hxjj" path="res://scripts/gestionnaires/en_jeu/effet_dash_displayer.gd" id="16_3btpa"]
+[ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="17_gnqv5"]
+[ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/gestionnaires/en_jeu/LootDisplayer.gd" id="18_urclj"]
+[ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/gestionnaires/en_jeu/StatsJoueurDisplayer.gd" id="19_83r8v"]
+[ext_resource type="Texture2D" uid="uid://3y8pr65i772r" path="res://assets/archere/animation torse.png" id="20_i13yx"]
+[ext_resource type="Texture2D" uid="uid://bson1kpwy8wro" path="res://assets/archere/animation tete.png" id="21_pkql5"]
+[ext_resource type="Texture2D" uid="uid://dc2xx0qopwjhd" path="res://assets/archere/animation jambe droite.png" id="22_ctind"]
+[ext_resource type="Texture2D" uid="uid://d4drfp6435ivr" path="res://assets/archere/animation jambe gauche.png" id="23_s88oj"]
+[ext_resource type="Texture2D" uid="uid://bo7a3qf7j2tb6" path="res://assets/archere/animation allbody.png" id="24_hveao"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
+bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_smvi2"]
+bg_color = Color(0.76862746, 0, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xrmqf"]
+bg_color = Color(0.76862746, 0, 1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_5vydl"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xag11"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_517s2"]
+bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_t3m3n"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_r5uce"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_b514t"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fab7w"]
+bg_color = Color(0.768627, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_e3deq"]
+bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3eba1"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_66o0g"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yowl1"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_6clkm"]
+bg_color = Color(0.59607846, 0.6156863, 0.98039216, 1)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_ksbfe"]
+size = Vector2(131, 131)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4d6aa"]
+radius = 473.482
+
+[sub_resource type="Animation" id="Animation_ctind"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../squelette du corps/tete:frame")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_s88oj"]
+resource_name = "jambe droite bas"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
+[sub_resource type="Animation" id="Animation_hveao"]
+resource_name = "jambe droite bas droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_d1jmq"]
+resource_name = "jambe droite bas gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_ggrrm"]
+resource_name = "jambe droite droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [12, 13]
+}
+
+[sub_resource type="Animation" id="Animation_xeymn"]
+resource_name = "jambe droite gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_3s74m"]
+resource_name = "jambe droite haut droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.0333333),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_6qcki"]
+resource_name = "jambe droite haut gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_3btpa"]
+resource_name = "jambe droite haute"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe droite:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [8, 9]
+}
+
+[sub_resource type="Animation" id="Animation_gnqv5"]
+resource_name = "jambe gauche bas"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
+[sub_resource type="Animation" id="Animation_urclj"]
+resource_name = "jambe gauche bas gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.99),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_83r8v"]
+resource_name = "jambe gauche droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [12, 13]
+}
+
+[sub_resource type="Animation" id="Animation_ys1k7"]
+resource_name = "jambe gauche droite bas"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_smvi2"]
+resource_name = "jambe gauche gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_xrmqf"]
+resource_name = "jambe gauche haut"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [8, 9]
+}
+
+[sub_resource type="Animation" id="Animation_5vydl"]
+resource_name = "jambe gauche haut droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_xag11"]
+resource_name = "jambe gauche haut gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/jambe gauche:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_517s2"]
+resource_name = "tete inactif bas"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.99),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
+[sub_resource type="Animation" id="Animation_t3m3n"]
+resource_name = "tete inactif bas droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_r5uce"]
+resource_name = "tete inactif bas gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.98),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_b514t"]
+resource_name = "tete inactif droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.97),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [12, 12]
+}
+
+[sub_resource type="Animation" id="Animation_fab7w"]
+resource_name = "tete inactif gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [4, 4]
+}
+
+[sub_resource type="Animation" id="Animation_e3deq"]
+resource_name = "tete inactif haut"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.98),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [8, 8]
+}
+
+[sub_resource type="Animation" id="Animation_3eba1"]
+resource_name = "tete inactif haut droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.99),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_66o0g"]
+resource_name = "tete inactif haut gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/tete:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.97),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_yowl1"]
+resource_name = "torse inactif bas droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_6clkm"]
+resource_name = "torse inactif bas gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [2, 2]
+}
+
+[sub_resource type="Animation" id="Animation_ksbfe"]
+resource_name = "torse inactif droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.98),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [12, 12]
+}
+
+[sub_resource type="Animation" id="Animation_4d6aa"]
+resource_name = "torse inactif gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [4, 5]
+}
+
+[sub_resource type="Animation" id="Animation_rc4ya"]
+resource_name = "torse inactif haut"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [8, 9]
+}
+
+[sub_resource type="Animation" id="Animation_h2vy4"]
+resource_name = "torse inactif haut droite"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.97),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_m25te"]
+resource_name = "torse inactif haut gauche"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_vk6sf"]
+resource_name = "torse nactif bas"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../squelette du corps/torse:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [0, 1]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_1liwq"]
+_data = {
+&"RESET": SubResource("Animation_ctind"),
+&"jambe droite bas": SubResource("Animation_s88oj"),
+&"jambe droite bas droite": SubResource("Animation_hveao"),
+&"jambe droite bas gauche": SubResource("Animation_d1jmq"),
+&"jambe droite droite": SubResource("Animation_ggrrm"),
+&"jambe droite gauche": SubResource("Animation_xeymn"),
+&"jambe droite haut droite": SubResource("Animation_3s74m"),
+&"jambe droite haut gauche": SubResource("Animation_6qcki"),
+&"jambe droite haute": SubResource("Animation_3btpa"),
+&"jambe gauche bas": SubResource("Animation_gnqv5"),
+&"jambe gauche bas gauche": SubResource("Animation_urclj"),
+&"jambe gauche droite": SubResource("Animation_83r8v"),
+&"jambe gauche droite bas": SubResource("Animation_ys1k7"),
+&"jambe gauche gauche": SubResource("Animation_smvi2"),
+&"jambe gauche haut": SubResource("Animation_xrmqf"),
+&"jambe gauche haut droite": SubResource("Animation_5vydl"),
+&"jambe gauche haut gauche": SubResource("Animation_xag11"),
+&"tete inactif bas": SubResource("Animation_517s2"),
+&"tete inactif bas droite": SubResource("Animation_t3m3n"),
+&"tete inactif bas gauche": SubResource("Animation_r5uce"),
+&"tete inactif droite": SubResource("Animation_b514t"),
+&"tete inactif gauche": SubResource("Animation_fab7w"),
+&"tete inactif haut": SubResource("Animation_e3deq"),
+&"tete inactif haut droite": SubResource("Animation_3eba1"),
+&"tete inactif haut gauche": SubResource("Animation_66o0g"),
+&"torse inactif bas droite": SubResource("Animation_yowl1"),
+&"torse inactif bas gauche": SubResource("Animation_6clkm"),
+&"torse inactif droite": SubResource("Animation_ksbfe"),
+&"torse inactif gauche": SubResource("Animation_4d6aa"),
+&"torse inactif haut": SubResource("Animation_rc4ya"),
+&"torse inactif haut droite": SubResource("Animation_h2vy4"),
+&"torse inactif haut gauche": SubResource("Animation_m25te"),
+&"torse nactif bas": SubResource("Animation_vk6sf")
+}
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rc4ya"]
+shader = ExtResource("17_gnqv5")
+shader_parameter/intensite = 0.0
+shader_parameter/progression_onde = 0.0
+shader_parameter/direction_dash = Vector2(1, 0)
+shader_parameter/distorsion_px = 170.0
+shader_parameter/epaisseur_onde = 0.16
+shader_parameter/aberration_px = 8.0
+shader_parameter/vignette_intensite = 0.22
+shader_parameter/vignette_opacite = 1.0
+shader_parameter/vignette_depart = 0.48
+shader_parameter/vignette_fin = 1.05
+shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
+
+[node name="Archere" type="CharacterBody2D" unique_id=783124346]
+script = ExtResource("1_qjs34")
+chemin_stats = NodePath("StatsJoueur")
+chemin_sante = NodePath("SantÃ©")
+chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
+chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
+chemin_soif = NodePath("Soif")
+collision_ennemis_actif = false
+limite_haut = -1200.0
+limite_bas = 1200.0
+visuel_deplacement_actif = false
+
+[node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1940575337]
+unique_name_in_owner = true
+offset_left = 69.0
+offset_top = -104.0
+offset_right = 199.0
+offset_bottom = -73.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_ys1k7")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_smvi2")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_xrmqf")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_5vydl")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_xag11")
+page = 100.0
+
+[node name="HScrollBarPV" type="HScrollBar" parent="." unique_id=1350295114]
+unique_name_in_owner = true
+offset_left = -61.0
+offset_top = -104.0
+offset_right = 69.0
+offset_bottom = -73.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_517s2")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_t3m3n")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_r5uce")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_b514t")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_fab7w")
+page = 100.0
+
+[node name="HScrollBarSoif" type="HScrollBar" parent="." unique_id=1334387232]
+offset_left = -61.0
+offset_top = -139.0
+offset_right = 201.0
+offset_bottom = -108.0
+theme_override_styles/scroll = SubResource("StyleBoxFlat_e3deq")
+theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_3eba1")
+theme_override_styles/grabber = SubResource("StyleBoxFlat_66o0g")
+theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_yowl1")
+theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_6clkm")
+page = 100.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=2004664678]
+position = Vector2(1.5, -0.5)
+shape = SubResource("RectangleShape2D_ksbfe")
+debug_color = Color(0.355273, 0.430568, 1, 0)
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=70340746]
+visible = false
+texture = ExtResource("2_1g8fy")
+
+[node name="Hurtbox" type="Area2D" parent="." unique_id=1481931653]
+script = ExtResource("3_dhqrj")
+chemin_sante = NodePath("../Santé")
+hit_radius_px = 100.0
+groupe_hurtbox = &"player_hurtbox"
+
+[node name="ZoneRamassage" type="Area2D" parent="." unique_id=1632959028]
+script = ExtResource("4_alfpc")
+metadata/_custom_type_script = "uid://cni7dvefjr67x"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneRamassage" unique_id=795282620]
+shape = SubResource("CircleShape2D_4d6aa")
+debug_color = Color(0, 0.6, 0.701961, 0)
+
+[node name="BarPV" type="Node2D" parent="." unique_id=2029580597]
+script = ExtResource("5_2qddb")
+chemin_hote = NodePath("../Sprite2D")
+chemin_bar = NodePath("../HScrollBarPV")
+chemin_bar_overheal = NodePath("../HScrollBarHoverHeal")
+chemin_sante = NodePath("../Santé")
+chemin_loot = NodePath("../GestionnaireLoot")
+offset = Vector2(-61, -100)
+toujours_visible = true
+shake_force_px = 40.0
+shake_duree_s = 0.14
+debug_level = 0
+
+[node name="GestionnaireArme" type="Node2D" parent="." unique_id=1635613565]
+script = ExtResource("6_i13yx")
+chemin_socket_principale = NodePath("SocketDroite")
+chemin_socket_secondaire = NodePath("SocketGauche")
+chemin_zone = NodePath("../ZoneRamassage")
+chemin_pivot = NodePath("SocketDroite/spritemaindroite")
+pivot_mode = 2
+distance_min = 0.0
+distance_max = 400.0
+distance_fusion_debut = 758.6
+distance_fusion_range = 880.6
+metadata/_custom_type_script = "uid://ca27wv5y28koq"
+
+[node name="SocketGauche" type="Node2D" parent="GestionnaireArme" unique_id=1532852629]
+
+[node name="spritemaingauche" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=1028360536]
+z_index = 1
+position = Vector2(25, 0)
+texture = ExtResource("7_i13yx")
+
+[node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=1809982953]
+
+[node name="spritemaindroite" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=660058153]
+z_index = 1
+position = Vector2(-25, 0)
+texture = ExtResource("8_pkql5")
+
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1441774166]
+root_node = NodePath(".")
+anim_player = NodePath("../AnimationPlayer")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=903752637]
+root_node = NodePath("../AnimationTree")
+libraries/ = SubResource("AnimationLibrary_1liwq")
+
+[node name="squelette du corps" type="Node2D" parent="." unique_id=1441743443]
+texture_filter = 1
+
+[node name="torse" type="Sprite2D" parent="squelette du corps" unique_id=1239734821]
+texture = ExtResource("20_i13yx")
+hframes = 16
+
+[node name="tete" type="Sprite2D" parent="squelette du corps" unique_id=906096592]
+texture = ExtResource("21_pkql5")
+hframes = 16
+
+[node name="jambe droite" type="Sprite2D" parent="squelette du corps" unique_id=1418329470]
+texture = ExtResource("22_ctind")
+hframes = 16
+
+[node name="jambe gauche" type="Sprite2D" parent="squelette du corps" unique_id=960317419]
+texture = ExtResource("23_s88oj")
+hframes = 16
+
+[node name="corps entier" type="Sprite2D" parent="squelette du corps" unique_id=301836749]
+visible = false
+texture = ExtResource("24_hveao")
+
+[node name="BarSoif" type="Node" parent="." unique_id=353747032]
+script = ExtResource("9_s88oj")
+chemin_hote = NodePath("..")
+chemin_bar = NodePath("../HScrollBarSoif")
+chemin_soif = NodePath("../Soif")
+offset = Vector2(-120, -200)
+toujours_visible = true
+
+[node name="Soif" type="Node" parent="." unique_id=1709389821]
+script = ExtResource("10_hveao")
+
+[node name="Santé" type="Node" parent="." unique_id=1094994740]
+script = ExtResource("11_d1jmq")
+max_pv = 999999999
+
+[node name="StatsJoueur" type="Node" parent="." unique_id=764373083]
+script = ExtResource("12_ggrrm")
+pv_max_base = 999999999
+vitesse_base = 1180.0
+dash_cooldown_base = 0.3
+metadata/_custom_type_script = "uid://chnxmpb8md2vh"
+
+[node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=2005448771]
+script = ExtResource("13_xeymn")
+acceleration_px_s2 = 23500.0
+deceleration_px_s2 = 8500.0
+freinage_virage_mult = 2.0
+vitesse_cote_mult = 0.87
+vitesse_reculons_mult = 0.75
+elan_depart_actif = false
+elan_depart_impulsion_px_s = 2000.0
+elan_depart_plafond_mult = 500.0
+elan_depart_vitesse_max_declenche_px_s = 5000.0
+elan_depart_blocage_s = 1.0
+dash_vitesse_fin_mult = 0.5
+dash_knockback_force = 10000.0
+dash_knockback_rayon_px = 500.0
+dash_knockback_force_bord_mult = 0.55
+dash_recharge_pendant_dash = true
+metadata/_custom_type_script = "uid://dqvkgiskf54md"
+
+[node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1829424238]
+script = ExtResource("14_3s74m")
+chemin_gestionnaire = NodePath("../GestionnaireArme")
+metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
+
+[node name="GestionnaireLoot" type="Node" parent="." unique_id=1363142192]
+script = ExtResource("15_6qcki")
+conso_overheal_1_amount = 1.0
+conso_overheal_2_amount = 2.0
+conso_overheal_3_amount = 6.0
+conso_soif_1_amount = 100.0
+carburant_par_item_1 = 2.0
+carburant_par_item_2 = 6.0
+carburant_par_item_3 = 10.0
+metadata/_custom_type_script = "uid://d2qt2wohmdfas"
+
+[node name="EffetDashDisplayer" type="CanvasLayer" parent="." unique_id=697717860]
+script = ExtResource("16_3btpa")
+intensite_depart = 0.3
+duree_pulse_s = 1.45
+aberration_dash_px = 150.0
+vignette_intensite = 1.0
+bonus_bandes_dash_px = 40.0
+duree_resserrement_bandes_s = 0.2
+duree_desserrement_bandes_s = 0.3
+
+[node name="RectDash" type="ColorRect" parent="EffetDashDisplayer" unique_id=1298695720]
+material = SubResource("ShaderMaterial_rc4ya")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LootDisplayer" type="CanvasLayer" parent="." unique_id=934050890]
+script = ExtResource("18_urclj")
+chemin_loot = NodePath("../GestionnaireLoot")
+ui_position = Vector2(16, 580)
+metadata/_custom_type_script = "uid://ss27awahkq0s"
+
+[node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=781955153]
+script = ExtResource("19_83r8v")
+chemin_stats = NodePath("../StatsJoueur")
+chemin_sante = NodePath("../Santé")
+chemin_soif = NodePath("../Soif")
+chemin_player = NodePath("..")
+ui_position = Vector2(16, 450)
+ui_couleur_fond = Color(0, 0, 0, 1)
+ui_couleur_texte = Color(1, 0, 1, 1)
+metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
