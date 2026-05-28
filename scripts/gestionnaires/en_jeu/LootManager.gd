@@ -63,6 +63,8 @@ func _enregistrer_loots_existants() -> void:
 func enregistrer_loot(l: Loot) -> void:
 	if l == null or l._lm != null:
 		return
+	if l.has_method("est_actif_pour_manager") and not bool(l.call("est_actif_pour_manager")):
+		return
 
 	l._lm = self
 	l._lm_liste = 0

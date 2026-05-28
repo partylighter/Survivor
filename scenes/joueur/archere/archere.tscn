@@ -991,9 +991,12 @@ chemin_zone = NodePath("../ZoneRamassage")
 chemin_pivot = NodePath("SocketDroite/spritemaindroite")
 pivot_mode = 2
 distance_min = 0.0
-distance_max = 400.0
-distance_fusion_debut = 758.6
+distance_max = 162.6
+distance_fusion_debut = 646.1
 distance_fusion_range = 880.6
+cacher_mains_vides = false
+mode_mains = 1
+mode_mains_auto_selon_armes = false
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme" unique_id=1532852629]

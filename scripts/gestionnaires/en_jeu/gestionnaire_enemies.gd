@@ -377,6 +377,7 @@ func _creer_ennemi_index_pos(idx: int, pos: Vector2, vague_id: int, metas: Dicti
 		e.set_meta("type_idx", idx)
 
 	e.global_position = pos
+	e.set_meta("drop_mort_traite", false)
 	if e.has_method("reactiver_apres_pool"):
 		e.call("reactiver_apres_pool")
 
@@ -560,6 +561,7 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 		e.set_meta("type_idx", idx)
 
 	e.global_position = _position_spawn_rayon(rmin, rmax)
+	e.set_meta("drop_mort_traite", false)
 
 	if e.has_method("reactiver_apres_pool"):
 		e.call("reactiver_apres_pool")
@@ -584,10 +586,13 @@ func _creer_ennemi_index(idx: int, rmin: float, rmax: float) -> Node2D:
 	return e
 
 func _connecter_signaux(e: Node2D) -> void:
+	if e.has_meta("signaux_gestionnaire_ennemis_connectes"):
+		return
 	if e.has_signal("mort"):
 		e.connect("mort", _sur_mort.bind(e))
 	if e.has_signal("pret_pour_pool"):
 		e.connect("pret_pour_pool", _sur_pret_pour_pool.bind(e))
+	e.set_meta("signaux_gestionnaire_ennemis_connectes", true)
 
 # ===========================================================================
 # Retour pool
@@ -621,6 +626,9 @@ func _rendre_a_pool(e: Node2D) -> void:
 # ===========================================================================
 
 func _sur_mort(e: Node2D) -> void:
+	if e.has_meta("drop_mort_traite") and bool(e.get_meta("drop_mort_traite")):
+		return
+	e.set_meta("drop_mort_traite", true)
 	ennemis_tues_total += 1
 
 	var pos_mort: Vector2 = e.global_position

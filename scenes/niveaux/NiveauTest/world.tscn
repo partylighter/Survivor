@@ -38,6 +38,7 @@
 [ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://shaders/BandesNoires.gdshader" id="31_b3mfv"]
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
 [ext_resource type="Script" uid="uid://dx4b0one3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
+[ext_resource type="Script" path="res://scripts/monde/monde_jeu.gd" id="33_monde"]
 [ext_resource type="Resource" uid="uid://csuy35xqfklta" path="res://ressources/items/upg_tir_cadence.tres" id="40_tir_cad"]
 [ext_resource type="Resource" uid="uid://b7u1io6yqtqqu" path="res://ressources/items/upg_tir_multitir.tres" id="41_tir_multi"]
 [ext_resource type="Resource" uid="uid://c5fw0b848gtog" path="res://ressources/items/upg_tir_perforation.tres" id="42_tir_perf"]
@@ -115,6 +116,7 @@ shader_parameter/bande_droite_px = 0.0
 shader_parameter/couleur_bandes = Color(0, 0, 0, 1)
 
 [node name="World" type="Node2D" unique_id=2023534950]
+script = ExtResource("33_monde")
 
 [node name="Icon" type="Sprite2D" parent="." unique_id=757728578]
 modulate = Color(0.34902, 0.34902, 0.34902, 0.698039)
@@ -168,7 +170,7 @@ position = Vector2(63788, 45778)
 [node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager", "gestionnaire_zones") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Archere")
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
-apparitions_par_sec = 500.0
+apparitions_par_sec = 8.0
 rayon_spawn_min = 3500.0
 rayon_spawn_max = 4000.0
 demi_hauteur_bande_spawn = 2500.0
@@ -224,8 +226,10 @@ metadata/_custom_type_script = "uid://dcilq6nxyvo36"
 [node name="GestionnaireLootDrops" type="Node" parent="." unique_id=700485635]
 script = ExtResource("10_s05yr")
 scene_loot = ExtResource("9_075h3")
+debug_loot = false
 offset_spawn_px = 35.0
 pool_taille = 3000
+max_drops_en_attente = 32
 parent_loot_path = NodePath("../ParentLootPath")
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")

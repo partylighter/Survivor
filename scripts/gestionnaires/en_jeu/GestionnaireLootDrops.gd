@@ -9,6 +9,7 @@ class_name GestionnaireLootDrops
 @export var offset_spawn_px: float = 16.0
 @export var pool_taille: int = 250
 @export var parent_loot_path: NodePath
+@export var max_drops_en_attente: int = 64
 
 @export_group("Loot: Tirages par type d'ennemi")
 @export var tirages_min_type_C: int = 0
@@ -57,8 +58,13 @@ var _depuis_dernier_A: int = 0
 var _depuis_dernier_S: int = 0
 
 var _parent_loots: Node = null
+var _debug_compteur_demandes: int = 0
 
 func _ready() -> void:
+	_file_spawn.clear()
+	_file_tete = 0
+	pity_seuil_A = maxi(pity_seuil_A, 1)
+	pity_seuil_S = maxi(pity_seuil_S, 1)
 	_parent_loots = _get_parent_loots()
 	_precharger_pool()
 	set_process(true)
@@ -133,7 +139,12 @@ func demander_drops(
 		return
 	if rng == null:
 		return
+	if max_drops_en_attente > 0 and (_file_spawn.size() - _file_tete) >= max_drops_en_attente:
+		if debug_loot:
+			print("[LootDrops] ignore drop: file pleine restant=", _file_spawn.size() - _file_tete, " max=", max_drops_en_attente)
+		return
 
+	_debug_compteur_demandes += 1
 	_generateur_aleatoire = rng
 
 	var progression: float = maxf(progression_loot, 0.0)
@@ -141,6 +152,8 @@ func demander_drops(
 	var chance_joueur: float = _get_player_luck(joueur)
 
 	var nb_loots: int = _tirer_nombre_tirages(type_ennemi, niveau_effectif)
+	if debug_loot:
+		print("[LootDrops] demande_id=", _debug_compteur_demandes, " type=", type_ennemi, " progression=", progression, " niveau=", niveau_effectif, " tirages=", nb_loots, " file_avant=", _file_spawn.size())
 	if nb_loots <= 0:
 		return
 
@@ -152,6 +165,10 @@ func demander_drops(
 		return
 
 	for _i: int in range(nb_loots):
+		if max_drops_en_attente > 0 and (_file_spawn.size() - _file_tete) >= max_drops_en_attente:
+			if debug_loot:
+				print("[LootDrops] stop demande_id=", _debug_compteur_demandes, " file pleine restant=", _file_spawn.size() - _file_tete)
+			break
 		var rarete: int = _tirer_rarete(type_ennemi, niveau_effectif, chance_joueur)
 
 		if rarete >= Loot.TypeLoot.A:
@@ -177,6 +194,8 @@ func demander_drops(
 
 		if String(item_id) == "":
 			continue
+		if debug_loot:
+			print("[LootDrops] demande_id=", _debug_compteur_demandes, " drop rarete=", rarete, " type_item=", type_item, " item=", item_id)
 
 		var entry: LootItemEntry = null
 		if table.has_method("get_entry"):

@@ -2,6 +2,7 @@ extends Node2D
 class_name GestionnaireArme
 
 enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
+enum ModeMains { LIBRES_ECARTEES, JOINTES, SEMI_JOINTES }
 
 @export_group("Refs")
 @export_node_path("Node2D") var chemin_socket_principale: NodePath:
@@ -59,15 +60,19 @@ enum PivotMode { SELF, PIVOT_NODE, MILIEU_SOCKETS }
 @export_range(0.1, 1.0, 0.01) var portee_main_principale: float = 1.0
 @export_range(0.1, 1.0, 0.01) var portee_main_secondaire: float = 0.7
 @export var auto_flip_visuel: bool = true
+@export var cacher_mains_vides: bool = true
 
 @export_group("Switch armes")
 @export var switch_actif: bool = true
 @export var action_switch_mains: StringName = &"switch_mains"
 @export var action_mode_joint: StringName = &"mode_joint_armes"
 
-@export_group("Mode joint")
-@export_range(0.0, PI, 0.01) var mode_joint_decalage_rad: float = 0.15
-@export_range(0.1, 60.0, 0.1) var mode_joint_lissage_hz: float = 12.0
+@export_group("Mode mains")
+@export var mode_mains: ModeMains = ModeMains.SEMI_JOINTES
+@export var mode_mains_auto_selon_armes: bool = true
+@export_range(0.0, PI, 0.01) var mains_jointes_decalage_rad: float = 0.15
+@export_range(0.1, 60.0, 0.1) var mains_mode_lissage_hz: float = 12.0
+@export_range(0.0, 1.0, 0.01) var mains_semi_jointes_force: float = 0.5
 
 var zone: ZoneRamassage = null
 
@@ -96,7 +101,6 @@ var _has_pivot: bool = false
 var _main_principale_active: bool = true
 var _main_secondaire_active: bool = true
 
-var _mode_joint: bool = false
 var _offset_joint_affiche: float = 0.0
 
 const GROUPE_EQUIPEE := "__arme_equipee__"
@@ -120,8 +124,8 @@ func _ready() -> void:
 	_angle_secondaire_affiche = 0.0
 	_fusion_t = 0.0
 	_offset_secondaire_affiche = PI
-	_mode_joint = false
 	_offset_joint_affiche = 0.0
+	_actualiser_mode_mains_auto()
 
 	set_process(false)
 	set_physics_process(true)
@@ -219,16 +223,21 @@ func _mettre_a_jour_sockets_step(dt: float, mouse_raw: Vector2) -> void:
 
 	# Calcul de l'offset cible selon le mode
 	var offset_target_raw: float
-	var a_joint: float = _alpha_from_hz(mode_joint_lissage_hz, dt)
-	if _mode_joint:
+	var a_joint: float = _alpha_from_hz(mains_mode_lissage_hz, dt)
+	var offset_libre: float = _calculer_offset_continu(dist)
+	var offset_joint: float = mains_jointes_decalage_rad
+	if mode_mains == ModeMains.JOINTES:
 		# Mode joint — secondaire converge vers principale + léger décalage
-		_offset_joint_affiche = lerpf(_offset_joint_affiche, mode_joint_decalage_rad, a_joint)
+		_offset_joint_affiche = lerp_angle(_offset_joint_affiche, offset_joint, a_joint)
+		offset_target_raw = _offset_joint_affiche
+	elif mode_mains == ModeMains.SEMI_JOINTES:
+		var offset_semi_joint: float = _melanger_angle(offset_libre, offset_joint, mains_semi_jointes_force)
+		_offset_joint_affiche = lerp_angle(_offset_joint_affiche, offset_semi_joint, a_joint)
 		offset_target_raw = _offset_joint_affiche
 	else:
 		# Mode libre — offset_joint_affiche suit l'offset libre pour
 		# que la transition retour soit lissée depuis la bonne valeur
-		var offset_libre: float = _calculer_offset_continu(dist)
-		_offset_joint_affiche = lerpf(_offset_joint_affiche, offset_libre, a_joint)
+		_offset_joint_affiche = lerp_angle(_offset_joint_affiche, offset_libre, a_joint)
 		offset_target_raw = offset_libre
 
 	var max_step: float = vitesse_offset_max_rad_s * dt
@@ -291,6 +300,8 @@ func _calculer_offset_continu(dist: float) -> float:
 
 	t = clampf(t, 0.0, 1.0)
 	return lerpf(PI, -avance_max, t)
+func _melanger_angle(angle_a: float, angle_b: float, poids_b: float) -> float:
+	return angle_a + wrapf(angle_b - angle_a, -PI, PI) * clampf(poids_b, 0.0, 1.0)
 
 func _set_pickup_enabled(a: Node, enabled: bool) -> void:
 	if a == null or not is_instance_valid(a):
@@ -412,6 +423,7 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_angle_main_affiche = _socket_principale.rotation
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
+	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
@@ -429,6 +441,7 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	_offset_secondaire_affiche = PI
 	_set_pickup_enabled(a, false)
 	_marquer_equipee(a, true)
+	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
 
 func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> void:
@@ -463,6 +476,7 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 	else:
 		arme_secondaire = null
 
+	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
 
 func _lacher(main_droite: bool) -> void:
@@ -508,7 +522,22 @@ func _handle_inputs() -> void:
 	if switch_actif and Input.is_action_just_pressed(action_switch_mains):
 		_switch_mains()
 	if Input.is_action_just_pressed(action_mode_joint):
-		_mode_joint = not _mode_joint
+		_passer_mode_armes_suivant()
+func _passer_mode_armes_suivant() -> void:
+	mode_mains_auto_selon_armes = false
+	if mode_mains == ModeMains.LIBRES_ECARTEES:
+		mode_mains = ModeMains.JOINTES
+	elif mode_mains == ModeMains.JOINTES:
+		mode_mains = ModeMains.SEMI_JOINTES
+	else:
+		mode_mains = ModeMains.LIBRES_ECARTEES
+func _actualiser_mode_mains_auto() -> void:
+	if not mode_mains_auto_selon_armes:
+		return
+	if arme_principale == null and arme_secondaire == null:
+		mode_mains = ModeMains.SEMI_JOINTES
+	else:
+		mode_mains = ModeMains.JOINTES
 
 func _switch_mains() -> void:
 	if _socket_principale == null or _socket_secondaire == null:
@@ -616,8 +645,8 @@ func _set_hand_state(socket: Node2D, active: bool) -> void:
 		_set_process_tree_main(socket, active)
 
 func _maj_main_vide_visu_et_process(force: bool = false) -> void:
-	var active_p: bool = (arme_principale != null)
-	var active_s: bool = (arme_secondaire != null)
+	var active_p: bool = (arme_principale != null) or not cacher_mains_vides
+	var active_s: bool = (arme_secondaire != null) or not cacher_mains_vides
 
 	if force or active_p != _main_principale_active:
 		_main_principale_active = active_p

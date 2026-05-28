@@ -241,6 +241,8 @@ func tick_lointain() -> bool:
 		_retour_pool()
 		return true
 	return false
+func est_actif_pour_manager() -> bool:
+	return _actif
 
 func _demarrer_collecte(pos_fin: Vector2) -> void:
 	if _collecte:
