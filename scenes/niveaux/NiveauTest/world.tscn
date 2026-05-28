@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://0182ilsqlcwo"]
 
-[ext_resource type="PackedScene" uid="uid://bxw0i82773n7u" path="res://scenes/joueur/player.tscn" id="1_nnsk1"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaires/en_jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/gestionnaires/en_jeu/stats_vagues.tscn" id="5_71j4m"]
+[ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="5_f8f2q"]
 [ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/joueur/base/CamPlayer.gd" id="6_b3mfv"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/gestionnaires/en_jeu/stats_displayer.tscn" id="6_qfnet"]
 [ext_resource type="PackedScene" uid="uid://nh3cinsmoq47" path="res://scenes/joueur/base/base.tscn" id="6_rsdp2"]
@@ -23,7 +23,6 @@
 [ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="13_ixded"]
 [ext_resource type="PackedScene" uid="uid://cqihndgca0bto" path="res://scenes/ennemis/enemy_b_test_heritage.tscn" id="13_yovrb"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://ressources/items/upg_degats_tir_1.tres" id="14_ixded"]
-[ext_resource type="PackedScene" uid="uid://ck6jypdu6nb31" path="res://scenes/ennemis/boss_zone_1.tscn" id="14_p5j6c"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/gestionnaires/en_jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://ressources/items/upg_degats_contact_1.tres" id="15_lougb"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeTir.gd" id="17_7hglk"]
@@ -55,13 +54,9 @@
 script = ExtResource("12_yovrb")
 nom = &"zone1"
 x_fin_px = 30000.0
-apparitions_par_sec = 15.0
-max_ennemis_zone = 150
+max_ennemis_zone = 2
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
-poids = null
-est_zone_boss = true
-scene_boss = ExtResource("14_p5j6c")
-x_boss_spawn_px = 3000.0
+poids = PackedFloat32Array()
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
 [sub_resource type="Resource" id="Resource_p5j6c"]
@@ -138,10 +133,9 @@ position = Vector2(44, 253)
 type_item = 2
 scene_contenu = ExtResource("9_30tab")
 
-[node name="Player" parent="." unique_id=581119379 instance=ExtResource("1_nnsk1")]
-chemin_base_vehicle = NodePath("../Base")
+[node name="Archere" parent="." unique_id=783124346 instance=ExtResource("5_f8f2q")]
 
-[node name="Camera2D2" type="Camera2D" parent="Player" unique_id=575527116]
+[node name="Camera2D" type="Camera2D" parent="Archere" unique_id=575527116]
 limit_left = -100000000
 limit_top = -1700
 limit_right = 100000000
@@ -157,9 +151,8 @@ mouse_deadzone = 0.0
 mouse_influence_y = 2.0
 max_offset_px = 2000.0
 offset_speed = 4.0
-zoom_sol = 0.5
-zoom_conduite = 0.8500000000000001
-zoom_move_sol = 0.55
+zoom_sol = 1.2
+zoom_move_sol = 1.2
 zoom_move_conduite = 0.7000000000000001
 zoom_speed = 0.1
 intensite_camera_deplacement = 1.0
@@ -173,7 +166,7 @@ shake_min_damage_for_full = 96.0
 position = Vector2(63788, 45778)
 
 [node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager", "gestionnaire_zones") instance=ExtResource("2_4wyf3")]
-chemin_joueur = NodePath("../Player")
+chemin_joueur = NodePath("../Archere")
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
 apparitions_par_sec = 500.0
 rayon_spawn_min = 3500.0
@@ -289,7 +282,7 @@ metadata/_custom_type_script = "uid://leky5p00ehnf"
 
 [node name="LootManager" type="Node" parent="." unique_id=1763611612]
 script = ExtResource("15_05p27")
-chemin_joueur = NodePath("../Player")
+chemin_joueur = NodePath("../Archere")
 metadata/_custom_type_script = "uid://do0yqbnnckvc0"
 
 [node name="EnemyCountDisplayer" type="CanvasLayer" parent="." unique_id=1270604926]

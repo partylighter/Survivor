@@ -76,6 +76,245 @@ size = Vector2(131, 131)
 [sub_resource type="CircleShape2D" id="CircleShape2D_4d6aa"]
 radius = 473.482
 
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i13yx"]
+animation = &"jambe droite bas"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_pkql5"]
+animation = &"jambe droite bas droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ctind"]
+animation = &"jambe droite droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_s88oj"]
+animation = &"jambe droite haut droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hveao"]
+animation = &"jambe droite haute"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_d1jmq"]
+animation = &"jambe droite haut gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ggrrm"]
+animation = &"jambe droite gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xeymn"]
+animation = &"jambe droite bas gauche"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_3s74m"]
+snap = Vector2(1, 1)
+blend_mode = 2
+blend_point_0/node = SubResource("AnimationNodeAnimation_i13yx")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_0/name = &"0"
+blend_point_1/node = SubResource("AnimationNodeAnimation_pkql5")
+blend_point_1/pos = Vector2(1, 1)
+blend_point_1/name = &"1"
+blend_point_2/node = SubResource("AnimationNodeAnimation_ctind")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_2/name = &"2"
+blend_point_3/node = SubResource("AnimationNodeAnimation_s88oj")
+blend_point_3/pos = Vector2(1, -1)
+blend_point_3/name = &"3"
+blend_point_4/node = SubResource("AnimationNodeAnimation_hveao")
+blend_point_4/pos = Vector2(0, -1)
+blend_point_4/name = &"4"
+blend_point_5/node = SubResource("AnimationNodeAnimation_d1jmq")
+blend_point_5/pos = Vector2(-1, -1)
+blend_point_5/name = &"5"
+blend_point_6/node = SubResource("AnimationNodeAnimation_ggrrm")
+blend_point_6/pos = Vector2(-1, 0)
+blend_point_6/name = &"6"
+blend_point_7/node = SubResource("AnimationNodeAnimation_xeymn")
+blend_point_7/pos = Vector2(-1, 1)
+blend_point_7/name = &"7"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_6qcki"]
+animation = &"jambe gauche bas"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_3btpa"]
+animation = &"jambe gauche droite bas"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gnqv5"]
+animation = &"jambe gauche droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_urclj"]
+animation = &"jambe gauche haut droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_83r8v"]
+animation = &"jambe gauche haut"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ys1k7"]
+animation = &"jambe gauche haut gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_smvi2"]
+animation = &"jambe gauche gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xrmqf"]
+animation = &"jambe gauche bas gauche"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_5vydl"]
+snap = Vector2(1, 1)
+blend_mode = 2
+blend_point_0/node = SubResource("AnimationNodeAnimation_6qcki")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_0/name = &"0"
+blend_point_1/node = SubResource("AnimationNodeAnimation_3btpa")
+blend_point_1/pos = Vector2(1, 1)
+blend_point_1/name = &"1"
+blend_point_2/node = SubResource("AnimationNodeAnimation_gnqv5")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_2/name = &"2"
+blend_point_3/node = SubResource("AnimationNodeAnimation_urclj")
+blend_point_3/pos = Vector2(1, -1)
+blend_point_3/name = &"3"
+blend_point_4/node = SubResource("AnimationNodeAnimation_83r8v")
+blend_point_4/pos = Vector2(0, -1)
+blend_point_4/name = &"4"
+blend_point_5/node = SubResource("AnimationNodeAnimation_ys1k7")
+blend_point_5/pos = Vector2(-1, -1)
+blend_point_5/name = &"5"
+blend_point_6/node = SubResource("AnimationNodeAnimation_smvi2")
+blend_point_6/pos = Vector2(-1, 0)
+blend_point_6/name = &"6"
+blend_point_7/node = SubResource("AnimationNodeAnimation_xrmqf")
+blend_point_7/pos = Vector2(-1, 1)
+blend_point_7/name = &"7"
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_xag11"]
+filter_enabled = true
+filters = ["../squelette du corps/jambe gauche:frame"]
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_517s2"]
+filter_enabled = true
+filters = ["../squelette du corps/tete:frame"]
+
+[sub_resource type="AnimationNodeBlend2" id="AnimationNodeBlend2_t3m3n"]
+filter_enabled = true
+filters = ["../squelette du corps/torse:frame"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_r5uce"]
+animation = &"tete inactif bas"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_b514t"]
+animation = &"tete inactif bas droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_fab7w"]
+animation = &"tete inactif droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_e3deq"]
+animation = &"tete inactif haut droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_3eba1"]
+animation = &"tete inactif haut"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_66o0g"]
+animation = &"tete inactif haut gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_yowl1"]
+animation = &"tete inactif gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_6clkm"]
+animation = &"tete inactif bas gauche"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_ksbfe"]
+snap = Vector2(1, 1)
+blend_mode = 2
+blend_point_0/node = SubResource("AnimationNodeAnimation_r5uce")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_0/name = &"0"
+blend_point_1/node = SubResource("AnimationNodeAnimation_b514t")
+blend_point_1/pos = Vector2(1, 1)
+blend_point_1/name = &"1"
+blend_point_2/node = SubResource("AnimationNodeAnimation_fab7w")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_2/name = &"2"
+blend_point_3/node = SubResource("AnimationNodeAnimation_e3deq")
+blend_point_3/pos = Vector2(1, -1)
+blend_point_3/name = &"3"
+blend_point_4/node = SubResource("AnimationNodeAnimation_3eba1")
+blend_point_4/pos = Vector2(0, -1)
+blend_point_4/name = &"4"
+blend_point_5/node = SubResource("AnimationNodeAnimation_66o0g")
+blend_point_5/pos = Vector2(-1, -1)
+blend_point_5/name = &"5"
+blend_point_6/node = SubResource("AnimationNodeAnimation_yowl1")
+blend_point_6/pos = Vector2(-1, 0)
+blend_point_6/name = &"6"
+blend_point_7/node = SubResource("AnimationNodeAnimation_6clkm")
+blend_point_7/pos = Vector2(-1, 1)
+blend_point_7/name = &"7"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_4d6aa"]
+animation = &"torse nactif bas"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_rc4ya"]
+animation = &"torse inactif bas droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_h2vy4"]
+animation = &"torse inactif droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_m25te"]
+animation = &"torse inactif haut droite"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_vk6sf"]
+animation = &"torse inactif haut"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1liwq"]
+animation = &"torse inactif haut gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_8in5p"]
+animation = &"torse inactif gauche"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_d3cah"]
+animation = &"torse inactif bas gauche"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_8xvp6"]
+snap = Vector2(1, 1)
+blend_mode = 2
+blend_point_0/node = SubResource("AnimationNodeAnimation_4d6aa")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_0/name = &"0"
+blend_point_1/node = SubResource("AnimationNodeAnimation_rc4ya")
+blend_point_1/pos = Vector2(1, 1)
+blend_point_1/name = &"1"
+blend_point_2/node = SubResource("AnimationNodeAnimation_h2vy4")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_2/name = &"2"
+blend_point_3/node = SubResource("AnimationNodeAnimation_m25te")
+blend_point_3/pos = Vector2(1, -1)
+blend_point_3/name = &"3"
+blend_point_4/node = SubResource("AnimationNodeAnimation_vk6sf")
+blend_point_4/pos = Vector2(0, -1)
+blend_point_4/name = &"4"
+blend_point_5/node = SubResource("AnimationNodeAnimation_1liwq")
+blend_point_5/pos = Vector2(-1, -1)
+blend_point_5/name = &"5"
+blend_point_6/node = SubResource("AnimationNodeAnimation_8in5p")
+blend_point_6/pos = Vector2(-1, 0)
+blend_point_6/name = &"6"
+blend_point_7/node = SubResource("AnimationNodeAnimation_d3cah")
+blend_point_7/pos = Vector2(-1, 1)
+blend_point_7/name = &"7"
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_xpfvm"]
+graph_offset = Vector2(-221.3072, 1.463623)
+nodes/output/position = Vector2(544, -16)
+nodes/jambe_droite/node = SubResource("AnimationNodeBlendSpace2D_3s74m")
+nodes/jambe_droite/position = Vector2(0, 0)
+nodes/jambe_gauche/node = SubResource("AnimationNodeBlendSpace2D_5vydl")
+nodes/jambe_gauche/position = Vector2(0, 140)
+nodes/torse/node = SubResource("AnimationNodeBlendSpace2D_8xvp6")
+nodes/torse/position = Vector2(0, 280)
+nodes/tete/node = SubResource("AnimationNodeBlendSpace2D_ksbfe")
+nodes/tete/position = Vector2(0, 420)
+nodes/melange_jambe_gauche/node = SubResource("AnimationNodeBlend2_xag11")
+nodes/melange_jambe_gauche/position = Vector2(300, 80)
+nodes/melange_torse/node = SubResource("AnimationNodeBlend2_t3m3n")
+nodes/melange_torse/position = Vector2(560, 180)
+nodes/melange_tete/node = SubResource("AnimationNodeBlend2_517s2")
+nodes/melange_tete/position = Vector2(820, 280)
+node_connections = [&"output", 0, &"melange_tete", &"melange_jambe_gauche", 0, &"jambe_droite", &"melange_jambe_gauche", 1, &"jambe_gauche", &"melange_torse", 0, &"melange_jambe_gauche", &"melange_torse", 1, &"torse", &"melange_tete", 0, &"melange_torse", &"melange_tete", 1, &"tete"]
+
 [sub_resource type="Animation" id="Animation_ctind"]
 length = 0.001
 tracks/0/type = "value"
@@ -661,7 +900,7 @@ shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
 [node name="Archere" type="CharacterBody2D" unique_id=783124346]
 script = ExtResource("1_qjs34")
 chemin_stats = NodePath("StatsJoueur")
-chemin_sante = NodePath("SantÃ©")
+chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
@@ -762,6 +1001,7 @@ metadata/_custom_type_script = "uid://ca27wv5y28koq"
 [node name="spritemaingauche" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=1028360536]
 z_index = 1
 position = Vector2(25, 0)
+scale = Vector2(6, 6)
 texture = ExtResource("7_i13yx")
 
 [node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=1809982953]
@@ -769,11 +1009,20 @@ texture = ExtResource("7_i13yx")
 [node name="spritemaindroite" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=660058153]
 z_index = 1
 position = Vector2(-25, 0)
+scale = Vector2(6, 6)
 texture = ExtResource("8_pkql5")
 
 [node name="AnimationTree" type="AnimationTree" parent="." unique_id=1441774166]
 root_node = NodePath(".")
+tree_root = SubResource("AnimationNodeBlendTree_xpfvm")
 anim_player = NodePath("../AnimationPlayer")
+parameters/jambe_droite/blend_position = Vector2(0, 1)
+parameters/jambe_gauche/blend_position = Vector2(0, 1)
+parameters/torse/blend_position = Vector2(-0.9911079, -0.13306037)
+parameters/tete/blend_position = Vector2(-0.9911079, -0.13306037)
+parameters/melange_jambe_gauche/blend_amount = 1.0
+parameters/melange_torse/blend_amount = 1.0
+parameters/melange_tete/blend_amount = 1.0
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=903752637]
 root_node = NodePath("../AnimationTree")
@@ -781,6 +1030,7 @@ libraries/ = SubResource("AnimationLibrary_1liwq")
 
 [node name="squelette du corps" type="Node2D" parent="." unique_id=1441743443]
 texture_filter = 1
+scale = Vector2(6, 6)
 
 [node name="torse" type="Sprite2D" parent="squelette du corps" unique_id=1239734821]
 texture = ExtResource("20_i13yx")
