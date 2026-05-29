@@ -7,7 +7,7 @@ class_name Player
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 @export_node_path("Soif") var chemin_soif: NodePath
-@export_node_path("Sprite2D") var chemin_sprite: NodePath = NodePath("Sprite2D")
+@export_node_path("Node2D") var chemin_sprite: NodePath = NodePath("Sprite2D")
 @export var can_die_of_soif : bool = false
 
 @export_group("Vehicule")
@@ -54,7 +54,7 @@ var dash_autorise: bool = true
 @onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
 @onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
 @onready var soif: Soif = get_node_or_null(chemin_soif) as Soif
-@onready var sprite_joueur: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
+@onready var sprite_joueur: Node2D = _trouver_sprite_joueur()
 
 var base_vehicle: Node2D = null
 var _col_idx: int = 0
@@ -86,6 +86,22 @@ func _ready() -> void:
 
 	if sante != null and not sante.died.is_connected(_on_sante_died):
 		sante.died.connect(_on_sante_died)
+
+func _trouver_sprite_joueur() -> Node2D:
+	if not chemin_sprite.is_empty():
+		var sprite_depuis_chemin: Node2D = get_node_or_null(chemin_sprite) as Node2D
+		if sprite_depuis_chemin != null and _visuel_est_visible(sprite_depuis_chemin):
+			return sprite_depuis_chemin
+	for chemin_possible: NodePath in [NodePath("SpritePlayer"), NodePath("squelette du corps"), NodePath("Sprite2D")]:
+		var sprite_possible: Node2D = get_node_or_null(chemin_possible) as Node2D
+		if sprite_possible != null and _visuel_est_visible(sprite_possible):
+			return sprite_possible
+	push_warning("Sprite joueur introuvable")
+	return null
+
+func _visuel_est_visible(noeud: Node2D) -> bool:
+	var item: CanvasItem = noeud as CanvasItem
+	return item == null or item.visible
 	
 func _on_sante_died() -> void:
 	mourir()

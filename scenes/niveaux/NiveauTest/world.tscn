@@ -38,7 +38,7 @@
 [ext_resource type="Shader" uid="uid://dfaff8v1ptb5b" path="res://shaders/BandesNoires.gdshader" id="31_b3mfv"]
 [ext_resource type="Script" uid="uid://dnim7yutd4c8t" path="res://scripts/gestionnaires/en_jeu/death_screen.gd" id="31_lougb"]
 [ext_resource type="Script" uid="uid://dx4b0one3qp2m" path="res://scripts/gestionnaires/en_jeu/ZoneDisplayer.gd" id="32_zone"]
-[ext_resource type="Script" path="res://scripts/monde/monde_jeu.gd" id="33_monde"]
+[ext_resource type="Script" uid="uid://dgmgb82sgd7t" path="res://scripts/monde/monde_jeu.gd" id="33_monde"]
 [ext_resource type="Resource" uid="uid://csuy35xqfklta" path="res://ressources/items/upg_tir_cadence.tres" id="40_tir_cad"]
 [ext_resource type="Resource" uid="uid://b7u1io6yqtqqu" path="res://ressources/items/upg_tir_multitir.tres" id="41_tir_multi"]
 [ext_resource type="Resource" uid="uid://c5fw0b848gtog" path="res://ressources/items/upg_tir_perforation.tres" id="42_tir_perf"]
@@ -55,7 +55,7 @@
 script = ExtResource("12_yovrb")
 nom = &"zone1"
 x_fin_px = 30000.0
-max_ennemis_zone = 2
+max_ennemis_zone = 0
 scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
 poids = PackedFloat32Array()
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
@@ -226,11 +226,10 @@ metadata/_custom_type_script = "uid://dcilq6nxyvo36"
 [node name="GestionnaireLootDrops" type="Node" parent="." unique_id=700485635]
 script = ExtResource("10_s05yr")
 scene_loot = ExtResource("9_075h3")
-debug_loot = false
 offset_spawn_px = 35.0
 pool_taille = 3000
-max_drops_en_attente = 32
 parent_loot_path = NodePath("../ParentLootPath")
+max_drops_en_attente = 32
 table_C = SubResource("Resource_op4qr")
 table_B = SubResource("Resource_rsdp2")
 table_A = SubResource("Resource_bjm5b")

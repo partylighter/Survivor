@@ -91,6 +91,10 @@ const PISTE_TETE: NodePath = NodePath("../squelette du corps/tete:frame")
 @export var direction_visee_defaut: Vector2 = Vector2.DOWN
 @export var jambes_face_visee_en_reculons: bool = true
 @export var jambes_suivent_visee_a_l_arret: bool = true
+@export_range(20.0, 120.0, 1.0, "degrees") var angle_debut_pivot_jambes_deg: float = 75.0
+@export_range(0.0, 90.0, 1.0, "degrees") var angle_torsion_apres_pivot_jambes_deg: float = 35.0
+@export_range(20.0, 120.0, 1.0, "degrees") var angle_torsion_max_buste_deg: float = 80.0
+@export_range(0.0, 90.0, 1.0, "degrees") var angle_torsion_max_tete_deg: float = 35.0
 @export_range(90.0, 180.0, 1.0, "degrees") var angle_debut_reculons_deg: float = 130.0
 @export_range(90.0, 180.0, 1.0, "degrees") var angle_fin_reculons_deg: float = 105.0
 @export_range(0.0, 1.0, 0.01) var vitesse_min_animation_deplacement: float = 0.04
@@ -217,12 +221,44 @@ func _mettre_a_jour_arbre_animation() -> void:
 		else:
 			_direction_jambes = direction_deplacement
 	elif jambes_suivent_visee_a_l_arret:
-		_direction_jambes = _direction_visee
+		_mettre_a_jour_direction_jambes_a_l_arret(_direction_visee)
+	var direction_buste: Vector2 = _limiter_direction_buste(_direction_visee)
+	var direction_tete: Vector2 = _limiter_direction_tete(_direction_visee, direction_buste)
 	arbre_animation.set("parameters/jambe_droite/blend_position", _direction_jambes)
 	arbre_animation.set("parameters/jambe_gauche/blend_position", _direction_jambes)
-	arbre_animation.set("parameters/torse/blend_position", _direction_visee)
-	arbre_animation.set("parameters/tete/blend_position", _direction_visee)
+	arbre_animation.set("parameters/torse/blend_position", direction_buste)
+	arbre_animation.set("parameters/tete/blend_position", direction_tete)
 	_debug_print_directions_animation()
+func _mettre_a_jour_direction_jambes_a_l_arret(direction_visee: Vector2) -> void:
+	if direction_visee.length_squared() <= 0.0001:
+		return
+	if _direction_jambes.length_squared() <= 0.0001:
+		_direction_jambes = direction_visee
+		return
+	var angle_ecart: float = _direction_jambes.normalized().angle_to(direction_visee.normalized())
+	var angle_debut_pivot: float = deg_to_rad(angle_debut_pivot_jambes_deg)
+	if absf(angle_ecart) <= angle_debut_pivot:
+		return
+	var angle_torsion: float = deg_to_rad(minf(angle_torsion_apres_pivot_jambes_deg, angle_debut_pivot_jambes_deg))
+	_direction_jambes = direction_visee.rotated(-signf(angle_ecart) * angle_torsion).normalized()
+func _limiter_direction_buste(direction_visee: Vector2) -> Vector2:
+	if direction_visee.length_squared() <= 0.0001 or _direction_jambes.length_squared() <= 0.0001:
+		return direction_visee
+	var direction_jambes: Vector2 = _direction_jambes.normalized()
+	var angle_ecart: float = direction_jambes.angle_to(direction_visee.normalized())
+	var angle_max: float = deg_to_rad(angle_torsion_max_buste_deg)
+	if absf(angle_ecart) <= angle_max:
+		return direction_visee
+	return direction_jambes.rotated(signf(angle_ecart) * angle_max).normalized()
+func _limiter_direction_tete(direction_visee: Vector2, direction_buste: Vector2) -> Vector2:
+	if direction_visee.length_squared() <= 0.0001 or direction_buste.length_squared() <= 0.0001:
+		return direction_visee
+	var direction_buste_normale: Vector2 = direction_buste.normalized()
+	var angle_ecart: float = direction_buste_normale.angle_to(direction_visee.normalized())
+	var angle_max: float = deg_to_rad(angle_torsion_max_tete_deg)
+	if absf(angle_ecart) <= angle_max:
+		return direction_visee
+	return direction_buste_normale.rotated(signf(angle_ecart) * angle_max).normalized()
 func _debug_print_directions_animation() -> void:
 	if not debug_animation_archere:
 		return

@@ -899,15 +899,18 @@ shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
 
 [node name="Archere" type="CharacterBody2D" unique_id=783124346]
 script = ExtResource("1_qjs34")
+angle_debut_pivot_jambes_deg = 45.0
+angle_torsion_apres_pivot_jambes_deg = 75.0
+angle_torsion_max_tete_deg = 0.0
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
+chemin_sprite = NodePath("squelette du corps")
 collision_ennemis_actif = false
 limite_haut = -1200.0
 limite_bas = 1200.0
-visuel_deplacement_actif = false
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1940575337]
 unique_name_in_owner = true
