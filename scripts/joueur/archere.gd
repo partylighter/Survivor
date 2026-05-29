@@ -55,66 +55,22 @@ const PISTE_TORSE: NodePath = NodePath("../squelette du corps/torse:frame")
 const PISTE_TETE: NodePath = NodePath("../squelette du corps/tete:frame")
 @export_group("Archere")
 @export var identifiant_personnage: StringName = &"archere"
-@export var animation_archere_active: bool = true
-@export var debug_animation_archere: bool = false
-@export var mains_visibles: bool = true:
-	set(valeur):
-		mains_visibles = valeur
-		_appliquer_visibilite_mains()
-@export_group("Demembrement visuel")
-@export var tete_demembree: bool = false:
-	set(valeur):
-		tete_demembree = valeur
-		_appliquer_demembrement_visuel()
-@export var torse_demembre: bool = false:
-	set(valeur):
-		torse_demembre = valeur
-		_appliquer_demembrement_visuel()
-@export var jambe_gauche_demembree: bool = false:
-	set(valeur):
-		jambe_gauche_demembree = valeur
-		_appliquer_demembrement_visuel()
-@export var jambe_droite_demembree: bool = false:
-	set(valeur):
-		jambe_droite_demembree = valeur
-		_appliquer_demembrement_visuel()
-@export var main_gauche_demembree: bool = false:
-	set(valeur):
-		main_gauche_demembree = valeur
-		_appliquer_demembrement_visuel()
-@export var main_droite_demembree: bool = false:
-	set(valeur):
-		main_droite_demembree = valeur
-		_appliquer_demembrement_visuel()
-@export_group("Animation archere")
-@export var direction_jambes_defaut: Vector2 = Vector2.DOWN
-@export var direction_visee_defaut: Vector2 = Vector2.DOWN
-@export var jambes_face_visee_en_reculons: bool = true
-@export var jambes_suivent_visee_a_l_arret: bool = true
-@export_range(20.0, 120.0, 1.0, "degrees") var angle_debut_pivot_jambes_deg: float = 75.0
-@export_range(0.0, 90.0, 1.0, "degrees") var angle_torsion_apres_pivot_jambes_deg: float = 35.0
-@export_range(20.0, 120.0, 1.0, "degrees") var angle_torsion_max_buste_deg: float = 80.0
-@export_range(0.0, 90.0, 1.0, "degrees") var angle_torsion_max_tete_deg: float = 35.0
-@export_range(90.0, 180.0, 1.0, "degrees") var angle_debut_reculons_deg: float = 130.0
-@export_range(90.0, 180.0, 1.0, "degrees") var angle_fin_reculons_deg: float = 105.0
-@export_range(0.0, 1.0, 0.01) var vitesse_min_animation_deplacement: float = 0.04
+@export_node_path("GestionnaireOrientationCorps") var chemin_gestionnaire_orientation_corps: NodePath = NodePath("GestionnaireOrientationCorps")
 @onready var arbre_animation: AnimationTree = get_node_or_null("AnimationTree") as AnimationTree
+@onready var gestionnaire_orientation_corps: GestionnaireOrientationCorps = get_node_or_null(chemin_gestionnaire_orientation_corps) as GestionnaireOrientationCorps
 @onready var tete_archere: CanvasItem = get_node_or_null("squelette du corps/tete") as CanvasItem
 @onready var torse_archere: CanvasItem = get_node_or_null("squelette du corps/torse") as CanvasItem
 @onready var jambe_gauche_archere: CanvasItem = get_node_or_null("squelette du corps/jambe gauche") as CanvasItem
 @onready var jambe_droite_archere: CanvasItem = get_node_or_null("squelette du corps/jambe droite") as CanvasItem
 @onready var main_gauche: CanvasItem = get_node_or_null("GestionnaireArme/SocketGauche/spritemaingauche") as CanvasItem
 @onready var main_droite: CanvasItem = get_node_or_null("GestionnaireArme/SocketDroite/spritemaindroite") as CanvasItem
-var _direction_jambes: Vector2 = Vector2.DOWN
-var _direction_visee: Vector2 = Vector2.DOWN
-var _reculons_animation_actif: bool = false
 var _debug_nom_direction_jambes: StringName = &""
 var _debug_nom_direction_visee: StringName = &""
 func _ready() -> void:
-	_direction_jambes = _normaliser_direction_ou_bas(direction_jambes_defaut)
-	_direction_visee = _normaliser_direction_ou_bas(direction_visee_defaut)
 	super()
 	add_to_group("personnage_archere")
+	if gestionnaire_orientation_corps != null and not gestionnaire_orientation_corps.visibilite_corps_modifiee.is_connected(_appliquer_demembrement_visuel):
+		gestionnaire_orientation_corps.visibilite_corps_modifiee.connect(_appliquer_demembrement_visuel)
 	_appliquer_visibilite_mains()
 	_appliquer_demembrement_visuel()
 	_configurer_arbre_animation()
@@ -124,45 +80,56 @@ func _physics_process(delta: float) -> void:
 func get_identifiant_personnage() -> StringName:
 	return identifiant_personnage
 func _appliquer_visibilite_mains() -> void:
+	if gestionnaire_orientation_corps == null:
+		return
 	if main_gauche != null:
-		main_gauche.visible = mains_visibles and not main_gauche_demembree
+		main_gauche.visible = gestionnaire_orientation_corps.mains_visibles and not gestionnaire_orientation_corps.main_gauche_demembree
 	if main_droite != null:
-		main_droite.visible = mains_visibles and not main_droite_demembree
+		main_droite.visible = gestionnaire_orientation_corps.mains_visibles and not gestionnaire_orientation_corps.main_droite_demembree
 func _appliquer_demembrement_visuel() -> void:
-	_appliquer_visibilite_membre(tete_archere, tete_demembree)
-	_appliquer_visibilite_membre(torse_archere, torse_demembre)
-	_appliquer_visibilite_membre(jambe_gauche_archere, jambe_gauche_demembree)
-	_appliquer_visibilite_membre(jambe_droite_archere, jambe_droite_demembree)
+	if gestionnaire_orientation_corps == null:
+		return
+	_appliquer_visibilite_membre(tete_archere, gestionnaire_orientation_corps.tete_demembree)
+	_appliquer_visibilite_membre(torse_archere, gestionnaire_orientation_corps.torse_demembre)
+	_appliquer_visibilite_membre(jambe_gauche_archere, gestionnaire_orientation_corps.jambe_gauche_demembree)
+	_appliquer_visibilite_membre(jambe_droite_archere, gestionnaire_orientation_corps.jambe_droite_demembree)
 	_appliquer_visibilite_mains()
 func _appliquer_visibilite_membre(membre: CanvasItem, est_demembre: bool) -> void:
 	if membre == null:
 		return
 	membre.visible = not est_demembre
 func demembrer_membre(nom_membre: StringName, demembre: bool = true) -> void:
+	if gestionnaire_orientation_corps == null:
+		return
 	match nom_membre:
 		&"tete":
-			tete_demembree = demembre
+			gestionnaire_orientation_corps.tete_demembree = demembre
 		&"torse":
-			torse_demembre = demembre
+			gestionnaire_orientation_corps.torse_demembre = demembre
 		&"jambe_gauche":
-			jambe_gauche_demembree = demembre
+			gestionnaire_orientation_corps.jambe_gauche_demembree = demembre
 		&"jambe_droite":
-			jambe_droite_demembree = demembre
+			gestionnaire_orientation_corps.jambe_droite_demembree = demembre
 		&"main_gauche":
-			main_gauche_demembree = demembre
+			gestionnaire_orientation_corps.main_gauche_demembree = demembre
 		&"main_droite":
-			main_droite_demembree = demembre
+			gestionnaire_orientation_corps.main_droite_demembree = demembre
 		_:
 			push_warning("Membre archere inconnu: %s" % nom_membre)
+			return
+	_appliquer_demembrement_visuel()
 func reinitialiser_demembrement() -> void:
-	tete_demembree = false
-	torse_demembre = false
-	jambe_gauche_demembree = false
-	jambe_droite_demembree = false
-	main_gauche_demembree = false
-	main_droite_demembree = false
+	if gestionnaire_orientation_corps == null:
+		return
+	gestionnaire_orientation_corps.tete_demembree = false
+	gestionnaire_orientation_corps.torse_demembre = false
+	gestionnaire_orientation_corps.jambe_gauche_demembree = false
+	gestionnaire_orientation_corps.jambe_droite_demembree = false
+	gestionnaire_orientation_corps.main_gauche_demembree = false
+	gestionnaire_orientation_corps.main_droite_demembree = false
+	_appliquer_demembrement_visuel()
 func _configurer_arbre_animation() -> void:
-	if arbre_animation == null or not animation_archere_active:
+	if arbre_animation == null or gestionnaire_orientation_corps == null or not gestionnaire_orientation_corps.animation_corps_active:
 		return
 	var racine_animation := AnimationNodeBlendTree.new()
 	racine_animation.add_node(&"jambe_droite", _creer_espace_directionnel(ANIMATIONS_JAMBE_DROITE), Vector2(0, 0))
@@ -204,84 +171,31 @@ func _creer_melange_filtre(chemin_piste: NodePath) -> AnimationNodeBlend2:
 func _mettre_a_jour_arbre_animation() -> void:
 	if arbre_animation == null or not arbre_animation.active:
 		return
-	var direction_deplacement := Vector2.ZERO
+	if gestionnaire_orientation_corps == null:
+		return
 	var vitesse_reference := 1.0
 	if stats != null:
 		vitesse_reference = maxf(stats.get_vitesse_effective(), 1.0)
-	var vitesse_min := vitesse_reference * vitesse_min_animation_deplacement
-	if velocity.length_squared() > vitesse_min * vitesse_min:
-		direction_deplacement = velocity.normalized()
-	var direction_souris := get_global_mouse_position() - global_position
+	var direction_souris: Vector2 = get_global_mouse_position() - global_position
 	if direction_souris.length_squared() > 1.0:
-		_direction_visee = direction_souris.normalized()
-	_reculons_animation_actif = _doit_utiliser_animation_reculons(direction_deplacement, _direction_visee)
-	if direction_deplacement != Vector2.ZERO:
-		if _reculons_animation_actif:
-			_direction_jambes = _direction_visee
-		else:
-			_direction_jambes = direction_deplacement
-	elif jambes_suivent_visee_a_l_arret:
-		_mettre_a_jour_direction_jambes_a_l_arret(_direction_visee)
-	var direction_buste: Vector2 = _limiter_direction_buste(_direction_visee)
-	var direction_tete: Vector2 = _limiter_direction_tete(_direction_visee, direction_buste)
-	arbre_animation.set("parameters/jambe_droite/blend_position", _direction_jambes)
-	arbre_animation.set("parameters/jambe_gauche/blend_position", _direction_jambes)
-	arbre_animation.set("parameters/torse/blend_position", direction_buste)
-	arbre_animation.set("parameters/tete/blend_position", direction_tete)
+		gestionnaire_orientation_corps.mettre_a_jour(velocity, vitesse_reference, direction_souris.normalized())
+	else:
+		gestionnaire_orientation_corps.mettre_a_jour(velocity, vitesse_reference, Vector2.ZERO)
+	arbre_animation.set("parameters/jambe_droite/blend_position", gestionnaire_orientation_corps.direction_jambes)
+	arbre_animation.set("parameters/jambe_gauche/blend_position", gestionnaire_orientation_corps.direction_jambes)
+	arbre_animation.set("parameters/torse/blend_position", gestionnaire_orientation_corps.direction_buste)
+	arbre_animation.set("parameters/tete/blend_position", gestionnaire_orientation_corps.direction_tete)
 	_debug_print_directions_animation()
-func _mettre_a_jour_direction_jambes_a_l_arret(direction_visee: Vector2) -> void:
-	if direction_visee.length_squared() <= 0.0001:
-		return
-	if _direction_jambes.length_squared() <= 0.0001:
-		_direction_jambes = direction_visee
-		return
-	var angle_ecart: float = _direction_jambes.normalized().angle_to(direction_visee.normalized())
-	var angle_debut_pivot: float = deg_to_rad(angle_debut_pivot_jambes_deg)
-	if absf(angle_ecart) <= angle_debut_pivot:
-		return
-	var angle_torsion: float = deg_to_rad(minf(angle_torsion_apres_pivot_jambes_deg, angle_debut_pivot_jambes_deg))
-	_direction_jambes = direction_visee.rotated(-signf(angle_ecart) * angle_torsion).normalized()
-func _limiter_direction_buste(direction_visee: Vector2) -> Vector2:
-	if direction_visee.length_squared() <= 0.0001 or _direction_jambes.length_squared() <= 0.0001:
-		return direction_visee
-	var direction_jambes: Vector2 = _direction_jambes.normalized()
-	var angle_ecart: float = direction_jambes.angle_to(direction_visee.normalized())
-	var angle_max: float = deg_to_rad(angle_torsion_max_buste_deg)
-	if absf(angle_ecart) <= angle_max:
-		return direction_visee
-	return direction_jambes.rotated(signf(angle_ecart) * angle_max).normalized()
-func _limiter_direction_tete(direction_visee: Vector2, direction_buste: Vector2) -> Vector2:
-	if direction_visee.length_squared() <= 0.0001 or direction_buste.length_squared() <= 0.0001:
-		return direction_visee
-	var direction_buste_normale: Vector2 = direction_buste.normalized()
-	var angle_ecart: float = direction_buste_normale.angle_to(direction_visee.normalized())
-	var angle_max: float = deg_to_rad(angle_torsion_max_tete_deg)
-	if absf(angle_ecart) <= angle_max:
-		return direction_visee
-	return direction_buste_normale.rotated(signf(angle_ecart) * angle_max).normalized()
 func _debug_print_directions_animation() -> void:
-	if not debug_animation_archere:
+	if gestionnaire_orientation_corps == null or not gestionnaire_orientation_corps.debug_animation_corps:
 		return
-	var nom_direction_jambes := _get_nom_direction_animation(_direction_jambes)
-	var nom_direction_visee := _get_nom_direction_animation(_direction_visee)
+	var nom_direction_jambes := _get_nom_direction_animation(gestionnaire_orientation_corps.direction_jambes)
+	var nom_direction_visee := _get_nom_direction_animation(gestionnaire_orientation_corps.direction_visee)
 	if nom_direction_jambes == _debug_nom_direction_jambes and nom_direction_visee == _debug_nom_direction_visee:
 		return
 	_debug_nom_direction_jambes = nom_direction_jambes
 	_debug_nom_direction_visee = nom_direction_visee
-	print("[archere animation] jambes=", nom_direction_jambes, " pos=", _direction_jambes, " | torse/tete=", nom_direction_visee, " pos=", _direction_visee, " | reculons=", _reculons_animation_actif)
-func _doit_utiliser_animation_reculons(direction_deplacement: Vector2, direction_visee: Vector2) -> bool:
-	if not jambes_face_visee_en_reculons:
-		return false
-	if direction_deplacement == Vector2.ZERO or direction_visee.length_squared() <= 0.0001:
-		return false
-	var angle_actuel := rad_to_deg(absf(direction_deplacement.angle_to(direction_visee.normalized())))
-	if _reculons_animation_actif:
-		return angle_actuel > angle_fin_reculons_deg
-	return angle_actuel >= angle_debut_reculons_deg
-func _normaliser_direction_ou_bas(direction: Vector2) -> Vector2:
-	if direction.length_squared() <= 0.0001:
-		return Vector2.DOWN
-	return direction.normalized()
+	print("[archere animation] jambes=", nom_direction_jambes, " pos=", gestionnaire_orientation_corps.direction_jambes, " | visee=", nom_direction_visee, " pos=", gestionnaire_orientation_corps.direction_visee, " | reculons=", gestionnaire_orientation_corps.reculons_animation_actif)
 func _get_nom_direction_animation(direction: Vector2) -> StringName:
 	if direction.length_squared() <= 0.0001:
 		return &"aucune"

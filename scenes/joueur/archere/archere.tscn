@@ -24,6 +24,7 @@
 [ext_resource type="Texture2D" uid="uid://dc2xx0qopwjhd" path="res://assets/archere/animation jambe droite.png" id="22_ctind"]
 [ext_resource type="Texture2D" uid="uid://d4drfp6435ivr" path="res://assets/archere/animation jambe gauche.png" id="23_s88oj"]
 [ext_resource type="Texture2D" uid="uid://bo7a3qf7j2tb6" path="res://assets/archere/animation allbody.png" id="24_hveao"]
+[ext_resource type="Script" uid="uid://dyarrnfqci0fy" path="res://scripts/joueur/GestionnaireOrientationCorps.gd" id="25_l1a4x"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -899,9 +900,6 @@ shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
 
 [node name="Archere" type="CharacterBody2D" unique_id=783124346]
 script = ExtResource("1_qjs34")
-angle_debut_pivot_jambes_deg = 45.0
-angle_torsion_apres_pivot_jambes_deg = 75.0
-angle_torsion_max_tete_deg = 0.0
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
@@ -1057,6 +1055,12 @@ hframes = 16
 [node name="corps entier" type="Sprite2D" parent="squelette du corps" unique_id=301836749]
 visible = false
 texture = ExtResource("24_hveao")
+
+[node name="GestionnaireOrientationCorps" type="Node" parent="." unique_id=1976353005]
+script = ExtResource("25_l1a4x")
+angle_debut_pivot_jambes_deg = 45.0
+angle_torsion_apres_pivot_jambes_deg = 75.0
+angle_torsion_max_tete_deg = 0.0
 
 [node name="BarSoif" type="Node" parent="." unique_id=353747032]
 script = ExtResource("9_s88oj")
