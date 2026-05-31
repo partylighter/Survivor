@@ -49,7 +49,7 @@
 [ext_resource type="Resource" uid="uid://bmcftjh5j6m8e" path="res://ressources/items/upg_contact_cadence.tres" id="48_contact_cad"]
 [ext_resource type="Resource" uid="uid://dmbiyubketrh5" path="res://ressources/items/upg_contact_recul.tres" id="49_contact_recul"]
 [ext_resource type="Resource" uid="uid://c5c20dbjuovae" path="res://ressources/items/upg_contact_duree_active.tres" id="50_contact_duree"]
-[ext_resource type="Script" uid="uid://bqs5kntfq4b1k" path="res://scripts/monde/SolDamier.gd" id="51_sol_damier"]
+[ext_resource type="Script" path="res://scripts/monde/SolDamier.gd" id="51_sol_damier"]
 
 [sub_resource type="Resource" id="Resource_yovrb"]
 script = ExtResource("12_yovrb")

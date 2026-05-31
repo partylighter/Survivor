@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cwowlto5qe2ig"
-path="res://.godot/imported/fullbody roulade bas.png-8322498fa763cf726990071937d8fced.ctex"
+uid="uid://x7g8lowbo6wb"
+path="res://.godot/imported/corps entier roulade haut.png-9a38cab605deda20b6a8ade6201fe904.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/archere/fullbody roulade bas.png"
-dest_files=["res://.godot/imported/fullbody roulade bas.png-8322498fa763cf726990071937d8fced.ctex"]
+source_file="res://assets/archere/corps entier roulade haut.png"
+dest_files=["res://.godot/imported/corps entier roulade haut.png-9a38cab605deda20b6a8ade6201fe904.ctex"]
 
 [params]
 
