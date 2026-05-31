@@ -10,7 +10,6 @@
 [ext_resource type="PackedScene" uid="uid://bdfrei2hwkch7" path="res://scenes/ennemis/enemy_c_test_heritage_de_script.tscn" id="8_5r2b3"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/armes/contact/arme_contact_1.tscn" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/armes/contact/loot.tscn" id="9_075h3"]
-[ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="10_075h3"]
 [ext_resource type="Script" uid="uid://cvuge010wptp1" path="res://scripts/gestionnaires/en_jeu/GestionnaireLootDrops.gd" id="10_s05yr"]
 [ext_resource type="PackedScene" uid="uid://bnwxpk26a02ga" path="res://scenes/armes/tir/arme_tir_1.tscn" id="10_uuc06"]
 [ext_resource type="Script" uid="uid://1j4gtocrueg1" path="res://scripts/monde/GestionnaireZones.gd" id="11_2g3hm"]
@@ -50,6 +49,7 @@
 [ext_resource type="Resource" uid="uid://bmcftjh5j6m8e" path="res://ressources/items/upg_contact_cadence.tres" id="48_contact_cad"]
 [ext_resource type="Resource" uid="uid://dmbiyubketrh5" path="res://ressources/items/upg_contact_recul.tres" id="49_contact_recul"]
 [ext_resource type="Resource" uid="uid://c5c20dbjuovae" path="res://ressources/items/upg_contact_duree_active.tres" id="50_contact_duree"]
+[ext_resource type="Script" uid="uid://bqs5kntfq4b1k" path="res://scripts/monde/SolDamier.gd" id="51_sol_damier"]
 
 [sub_resource type="Resource" id="Resource_yovrb"]
 script = ExtResource("12_yovrb")
@@ -118,12 +118,8 @@ shader_parameter/couleur_bandes = Color(0, 0, 0, 1)
 [node name="World" type="Node2D" unique_id=2023534950]
 script = ExtResource("33_monde")
 
-[node name="Icon" type="Sprite2D" parent="." unique_id=757728578]
-modulate = Color(0.34902, 0.34902, 0.34902, 0.698039)
-z_index = -760
-position = Vector2(-47, 608)
-scale = Vector2(100, 100)
-texture = ExtResource("10_075h3")
+[node name="SolDamier" type="Node2D" parent="." unique_id=757728578]
+script = ExtResource("51_sol_damier")
 
 [node name="Loot" parent="." unique_id=2091000665 instance=ExtResource("9_075h3")]
 position = Vector2(-200, 234)
@@ -148,11 +144,6 @@ follow_speed = 3.0
 limites_y_actives = true
 limite_haute_y = -1700
 limite_basse_y = 1700
-mouse_look_sol_px = 500.0
-mouse_deadzone = 0.0
-mouse_influence_y = 2.0
-max_offset_px = 2000.0
-offset_speed = 4.0
 zoom_sol = 1.2
 zoom_move_sol = 1.2
 zoom_move_conduite = 0.7000000000000001

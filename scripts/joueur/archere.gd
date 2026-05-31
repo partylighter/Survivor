@@ -50,32 +50,51 @@ const ANIMATIONS_TETE: Dictionary = {
 	&"gauche": &"tete inactif gauche",
 	&"bas_gauche": &"tete inactif bas gauche"
 }
-const PISTE_JAMBE_GAUCHE: NodePath = NodePath("../squelette du corps/jambe gauche:frame")
-const PISTE_TORSE: NodePath = NodePath("../squelette du corps/torse:frame")
-const PISTE_TETE: NodePath = NodePath("../squelette du corps/tete:frame")
+const PISTE_JAMBE_GAUCHE: NodePath = NodePath("squelette du corps/inactif/inactif jambe gauche:frame")
+const PISTE_TORSE: NodePath = NodePath("squelette du corps/inactif/inactif torse:frame")
+const PISTE_TETE: NodePath = NodePath("squelette du corps/inactif/inactif tete:frame")
+const ANIMATION_ROULADE_BAS: StringName = &"fullbody roulade bas"
+const ANIMATION_ROULADE_DROITE: StringName = &"roulade corps entier corps droite"
+const ANIMATION_ROULADE_GAUCHE: StringName = &"roulade corps entier corps gauche"
+const ANIMATION_DASH_ARRIERE_DROITE: StringName = &"corps entier dash arriere droite"
+const ANIMATION_DASH_ARRIERE_GAUCHE: StringName = &"corps entier dash arriere gauche"
 @export_group("Archere")
 @export var identifiant_personnage: StringName = &"archere"
 @export_node_path("GestionnaireOrientationCorps") var chemin_gestionnaire_orientation_corps: NodePath = NodePath("GestionnaireOrientationCorps")
 @onready var arbre_animation: AnimationTree = get_node_or_null("AnimationTree") as AnimationTree
+@onready var lecteur_animation: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
 @onready var gestionnaire_orientation_corps: GestionnaireOrientationCorps = get_node_or_null(chemin_gestionnaire_orientation_corps) as GestionnaireOrientationCorps
-@onready var tete_archere: CanvasItem = get_node_or_null("squelette du corps/tete") as CanvasItem
-@onready var torse_archere: CanvasItem = get_node_or_null("squelette du corps/torse") as CanvasItem
-@onready var jambe_gauche_archere: CanvasItem = get_node_or_null("squelette du corps/jambe gauche") as CanvasItem
-@onready var jambe_droite_archere: CanvasItem = get_node_or_null("squelette du corps/jambe droite") as CanvasItem
+@onready var inactif_archere: CanvasItem = get_node_or_null("squelette du corps/inactif") as CanvasItem
+@onready var roulades_archere: CanvasItem = get_node_or_null("squelette du corps/roulades") as CanvasItem
+@onready var tete_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif tete") as CanvasItem
+@onready var torse_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif torse") as CanvasItem
+@onready var jambe_gauche_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif jambe gauche") as CanvasItem
+@onready var jambe_droite_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif jambe droite") as CanvasItem
+@onready var roulade_bas_corps_entier: CanvasItem = get_node_or_null("squelette du corps/roulades/roulade bas corps entier") as CanvasItem
+@onready var roulade_laterale_corps_entier: AnimatedSprite2D = get_node_or_null("squelette du corps/roulades/roulade droite gauche corps entier") as AnimatedSprite2D
+@onready var dash_arriere_corps_entier: AnimatedSprite2D = get_node_or_null("squelette du corps/roulades/dash arriere corps entier") as AnimatedSprite2D
 @onready var main_gauche: CanvasItem = get_node_or_null("GestionnaireArme/SocketGauche/spritemaingauche") as CanvasItem
 @onready var main_droite: CanvasItem = get_node_or_null("GestionnaireArme/SocketDroite/spritemaindroite") as CanvasItem
 var _debug_nom_direction_jambes: StringName = &""
 var _debug_nom_direction_visee: StringName = &""
+var _dash_actif_avant: bool = false
+var _roulade_fullbody_active: bool = false
+var _roulade_laterale_active: bool = false
+var _roulade_laterale_temps_restant_s: float = 0.0
 func _ready() -> void:
 	super()
 	add_to_group("personnage_archere")
 	if gestionnaire_orientation_corps != null and not gestionnaire_orientation_corps.visibilite_corps_modifiee.is_connected(_appliquer_demembrement_visuel):
 		gestionnaire_orientation_corps.visibilite_corps_modifiee.connect(_appliquer_demembrement_visuel)
+	if lecteur_animation != null and not lecteur_animation.animation_finished.is_connected(_on_animation_terminee):
+		lecteur_animation.animation_finished.connect(_on_animation_terminee)
 	_appliquer_visibilite_mains()
 	_appliquer_demembrement_visuel()
+	_appliquer_visibilite_fullbody(false)
 	_configurer_arbre_animation()
 func _physics_process(delta: float) -> void:
 	super(delta)
+	_mettre_a_jour_roulade(delta)
 	_mettre_a_jour_arbre_animation()
 func get_identifiant_personnage() -> StringName:
 	return identifiant_personnage
@@ -94,6 +113,8 @@ func _appliquer_demembrement_visuel() -> void:
 	_appliquer_visibilite_membre(jambe_gauche_archere, gestionnaire_orientation_corps.jambe_gauche_demembree)
 	_appliquer_visibilite_membre(jambe_droite_archere, gestionnaire_orientation_corps.jambe_droite_demembree)
 	_appliquer_visibilite_mains()
+	if _roulade_fullbody_active:
+		_appliquer_visibilite_fullbody(true)
 func _appliquer_visibilite_membre(membre: CanvasItem, est_demembre: bool) -> void:
 	if membre == null:
 		return
@@ -128,10 +149,138 @@ func reinitialiser_demembrement() -> void:
 	gestionnaire_orientation_corps.main_gauche_demembree = false
 	gestionnaire_orientation_corps.main_droite_demembree = false
 	_appliquer_demembrement_visuel()
+func _mettre_a_jour_roulade(delta: float) -> void:
+	var dash_actif: bool = dash_t_restant_s > 0.0
+	if dash_actif and not _dash_actif_avant:
+		_jouer_roulade_selon_direction()
+	_dash_actif_avant = dash_actif
+	if _roulade_laterale_active:
+		_roulade_laterale_temps_restant_s = maxf(_roulade_laterale_temps_restant_s - delta, 0.0)
+		if _roulade_laterale_temps_restant_s <= 0.0:
+			_terminer_roulade_laterale()
+func _jouer_roulade_selon_direction() -> void:
+	if dash_direction.length_squared() <= 0.0001:
+		return
+	var direction_normale: Vector2 = dash_direction.normalized()
+	if _doit_jouer_dash_arriere(direction_normale):
+		_jouer_dash_arriere(direction_normale)
+	elif direction_normale.dot(Vector2.DOWN) >= 0.7:
+		_jouer_roulade_bas()
+	elif direction_normale.dot(Vector2.RIGHT) >= 0.7:
+		_jouer_roulade_laterale(true)
+	elif direction_normale.dot(Vector2.LEFT) >= 0.7:
+		_jouer_roulade_laterale(false)
+func _doit_jouer_roulade_bas() -> bool:
+	if dash_direction.length_squared() <= 0.0001:
+		return false
+	return dash_direction.normalized().dot(Vector2.DOWN) >= 0.7
+func _jouer_roulade_bas() -> void:
+	if lecteur_animation == null or not lecteur_animation.has_animation(ANIMATION_ROULADE_BAS):
+		return
+	_roulade_fullbody_active = true
+	if arbre_animation != null:
+		arbre_animation.active = false
+	_appliquer_visibilite_fullbody(true)
+	lecteur_animation.play(ANIMATION_ROULADE_BAS)
+func _jouer_roulade_laterale(vers_droite: bool) -> void:
+	var nom_animation: StringName = ANIMATION_ROULADE_DROITE if vers_droite else ANIMATION_ROULADE_GAUCHE
+	_jouer_animated_sprite_roulade(roulade_laterale_corps_entier, nom_animation)
+func _jouer_dash_arriere(_direction_normale: Vector2) -> void:
+	var nom_animation: StringName = ANIMATION_DASH_ARRIERE_DROITE if _get_direction_visee_normale().x > 0.0 else ANIMATION_DASH_ARRIERE_GAUCHE
+	_jouer_animated_sprite_roulade(dash_arriere_corps_entier, nom_animation)
+func _jouer_animated_sprite_roulade(sprite: AnimatedSprite2D, nom_animation: StringName) -> void:
+	if not _animated_sprite_a_animation(sprite, nom_animation):
+		return
+	_roulade_laterale_active = true
+	_roulade_laterale_temps_restant_s = _calculer_duree_animation_roulade(sprite, nom_animation)
+	if arbre_animation != null:
+		arbre_animation.active = false
+	_appliquer_visibilite_roulade_laterale(true)
+	_jouer_animation_roulade(sprite, nom_animation)
+func _doit_jouer_dash_arriere(direction_dash_normale: Vector2) -> bool:
+	var direction_visee_normale: Vector2 = _get_direction_visee_normale()
+	if direction_visee_normale.length_squared() <= 0.0001:
+		return false
+	if absf(direction_visee_normale.x) < 0.7 or absf(direction_visee_normale.y) > 0.45:
+		return false
+	return direction_dash_normale.dot(direction_visee_normale) <= -0.7
+func _get_direction_visee_normale() -> Vector2:
+	if gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.direction_visee.length_squared() > 0.0001:
+		return gestionnaire_orientation_corps.direction_visee.normalized()
+	var direction_souris: Vector2 = get_global_mouse_position() - global_position
+	if direction_souris.length_squared() > 1.0:
+		return direction_souris.normalized()
+	return Vector2.ZERO
+func _animated_sprite_a_animation(sprite: AnimatedSprite2D, nom_animation: StringName) -> bool:
+	return sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(nom_animation)
+func _jouer_animation_roulade(sprite: AnimatedSprite2D, nom_animation: StringName) -> void:
+	if sprite == null:
+		return
+	sprite.visible = true
+	sprite.play(nom_animation)
+func _calculer_duree_animation_roulade(sprite: AnimatedSprite2D, nom_animation: StringName) -> float:
+	if not _animated_sprite_a_animation(sprite, nom_animation):
+		return 0.0
+	var images: int = sprite.sprite_frames.get_frame_count(nom_animation)
+	var vitesse: float = maxf(sprite.sprite_frames.get_animation_speed(nom_animation), 0.001)
+	return float(images) / vitesse
+func _terminer_roulade_laterale() -> void:
+	_roulade_laterale_active = false
+	_arreter_animation_roulade(roulade_laterale_corps_entier)
+	_arreter_animation_roulade(dash_arriere_corps_entier)
+	_appliquer_visibilite_roulade_laterale(false)
+	if arbre_animation != null:
+		arbre_animation.active = true
+		_configurer_arbre_animation()
+func _arreter_animation_roulade(sprite: AnimatedSprite2D) -> void:
+	if sprite == null:
+		return
+	sprite.stop()
+	sprite.visible = false
+func _on_animation_terminee(nom_animation: StringName) -> void:
+	if nom_animation != ANIMATION_ROULADE_BAS:
+		return
+	_roulade_fullbody_active = false
+	_appliquer_visibilite_fullbody(false)
+	if arbre_animation != null:
+		arbre_animation.active = true
+		_configurer_arbre_animation()
+func _appliquer_visibilite_fullbody(actif: bool) -> void:
+	if inactif_archere != null:
+		inactif_archere.visible = not actif
+	if roulades_archere != null:
+		roulades_archere.visible = actif
+	_appliquer_visibilite_membre(torse_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.torse_demembre))
+	_appliquer_visibilite_membre(tete_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.tete_demembree))
+	_appliquer_visibilite_membre(jambe_gauche_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.jambe_gauche_demembree))
+	_appliquer_visibilite_membre(jambe_droite_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.jambe_droite_demembree))
+	if main_gauche != null:
+		main_gauche.visible = not actif and gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.mains_visibles and not gestionnaire_orientation_corps.main_gauche_demembree
+	if main_droite != null:
+		main_droite.visible = not actif and gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.mains_visibles and not gestionnaire_orientation_corps.main_droite_demembree
+	if roulade_bas_corps_entier != null:
+		roulade_bas_corps_entier.visible = actif
+	if roulade_laterale_corps_entier != null:
+		roulade_laterale_corps_entier.visible = false
+	if dash_arriere_corps_entier != null:
+		dash_arriere_corps_entier.visible = false
+func _appliquer_visibilite_roulade_laterale(actif: bool) -> void:
+	if inactif_archere != null:
+		inactif_archere.visible = not actif
+	if roulades_archere != null:
+		roulades_archere.visible = actif
+	if roulade_bas_corps_entier != null:
+		roulade_bas_corps_entier.visible = false
+	if roulade_laterale_corps_entier != null:
+		roulade_laterale_corps_entier.visible = false
+	if dash_arriere_corps_entier != null:
+		dash_arriere_corps_entier.visible = false
 func _configurer_arbre_animation() -> void:
 	if arbre_animation == null or gestionnaire_orientation_corps == null or not gestionnaire_orientation_corps.animation_corps_active:
 		return
 	var racine_animation := AnimationNodeBlendTree.new()
+	arbre_animation.root_node = NodePath("..")
+	arbre_animation.anim_player = NodePath("../AnimationPlayer")
 	racine_animation.add_node(&"jambe_droite", _creer_espace_directionnel(ANIMATIONS_JAMBE_DROITE), Vector2(0, 0))
 	racine_animation.add_node(&"jambe_gauche", _creer_espace_directionnel(ANIMATIONS_JAMBE_GAUCHE), Vector2(0, 140))
 	racine_animation.add_node(&"torse", _creer_espace_directionnel(ANIMATIONS_TORSE), Vector2(0, 280))
@@ -159,10 +308,13 @@ func _creer_espace_directionnel(animations_par_direction: Dictionary) -> Animati
 	espace.max_space = Vector2(1, 1)
 	espace.snap = Vector2(1, 1)
 	for nom_direction in DIRECTIONS_ANIMATION.keys():
-		var animation := AnimationNodeAnimation.new()
-		animation.animation = animations_par_direction[nom_direction]
+		var animation := _creer_animation_simple(animations_par_direction[nom_direction])
 		espace.add_blend_point(animation, DIRECTIONS_ANIMATION[nom_direction], -1, nom_direction)
 	return espace
+func _creer_animation_simple(nom_animation: StringName) -> AnimationNodeAnimation:
+	var animation := AnimationNodeAnimation.new()
+	animation.animation = nom_animation
+	return animation
 func _creer_melange_filtre(chemin_piste: NodePath) -> AnimationNodeBlend2:
 	var melange := AnimationNodeBlend2.new()
 	melange.filter_enabled = true
@@ -170,6 +322,8 @@ func _creer_melange_filtre(chemin_piste: NodePath) -> AnimationNodeBlend2:
 	return melange
 func _mettre_a_jour_arbre_animation() -> void:
 	if arbre_animation == null or not arbre_animation.active:
+		return
+	if _roulade_fullbody_active or _roulade_laterale_active:
 		return
 	if gestionnaire_orientation_corps == null:
 		return
