@@ -59,6 +59,9 @@ const ANIMATION_DASH_AVANT_DROITE: StringName = &"corps entier dash avant droite
 const ANIMATION_DASH_AVANT_GAUCHE: StringName = &"corps entier dash avant gauche"
 const ANIMATION_DASH_ARRIERE_DROITE: StringName = &"corps entier dash arriere droite"
 const ANIMATION_DASH_ARRIERE_GAUCHE: StringName = &"corps entier dash arriere gauche"
+const ANIMATION_JAMBE_GAUCHE_COURSE_BAS: StringName = &"jambe gauche en course bas"
+const ANIMATION_JAMBE_DROITE_COURSE_BAS: StringName = &"jambe droite en course bas"
+const ANIMATION_TORSE_COURSE_BAS: StringName = &"torse en course bas"
 @export_group("Archere")
 @export var identifiant_personnage: StringName = &"archere"
 @export_node_path("GestionnaireOrientationCorps") var chemin_gestionnaire_orientation_corps: NodePath = NodePath("GestionnaireOrientationCorps")
@@ -67,6 +70,7 @@ const ANIMATION_DASH_ARRIERE_GAUCHE: StringName = &"corps entier dash arriere ga
 @onready var gestionnaire_orientation_corps: GestionnaireOrientationCorps = get_node_or_null(chemin_gestionnaire_orientation_corps) as GestionnaireOrientationCorps
 @onready var inactif_archere: CanvasItem = get_node_or_null("squelette du corps/inactif") as CanvasItem
 @onready var animations_dash_archere: CanvasItem = get_node_or_null("squelette du corps/animations dash") as CanvasItem
+@onready var animation_deplacement_archere: CanvasItem = get_node_or_null("squelette du corps/animation deplacement") as CanvasItem
 @onready var tete_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif tete") as CanvasItem
 @onready var torse_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif torse") as CanvasItem
 @onready var jambe_gauche_archere: CanvasItem = get_node_or_null("squelette du corps/inactif/inactif jambe gauche") as CanvasItem
@@ -75,6 +79,9 @@ const ANIMATION_DASH_ARRIERE_GAUCHE: StringName = &"corps entier dash arriere ga
 @onready var corps_entier_roulade_haut: AnimatedSprite2D = get_node_or_null("squelette du corps/animations dash/corps entier roulade haut") as AnimatedSprite2D
 @onready var corps_entier_dash_avant: AnimatedSprite2D = get_node_or_null("squelette du corps/animations dash/corps entier dash avant") as AnimatedSprite2D
 @onready var corps_entier_dash_arriere: AnimatedSprite2D = get_node_or_null("squelette du corps/animations dash/corps entier dash arriere") as AnimatedSprite2D
+@onready var jambe_gauche_course_bas: AnimatedSprite2D = get_node_or_null("squelette du corps/animation deplacement/jambe gauche en course") as AnimatedSprite2D
+@onready var jambe_droite_course_bas: AnimatedSprite2D = get_node_or_null("squelette du corps/animation deplacement/jambe droite en course") as AnimatedSprite2D
+@onready var torse_course_bas: AnimatedSprite2D = get_node_or_null("squelette du corps/animation deplacement/torse en course") as AnimatedSprite2D
 @onready var main_gauche: CanvasItem = get_node_or_null("GestionnaireArme/SocketGauche/spritemaingauche") as CanvasItem
 @onready var main_droite: CanvasItem = get_node_or_null("GestionnaireArme/SocketDroite/spritemaindroite") as CanvasItem
 var _debug_nom_direction_jambes: StringName = &""
@@ -83,6 +90,7 @@ var _dash_actif_avant: bool = false
 var _animation_dash_animation_player_active: bool = false
 var _animation_dash_sprite_active: bool = false
 var _animation_dash_sprite_temps_restant_s: float = 0.0
+var _animation_course_bas_active: bool = false
 func _ready() -> void:
 	super()
 	add_to_group("personnage_archere")
@@ -93,11 +101,13 @@ func _ready() -> void:
 	_appliquer_visibilite_mains()
 	_appliquer_demembrement_visuel()
 	_appliquer_visibilite_roulade_bas(false)
+	_appliquer_visibilite_course_bas(false)
 	_configurer_arbre_animation()
 func _physics_process(delta: float) -> void:
 	super(delta)
 	_mettre_a_jour_animation_dash(delta)
 	_mettre_a_jour_arbre_animation()
+	_mettre_a_jour_animation_course_bas()
 func get_identifiant_personnage() -> StringName:
 	return identifiant_personnage
 func _appliquer_visibilite_mains() -> void:
@@ -115,6 +125,8 @@ func _appliquer_demembrement_visuel() -> void:
 	_appliquer_visibilite_membre(jambe_gauche_archere, gestionnaire_orientation_corps.jambe_gauche_demembree)
 	_appliquer_visibilite_membre(jambe_droite_archere, gestionnaire_orientation_corps.jambe_droite_demembree)
 	_appliquer_visibilite_mains()
+	if _animation_course_bas_active:
+		_appliquer_visibilite_course_bas(true)
 	if _animation_dash_animation_player_active:
 		_appliquer_visibilite_roulade_bas(true)
 func _appliquer_visibilite_membre(membre: CanvasItem, est_demembre: bool) -> void:
@@ -267,6 +279,8 @@ func _appliquer_visibilite_roulade_bas(actif: bool) -> void:
 		inactif_archere.visible = not actif
 	if animations_dash_archere != null:
 		animations_dash_archere.visible = actif
+	if animation_deplacement_archere != null:
+		animation_deplacement_archere.visible = false
 	_appliquer_visibilite_membre(torse_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.torse_demembre))
 	_appliquer_visibilite_membre(tete_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.tete_demembree))
 	_appliquer_visibilite_membre(jambe_gauche_archere, actif or (gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.jambe_gauche_demembree))
@@ -288,6 +302,8 @@ func _appliquer_visibilite_animation_dash_sprite() -> void:
 		inactif_archere.visible = not _animation_dash_sprite_active
 	if animations_dash_archere != null:
 		animations_dash_archere.visible = _animation_dash_sprite_active
+	if animation_deplacement_archere != null:
+		animation_deplacement_archere.visible = false
 	if corps_entier_roulade_bas != null:
 		corps_entier_roulade_bas.visible = false
 	if corps_entier_roulade_haut != null:
@@ -296,6 +312,69 @@ func _appliquer_visibilite_animation_dash_sprite() -> void:
 		corps_entier_dash_avant.visible = false
 	if corps_entier_dash_arriere != null:
 		corps_entier_dash_arriere.visible = false
+func _mettre_a_jour_animation_course_bas() -> void:
+	var doit_jouer: bool = _doit_jouer_course_bas()
+	if doit_jouer and not _animation_course_bas_active:
+		_jouer_animation_course_bas()
+	elif not doit_jouer and _animation_course_bas_active:
+		_arreter_animation_course_bas()
+	elif _animation_course_bas_active:
+		_appliquer_visibilite_course_bas(true)
+func _doit_jouer_course_bas() -> bool:
+	if _animation_dash_animation_player_active or _animation_dash_sprite_active:
+		return false
+	if gestionnaire_orientation_corps == null or not gestionnaire_orientation_corps.animation_corps_active:
+		return false
+	var vitesse_reference: float = 1.0
+	if stats != null:
+		vitesse_reference = maxf(stats.get_vitesse_effective(), 1.0)
+	var vitesse_min: float = vitesse_reference * gestionnaire_orientation_corps.vitesse_min_animation_deplacement
+	if velocity.length_squared() <= vitesse_min * vitesse_min:
+		return false
+	return velocity.normalized().dot(Vector2.DOWN) >= 0.7
+func _jouer_animation_course_bas() -> void:
+	_animation_course_bas_active = true
+	_appliquer_visibilite_course_bas(true)
+	_jouer_animation_course_bas_syncro()
+func _arreter_animation_course_bas() -> void:
+	_animation_course_bas_active = false
+	_arreter_animation_sprite(jambe_gauche_course_bas)
+	_arreter_animation_sprite(jambe_droite_course_bas)
+	_arreter_animation_sprite(torse_course_bas)
+	_appliquer_visibilite_course_bas(false)
+func _jouer_animation_course_bas_syncro() -> void:
+	_preparer_animation_course_bas(jambe_gauche_course_bas, ANIMATION_JAMBE_GAUCHE_COURSE_BAS)
+	_preparer_animation_course_bas(jambe_droite_course_bas, ANIMATION_JAMBE_DROITE_COURSE_BAS)
+	_preparer_animation_course_bas(torse_course_bas, ANIMATION_TORSE_COURSE_BAS)
+func _preparer_animation_course_bas(sprite: AnimatedSprite2D, nom_animation: StringName) -> void:
+	if not _animated_sprite_a_animation(sprite, nom_animation):
+		return
+	sprite.visible = true
+	sprite.play(nom_animation)
+	sprite.frame = 0
+	sprite.frame_progress = 0.0
+func _appliquer_visibilite_course_bas(actif: bool) -> void:
+	var animation_dash_active: bool = _animation_dash_animation_player_active or _animation_dash_sprite_active
+	if animations_dash_archere != null and actif:
+		animations_dash_archere.visible = false
+	if inactif_archere != null:
+		inactif_archere.visible = not animation_dash_active
+	if animation_deplacement_archere != null:
+		animation_deplacement_archere.visible = actif
+	var torse_demembre: bool = gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.torse_demembre
+	var jambe_gauche_demembree: bool = gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.jambe_gauche_demembree
+	var jambe_droite_demembree: bool = gestionnaire_orientation_corps != null and gestionnaire_orientation_corps.jambe_droite_demembree
+	_appliquer_visibilite_membre(torse_archere, actif or animation_dash_active or torse_demembre)
+	_appliquer_visibilite_membre(jambe_gauche_archere, actif or animation_dash_active or jambe_gauche_demembree)
+	_appliquer_visibilite_membre(jambe_droite_archere, actif or animation_dash_active or jambe_droite_demembree)
+	if tete_archere != null and gestionnaire_orientation_corps != null:
+		tete_archere.visible = not animation_dash_active and not gestionnaire_orientation_corps.tete_demembree
+	if torse_course_bas != null:
+		torse_course_bas.visible = actif and not torse_demembre
+	if jambe_gauche_course_bas != null:
+		jambe_gauche_course_bas.visible = actif and not jambe_gauche_demembree
+	if jambe_droite_course_bas != null:
+		jambe_droite_course_bas.visible = actif and not jambe_droite_demembree
 func _configurer_arbre_animation() -> void:
 	if arbre_animation == null or gestionnaire_orientation_corps == null or not gestionnaire_orientation_corps.animation_corps_active:
 		return

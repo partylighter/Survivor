@@ -19,10 +19,13 @@
 [ext_resource type="Script" uid="uid://0qijcyr7hxjj" path="res://scripts/gestionnaires/en_jeu/effet_dash_displayer.gd" id="16_3btpa"]
 [ext_resource type="Texture2D" uid="uid://bc0pna6u7gx2n" path="res://assets/archere/back dash back gauche et droite.png" id="17_d1jmq"]
 [ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="17_gnqv5"]
+[ext_resource type="Texture2D" uid="uid://cbaf5ktjgodqb" path="res://assets/archere/jambe gauche en course bas.png" id="18_3s74m"]
 [ext_resource type="Texture2D" uid="uid://dc1tmaen25cek" path="res://assets/archere/corps entier dash avant gauche et droite.png" id="18_ggrrm"]
 [ext_resource type="Script" uid="uid://ss27awahkq0s" path="res://scripts/gestionnaires/en_jeu/LootDisplayer.gd" id="18_urclj"]
+[ext_resource type="Texture2D" uid="uid://yn4jckow6b7h" path="res://assets/archere/jambe droite en course bas.png" id="19_6qcki"]
 [ext_resource type="Script" uid="uid://c3p8dtpg1k02r" path="res://scripts/gestionnaires/en_jeu/StatsJoueurDisplayer.gd" id="19_83r8v"]
 [ext_resource type="Texture2D" uid="uid://x7g8lowbo6wb" path="res://assets/archere/corps entier roulade haut.png" id="19_xeymn"]
+[ext_resource type="Texture2D" uid="uid://4r4y614d7uku" path="res://assets/archere/torse en course bas.png" id="20_3btpa"]
 [ext_resource type="Texture2D" uid="uid://3y8pr65i772r" path="res://assets/archere/animation torse.png" id="20_i13yx"]
 [ext_resource type="Texture2D" uid="uid://bson1kpwy8wro" path="res://assets/archere/animation tete.png" id="21_pkql5"]
 [ext_resource type="Texture2D" uid="uid://dc2xx0qopwjhd" path="res://assets/archere/animation jambe droite.png" id="22_ctind"]
@@ -678,6 +681,114 @@ _data = {
 &"torse nactif bas": SubResource("Animation_vk6sf")
 }
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_gnqv5"]
+atlas = ExtResource("18_3s74m")
+region = Rect2(0, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_urclj"]
+atlas = ExtResource("18_3s74m")
+region = Rect2(50, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_83r8v"]
+atlas = ExtResource("18_3s74m")
+region = Rect2(100, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ys1k7"]
+atlas = ExtResource("18_3s74m")
+region = Rect2(150, 0, 50, 80)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_smvi2"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gnqv5")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_urclj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_83r8v")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ys1k7")
+}],
+"loop": 1,
+"name": &"jambe gauche en course bas",
+"speed": 9.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_r5uce"]
+atlas = ExtResource("19_6qcki")
+region = Rect2(0, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b514t"]
+atlas = ExtResource("19_6qcki")
+region = Rect2(50, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_alhaa"]
+atlas = ExtResource("19_6qcki")
+region = Rect2(100, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vleev"]
+atlas = ExtResource("19_6qcki")
+region = Rect2(150, 0, 50, 80)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_4obtr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_r5uce")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b514t")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_alhaa")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vleev")
+}],
+"loop": 1,
+"name": &"jambe droite en course bas",
+"speed": 9.0
+}]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mvoep"]
+atlas = ExtResource("20_3btpa")
+region = Rect2(0, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_lc0op"]
+atlas = ExtResource("20_3btpa")
+region = Rect2(50, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5pi2y"]
+atlas = ExtResource("20_3btpa")
+region = Rect2(100, 0, 50, 80)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_b7037"]
+atlas = ExtResource("20_3btpa")
+region = Rect2(150, 0, 50, 80)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_a1wk0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mvoep")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_lc0op")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5pi2y")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_b7037")
+}],
+"loop": 1,
+"name": &"torse en course bas",
+"speed": 9.0
+}]
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_xrmqf"]
 atlas = ExtResource("17_d1jmq")
 region = Rect2(0, 0, 54, 80)
@@ -1090,6 +1201,23 @@ libraries/ = SubResource("AnimationLibrary_1liwq")
 [node name="squelette du corps" type="Node2D" parent="." unique_id=1441743443]
 texture_filter = 1
 scale = Vector2(6, 6)
+
+[node name="animation deplacement" type="Node2D" parent="squelette du corps" unique_id=1886668769]
+
+[node name="jambe gauche en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=1034661395]
+sprite_frames = SubResource("SpriteFrames_smvi2")
+animation = &"jambe gauche en course bas"
+frame_progress = 0.8493078
+
+[node name="jambe droite en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=1375546127]
+sprite_frames = SubResource("SpriteFrames_4obtr")
+animation = &"jambe droite en course bas"
+frame_progress = 0.4002016
+
+[node name="torse en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=671816660]
+sprite_frames = SubResource("SpriteFrames_a1wk0")
+animation = &"torse en course bas"
+frame_progress = 0.8512501
 
 [node name="inactif" type="Node2D" parent="squelette du corps" unique_id=1002468245]
 visible = false
