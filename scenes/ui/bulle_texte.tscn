@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://bvw6llatxks8m"]
+
+[ext_resource type="Script" uid="uid://brp4jb3vh0d1q" path="res://scripts/ui/BulleTexte.gd" id="1_bulle"]
+
+[node name="BulleTexte" type="Node2D" unique_id=18706159]
+script = ExtResource("1_bulle")
+
+[node name="Panneau" type="PanelContainer" parent="." unique_id=529606664]
+offset_left = -110.0
+offset_top = -64.0
+offset_right = 110.0
+offset_bottom = -16.0
+mouse_filter = 2
+
+[node name="Marge" type="MarginContainer" parent="Panneau" unique_id=14197076]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="Texte" type="Label" parent="Panneau/Marge" unique_id=1812585346]
+custom_minimum_size = Vector2(180, 24)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.08, 0.08, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+text = "..."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="PointeParole" type="Polygon2D" parent="." unique_id=1113076964]
+color = Color(1, 1, 1, 0.95)
+polygon = PackedVector2Array(-12, -17, 3, -17, -5, 1)
+
+[node name="PointsPensee" type="Node2D" parent="." unique_id=1675929775]
+visible = false
+
+[node name="Point1" type="Polygon2D" parent="PointsPensee" unique_id=872882679]
+position = Vector2(-2, -11)
+color = Color(1, 1, 1, 0.95)
+polygon = PackedVector2Array(-5, 0, -3.535, -3.535, 0, -5, 3.535, -3.535, 5, 0, 3.535, 3.535, 0, 5, -3.535, 3.535)
+
+[node name="Point2" type="Polygon2D" parent="PointsPensee" unique_id=1977558758]
+position = Vector2(7, 0)
+color = Color(1, 1, 1, 0.95)
+polygon = PackedVector2Array(-3, 0, -2.121, -2.121, 0, -3, 2.121, -2.121, 3, 0, 2.121, 2.121, 0, 3, -2.121, 2.121)
