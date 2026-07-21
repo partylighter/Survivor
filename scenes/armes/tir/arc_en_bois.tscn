@@ -25,10 +25,6 @@ region = Rect2(64, 0, 64, 64)
 atlas = ExtResource("2_trg2n")
 region = Rect2(128, 0, 64, 64)
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_newdt"]
-atlas = ExtResource("4_6ejr0")
-region = Rect2(0, 0, 64, 64)
-
 [sub_resource type="SpriteFrames" id="SpriteFrames_eiucn"]
 animations = [{
 "frames": [{
@@ -57,14 +53,6 @@ animations = [{
 "loop": 0,
 "name": &"encochage",
 "speed": 5.0
-}, {
-"frames": [{
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_newdt")
-}],
-"loop": 1,
-"name": &"icon base",
-"speed": 5.0
 }]
 
 [sub_resource type="Curve" id="Curve_newdt"]
@@ -81,6 +69,7 @@ scene_projectile = ExtResource("2_yu7b3")
 chemin_effets = NodePath("ArmeEffets2D")
 chemin_socket_muzzle = NodePath("Icon3/Socket")
 chemin_particles_tir = NodePath("Icon3/CPUParticles2D")
+tir_manuel_maintenu = true
 chemin_animation_arme = NodePath("Icon3")
 animation_repos = &"arc au repos"
 animation_encochage = &"encochage"
@@ -100,7 +89,7 @@ visible = false
 position = Vector2(-20, 0)
 scale = Vector2(5, 5)
 sprite_frames = SubResource("SpriteFrames_eiucn")
-animation = &"icon base"
+animation = &"arc au repos"
 
 [node name="Socket" type="Node2D" parent="Icon3" unique_id=830877622]
 position = Vector2(16.200012, 2.3841858e-07)

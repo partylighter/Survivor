@@ -87,9 +87,6 @@ func attaquer() -> void:
 	await get_tree().create_timer(cooldown_s).timeout
 	_pret = true
 
-func _maj_etat_pickup() -> void:
-	set_pickup_enabled(est_au_sol)
-
 func stop_drop() -> void:
 	if effets:
 		effets.stop_drop()

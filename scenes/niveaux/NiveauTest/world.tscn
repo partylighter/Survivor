@@ -3,7 +3,6 @@
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaires/en_jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://b2g86s8unsmo6" path="res://scenes/armes/tir/arc_en_bois.tscn" id="4_f8f2q"]
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/gestionnaires/en_jeu/stats_vagues.tscn" id="5_71j4m"]
-[ext_resource type="Texture2D" uid="uid://cqgpub2jqdghe" path="res://assets/items/icon-arc-en-bois.png" id="5_cb8sn"]
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="5_f8f2q"]
 [ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/joueur/base/CamPlayer.gd" id="6_b3mfv"]
 [ext_resource type="PackedScene" uid="uid://8qkvcq5m0sha" path="res://scenes/gestionnaires/en_jeu/stats_displayer.tscn" id="6_qfnet"]
@@ -123,12 +122,9 @@ script = ExtResource("33_monde")
 script = ExtResource("51_sol_damier")
 
 [node name="Loot" parent="." unique_id=2091000665 instance=ExtResource("9_075h3")]
-position = Vector2(-200, 234)
+position = Vector2(783, 349)
 type_item = 2
 scene_contenu = ExtResource("4_f8f2q")
-nom_affiche = "Arc en bois"
-icone = ExtResource("5_cb8sn")
-afficher_notification_collecte = true
 
 [node name="Loot2" parent="." unique_id=700604809 instance=ExtResource("9_075h3")]
 position = Vector2(-860, 1001)

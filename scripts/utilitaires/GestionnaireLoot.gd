@@ -225,6 +225,9 @@ func _generer_arme_au_sol(scene_src: PackedScene) -> void:
 		return
 	arme.global_position = joueur.global_position + Vector2(24, 0)
 	get_tree().current_scene.add_child(arme)
+	var zone: ZoneRamassage = joueur.get_node_or_null("ZoneRamassage") as ZoneRamassage
+	if zone != null:
+		zone.enregistrer_pickable(arme)
 
 func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 	var id := String(identifiant)

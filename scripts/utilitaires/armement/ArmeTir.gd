@@ -18,6 +18,7 @@ class_name ArmeTir
 @export var mask_tir: int = 0
 
 @export_group("Animation de tir")
+@export var tir_manuel_maintenu: bool = false
 @export_node_path("AnimatedSprite2D") var chemin_animation_arme: NodePath
 @export var animation_repos: StringName = &""
 @export var animation_encochage: StringName = &""

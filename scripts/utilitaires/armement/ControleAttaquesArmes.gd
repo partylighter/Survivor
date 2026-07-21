@@ -2,7 +2,6 @@ extends Node
 class_name ControleAttaquesArmes
 
 @export_node_path("GestionnaireArme") var chemin_gestionnaire: NodePath
-@export var tir_manuel_maintenu: bool = true
 var gestionnaire: GestionnaireArme
 
 var auto_droite: bool = false
@@ -15,38 +14,24 @@ func _ready() -> void:
 func _process(_dt: float) -> void:
 	if gestionnaire == null:
 		return
-	if tir_manuel_maintenu:
-		_gerer_tir_manuel()
-		return
-
-	if Input.is_action_just_pressed("attaque_main_droite"):
-		auto_droite = not auto_droite
-	if Input.is_action_just_pressed("attaque_main_gauche"):
-		if not gestionnaire.arme_unique:
-			auto_gauche = not auto_gauche
-
-	if auto_droite:
-		var a: ArmeBase = gestionnaire.arme_principale
-		if is_instance_valid(a) and a.peut_attaquer():
-			a.attaquer()
-	if auto_gauche and not gestionnaire.arme_unique:
-		var b: ArmeBase = gestionnaire.arme_secondaire
-		if is_instance_valid(b) and b.peut_attaquer():
-			b.attaquer()
-
-func _gerer_tir_manuel() -> void:
-	_gerer_entree_manuelle(&"attaque_main_droite", gestionnaire.arme_principale)
+	auto_droite = _gerer_entree(&"attaque_main_droite", gestionnaire.arme_principale, auto_droite)
 	if not gestionnaire.arme_unique:
-		_gerer_entree_manuelle(&"attaque_main_gauche", gestionnaire.arme_secondaire)
+		auto_gauche = _gerer_entree(&"attaque_main_gauche", gestionnaire.arme_secondaire, auto_gauche)
 
-func _gerer_entree_manuelle(action: StringName, arme: ArmeBase) -> void:
+func _gerer_entree(action: StringName, arme: ArmeBase, mode_auto: bool) -> bool:
 	if not is_instance_valid(arme):
-		return
+		return false
+
+	var arme_tir: ArmeTir = arme as ArmeTir
+	if arme_tir != null and arme_tir.tir_manuel_maintenu:
+		if Input.is_action_just_pressed(action):
+			arme_tir.commencer_charge()
+		if Input.is_action_just_released(action):
+			arme_tir.relacher_charge()
+		return false
+
 	if Input.is_action_just_pressed(action):
-		if arme.has_method("commencer_charge"):
-			arme.call("commencer_charge")
-	if Input.is_action_just_released(action):
-		if arme.has_method("relacher_charge"):
-			arme.call("relacher_charge")
-		elif arme.peut_attaquer():
+		mode_auto = not mode_auto
+	if mode_auto and arme.peut_attaquer():
 			arme.attaquer()
+	return mode_auto
