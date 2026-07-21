@@ -1,0 +1,133 @@
+[gd_scene format=3 uid="uid://b2g86s8unsmo6"]
+
+[ext_resource type="Script" uid="uid://di6ajeojl73qu" path="res://scripts/utilitaires/armement/ArmeTir.gd" id="1_68a0r"]
+[ext_resource type="Texture2D" uid="uid://cwa8us1g1kyia" path="res://assets/items/arc-en-bois-sheet.png" id="2_trg2n"]
+[ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/armes/tir/projectile_1.tscn" id="2_yu7b3"]
+[ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/utilitaires/armement/ArmeEffets2D.gd" id="3_yu7b3"]
+[ext_resource type="Texture2D" uid="uid://cqgpub2jqdghe" path="res://assets/items/icon-arc-en-bois.png" id="4_6ejr0"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6ejr0"]
+radius = 214.8
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_w8r1n"]
+atlas = ExtResource("2_trg2n")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_obael"]
+atlas = ExtResource("2_trg2n")
+region = Rect2(192, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tbqku"]
+atlas = ExtResource("2_trg2n")
+region = Rect2(64, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nmjkb"]
+atlas = ExtResource("2_trg2n")
+region = Rect2(128, 0, 64, 64)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_newdt"]
+atlas = ExtResource("4_6ejr0")
+region = Rect2(0, 0, 64, 64)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_eiucn"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_w8r1n")
+}],
+"loop": 0,
+"name": &"arc au repos",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_obael")
+}],
+"loop": 0,
+"name": &"decochage",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tbqku")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nmjkb")
+}],
+"loop": 0,
+"name": &"encochage",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_newdt")
+}],
+"loop": 1,
+"name": &"icon base",
+"speed": 5.0
+}]
+
+[sub_resource type="Curve" id="Curve_newdt"]
+_data = [Vector2(0.08985025, 0.9938006), 0.0, 0.0, 0, 0, Vector2(0.5291181, 0.78302336), -0.9521477, -0.9521477, 0, 0, Vector2(0.9850249, 0.18168819), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_6sdde"]
+offsets = PackedFloat32Array(0, 0.2262324, 0.6047535, 1)
+colors = PackedColorArray(0.7148021, 0.41435745, 3.85046e-07, 1, 1, 0.9565546, 0, 1, 0.7778729, 0.84613574, 0, 1, 0.827162, 0.8271622, 3.85046e-07, 1)
+
+[node name="Arc en bois" type="Node2D" unique_id=1990170006]
+script = ExtResource("1_68a0r")
+scene_projectile = ExtResource("2_yu7b3")
+chemin_effets = NodePath("ArmeEffets2D")
+chemin_socket_muzzle = NodePath("Icon3/Socket")
+chemin_particles_tir = NodePath("Icon3/CPUParticles2D")
+chemin_animation_arme = NodePath("Icon3")
+animation_repos = &"arc au repos"
+animation_encochage = &"encochage"
+animation_decochage = &"decochage"
+chemin_icone_au_sol = NodePath("IconeAuSol")
+nom_arme = &"Arc en bois"
+chemin_pickup = NodePath("Area2D")
+metadata/_custom_type_script = "uid://di6ajeojl73qu"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1709877152]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=979245404]
+shape = SubResource("CircleShape2D_6ejr0")
+
+[node name="Icon3" type="AnimatedSprite2D" parent="." unique_id=360378460]
+visible = false
+position = Vector2(-20, 0)
+scale = Vector2(5, 5)
+sprite_frames = SubResource("SpriteFrames_eiucn")
+animation = &"icon base"
+
+[node name="Socket" type="Node2D" parent="Icon3" unique_id=830877622]
+position = Vector2(16.200012, 2.3841858e-07)
+scale = Vector2(0.7604562, 0.7604562)
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="Icon3" unique_id=1050022649]
+position = Vector2(20.599995, 0)
+scale = Vector2(0.3708478, 0.51419777)
+emitting = false
+amount = 4
+lifetime = 0.08
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 678.0
+initial_velocity_max = 678.0
+damping_min = 91.424
+damping_max = 92.071
+scale_amount_min = 21.62
+scale_amount_max = 44.27
+scale_amount_curve = SubResource("Curve_newdt")
+color_ramp = SubResource("Gradient_6sdde")
+
+[node name="IconeAuSol" type="Sprite2D" parent="." unique_id=720932945]
+position = Vector2(-20, 0)
+scale = Vector2(5, 5)
+texture = ExtResource("4_6ejr0")
+
+[node name="ArmeEffets2D" type="Node" parent="." unique_id=1875721933]
+script = ExtResource("3_yu7b3")
+metadata/_custom_type_script = "uid://5adwsbkqdlcw"

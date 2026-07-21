@@ -44,6 +44,7 @@ func _on_area_exited(a: Area2D) -> void:
 		_d("EXIT %s count=%d" % [c.name, pickables.size()])
 
 func get_pickable_le_plus_proche(ref_pos: Vector2) -> Node2D:
+	_resynchroniser_pickables()
 	var best: Node2D = null
 	var dmin := INF
 	for n in pickables:
@@ -54,3 +55,17 @@ func get_pickable_le_plus_proche(ref_pos: Vector2) -> Node2D:
 			dmin = d
 			best = n
 	return best
+
+func _resynchroniser_pickables() -> void:
+	# Une arme peut être instanciée directement à l'intérieur de la zone.
+	# Dans ce cas, le signal area_entered peut précéder la connexion ou être
+	# manqué pendant l'activation différée de son Area2D.
+	for area: Area2D in get_overlapping_areas():
+		var candidat: Node2D = _root_candidate(area)
+		if candidat != null and not pickables.has(candidat):
+			pickables.append(candidat)
+
+	for i: int in range(pickables.size() - 1, -1, -1):
+		var candidat: Node2D = pickables[i]
+		if not is_instance_valid(candidat) or candidat.is_queued_for_deletion():
+			pickables.remove_at(i)

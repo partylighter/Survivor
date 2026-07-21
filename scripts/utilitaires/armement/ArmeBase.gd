@@ -23,9 +23,18 @@ func _ready() -> void:
 	_maj_etat_pickup()
 
 func _maj_etat_pickup() -> void:
+	set_pickup_enabled(est_au_sol)
+
+func set_pickup_enabled(enabled: bool) -> void:
+	if _pickup == null and chemin_pickup != NodePath():
+		_pickup = get_node_or_null(chemin_pickup) as Area2D
 	if _pickup:
-		_pickup.monitoring = est_au_sol
-		_pickup.monitorable = est_au_sol
+		# La zone du joueur doit toujours pouvoir observer cette Area2D, même
+		# pendant l'équipement. Sinon un drop effectué à l'intérieur de la zone
+		# ne produit pas de nouvelle entrée physique et l'arme devient invisible.
+		_pickup.process_mode = Node.PROCESS_MODE_INHERIT
+		_pickup.set_deferred("monitoring", enabled)
+		_pickup.set_deferred("monitorable", true)
 
 func _d(m:String)->void:
 	if debug_enabled: print("[ArmeBase]", Time.get_ticks_msec(), m)

@@ -6,8 +6,6 @@
 [ext_resource type="Script" uid="uid://cni7dvefjr67x" path="res://scripts/gestionnaires/en_jeu/ZoneRamassage.gd" id="4_alfpc"]
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/utilitaires/bar_pv.gd" id="5_2qddb"]
 [ext_resource type="Script" uid="uid://ca27wv5y28koq" path="res://scripts/gestionnaires/en_jeu/GestionnaireArme.gd" id="6_i13yx"]
-[ext_resource type="Texture2D" uid="uid://b38kijqfiqalk" path="res://assets/archere/main gauche.png" id="7_i13yx"]
-[ext_resource type="Texture2D" uid="uid://dhr8nbfx75o8i" path="res://assets/archere/main droite.png" id="8_pkql5"]
 [ext_resource type="Script" uid="uid://cjws7v4t0wqu7" path="res://scripts/utilitaires/BarSoif.gd" id="9_s88oj"]
 [ext_resource type="Script" uid="uid://cutwnejqju7sh" path="res://scripts/utilitaires/Soif.gd" id="10_hveao"]
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="11_d1jmq"]
@@ -1166,32 +1164,16 @@ script = ExtResource("6_i13yx")
 chemin_socket_principale = NodePath("SocketDroite")
 chemin_socket_secondaire = NodePath("SocketGauche")
 chemin_zone = NodePath("../ZoneRamassage")
-chemin_pivot = NodePath("SocketDroite/spritemaindroite")
-pivot_mode = 2
+arme_unique = true
 distance_min = 0.0
 distance_max = 162.6
 distance_fusion_debut = 646.1
 distance_fusion_range = 880.6
-cacher_mains_vides = false
-mode_mains = 1
-mode_mains_auto_selon_armes = false
 metadata/_custom_type_script = "uid://ca27wv5y28koq"
 
 [node name="SocketGauche" type="Node2D" parent="GestionnaireArme" unique_id=1532852629]
 
-[node name="spritemaingauche" type="Sprite2D" parent="GestionnaireArme/SocketGauche" unique_id=1028360536]
-z_index = 1
-position = Vector2(25, 0)
-scale = Vector2(6, 6)
-texture = ExtResource("7_i13yx")
-
 [node name="SocketDroite" type="Node2D" parent="GestionnaireArme" unique_id=1809982953]
-
-[node name="spritemaindroite" type="Sprite2D" parent="GestionnaireArme/SocketDroite" unique_id=660058153]
-z_index = 1
-position = Vector2(-25, 0)
-scale = Vector2(6, 6)
-texture = ExtResource("8_pkql5")
 
 [node name="AnimationTree" type="AnimationTree" parent="." unique_id=1441774166]
 

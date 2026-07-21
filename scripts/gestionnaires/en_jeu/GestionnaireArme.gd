@@ -30,6 +30,9 @@ enum ModeMains { LIBRES_ECARTEES, JOINTES, SEMI_JOINTES }
 		pivot_mode = v
 		_has_pivot = false
 
+@export_group("Configuration")
+@export var arme_unique: bool = false
+
 @export_group("Distances")
 @export_range(0.0, 2000.0, 0.1) var distance_min: float = 300.0
 @export_range(0.0, 2000.0, 0.1) var distance_max: float = 500.0
@@ -113,7 +116,7 @@ func _ready() -> void:
 	_pivot_node = get_node_or_null(chemin_pivot) as Node2D
 	_joueur = get_parent() as Player
 
-	if _socket_principale == null or _socket_secondaire == null or zone == null or _joueur == null:
+	if _socket_principale == null or (not arme_unique and _socket_secondaire == null) or zone == null or _joueur == null:
 		set_physics_process(false)
 		set_process(false)
 		return
@@ -189,6 +192,10 @@ func _get_pivot_global(dt: float, dist_ref: float) -> Vector2:
 	return _pivot_filtre
 
 func _mettre_a_jour_sockets_step(dt: float, mouse_raw: Vector2) -> void:
+	if arme_unique:
+		_mettre_a_jour_arme_unique(dt, mouse_raw)
+		return
+
 	var pivot_guess: Vector2 = _get_pivot_guess()
 	var dist_raw: float = (mouse_raw - pivot_guess).length()
 	var pivot: Vector2 = _get_pivot_global(dt, dist_raw)
@@ -269,6 +276,30 @@ func _mettre_a_jour_sockets_step(dt: float, mouse_raw: Vector2) -> void:
 		_appliquer_flip_visuel(_socket_principale, _angle_main_affiche)
 		_appliquer_flip_visuel(_socket_secondaire, _angle_secondaire_affiche)
 
+func _mettre_a_jour_arme_unique(dt: float, mouse_raw: Vector2) -> void:
+	var pivot: Vector2 = _get_pivot_global(dt, mouse_raw.distance_to(_get_pivot_guess()))
+	var diff: Vector2 = mouse_raw - pivot
+	var dist: float = diff.length()
+
+	if not _has_souris:
+		_souris_filtre = mouse_raw
+		_has_souris = true
+	elif mouse_raw.distance_to(_souris_filtre) > souris_epsilon_px:
+		_souris_filtre = _souris_filtre.lerp(mouse_raw, _alpha_from_hz(_hz_souris(dist), dt))
+
+	diff = _souris_filtre - pivot
+	dist = diff.length()
+	if dist > 0.0001:
+		var angle_cible: float = diff.angle()
+		_angle_main_affiche = lerp_angle(_angle_main_affiche, angle_cible, _alpha_from_hz(_hz_lissage(dist), dt))
+
+	var distance_cible: float = clampf(dist, distance_min, distance_max) * portee_main_principale
+	_dist_principale = lerpf(_dist_principale, distance_cible, _alpha_from_hz(_hz_lissage(dist), dt))
+	_socket_principale.position = Vector2.RIGHT.rotated(_angle_main_affiche) * _dist_principale
+	_socket_principale.rotation = _angle_main_affiche
+	if auto_flip_visuel:
+		_appliquer_flip_visuel(_socket_principale, _angle_main_affiche)
+
 func _fusion_r1() -> float:
 	return maxf(distance_fusion_debut, 0.0)
 
@@ -323,12 +354,14 @@ func _apply_pickup_lockout(a: Node, ms: int) -> void:
 	if a.has_meta("lockout_id"):
 		id = int(a.get_meta("lockout_id")) + 1
 	a.set_meta("lockout_id", id)
+	a.set_meta("pickup_locked", true)
 	_set_pickup_enabled(a, false)
 	await get_tree().create_timer(float(ms) * 0.001).timeout
 	if a == null or not is_instance_valid(a):
 		return
 	if not a.has_meta("lockout_id") or int(a.get_meta("lockout_id")) != id:
 		return
+	a.set_meta("pickup_locked", false)
 	_set_pickup_enabled(a, true)
 
 func _marquer_equipee(a: Node, etat: bool) -> void:
@@ -360,7 +393,7 @@ func _essayer_ramasser() -> void:
 	if zone == null or not is_instance_valid(zone):
 		return
 
-	if arme_principale != null and arme_secondaire != null:
+	if arme_principale != null and (arme_unique or arme_secondaire != null):
 		return
 
 	var ref_pos: Vector2 = global_position
@@ -374,6 +407,8 @@ func _essayer_ramasser() -> void:
 		cible = zone.get_loot_le_plus_proche(ref_pos)
 
 	if cible == null or not is_instance_valid(cible):
+		return
+	if cible.has_meta("pickup_locked") and bool(cible.get_meta("pickup_locked")):
 		return
 
 	if _est_equipee(cible):
@@ -389,8 +424,11 @@ func _essayer_ramasser() -> void:
 			arme.scene_source = ps
 			if arme_principale == null:
 				equiper_arme_principale(arme)
-			else:
+			elif not arme_unique:
 				equiper_arme_secondaire(arme)
+			else:
+				n.queue_free()
+				return
 			cible.queue_free()
 		else:
 			n.queue_free()
@@ -405,8 +443,10 @@ func _essayer_ramasser() -> void:
 			parent.remove_child(arme_sol)
 		if arme_principale == null:
 			equiper_arme_principale(arme_sol)
-		else:
+		elif not arme_unique:
 			equiper_arme_secondaire(arme_sol)
+		else:
+			return
 		_set_pickup_enabled(arme_sol, false)
 
 func equiper_arme_principale(a: ArmeBase) -> void:
@@ -427,7 +467,7 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_maj_main_vide_visu_et_process()
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
-	if a == null or a == arme_principale:
+	if arme_unique or a == null or a == arme_principale:
 		return
 	_stopper_drop_si_effets(a)
 	arme_secondaire = a
@@ -456,6 +496,8 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 			arme_secondaire = null
 		_maj_main_vide_visu_et_process()
 		return
+	if a.has_method("annuler_charge"):
+		a.call("annuler_charge")
 
 	_detach_to_world(a, s)
 	a.liberer_au_sol()
@@ -513,15 +555,15 @@ func _handle_inputs() -> void:
 		_essayer_ramasser()
 	if Input.is_action_just_pressed("lacher_main_droite"):
 		_lacher(true)
-	if Input.is_action_just_pressed("lacher_main_gauche"):
+	if not arme_unique and Input.is_action_just_pressed("lacher_main_gauche"):
 		_lacher(false)
 	if Input.is_action_just_pressed("jeter_main_droite"):
 		_jeter(true)
-	if Input.is_action_just_pressed("jeter_main_gauche"):
+	if not arme_unique and Input.is_action_just_pressed("jeter_main_gauche"):
 		_jeter(false)
-	if switch_actif and Input.is_action_just_pressed(action_switch_mains):
+	if not arme_unique and switch_actif and Input.is_action_just_pressed(action_switch_mains):
 		_switch_mains()
-	if Input.is_action_just_pressed(action_mode_joint):
+	if not arme_unique and Input.is_action_just_pressed(action_mode_joint):
 		_passer_mode_armes_suivant()
 func _passer_mode_armes_suivant() -> void:
 	mode_mains_auto_selon_armes = false

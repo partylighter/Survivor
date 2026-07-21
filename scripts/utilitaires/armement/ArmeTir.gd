@@ -17,10 +17,22 @@ class_name ArmeTir
 @export var hitscan_contacts: int = 1
 @export var mask_tir: int = 0
 
+@export_group("Animation de tir")
+@export_node_path("AnimatedSprite2D") var chemin_animation_arme: NodePath
+@export var animation_repos: StringName = &""
+@export var animation_encochage: StringName = &""
+@export var animation_decochage: StringName = &""
+@export_node_path("Sprite2D") var chemin_icone_au_sol: NodePath
+
 var upgrades: GestionnaireUpgradesArmeTir = null
 var effets: ArmeEffets2D
 var _muzzle: Node2D
 var _particles_tir: CPUParticles2D = null
+var _animation_arme: AnimatedSprite2D = null
+var _icone_au_sol: Sprite2D = null
+var _attaque_en_preparation: bool = false
+var _charge_manuelle: bool = false
+var _sequence_animation: int = 0
 var _root_proj: Node
 var _pool: Array[Projectile] = []
 var _cooldown_fin_s: float = 0.0
@@ -37,6 +49,7 @@ var _famille_trail_resolue: StringName = &""
 var _famille_impact_resolue: StringName = &""
 
 func _ready() -> void:
+	super._ready()
 	add_to_group("armes_tir")
 	_base_cooldown_s = cooldown_s
 	_base_degats = degats
@@ -58,6 +71,13 @@ func _ready() -> void:
 		if _particles_tir != null:
 			_particles_tir.emitting = false
 			_particles_tir.one_shot = true
+
+	if chemin_animation_arme != NodePath():
+		_animation_arme = get_node_or_null(chemin_animation_arme) as AnimatedSprite2D
+	if chemin_icone_au_sol != NodePath():
+		_icone_au_sol = get_node_or_null(chemin_icone_au_sol) as Sprite2D
+	_jouer_animation_arme(animation_repos)
+	_maj_visuel_sol_equipe()
 
 	_root_proj = null
 
@@ -107,7 +127,7 @@ func _process(_dt: float) -> void:
 			_effets_authoring_signature = sig
 			_rebuild_effets_runtime()
 		effets.tick(now, est_au_sol, _dt)
-	if not _pret and now >= _cooldown_fin_s:
+	if not _pret and not _attaque_en_preparation and now >= _cooldown_fin_s:
 		_pret = true
 
 func jeter(direction: Vector2, distance_px: float = 80.0) -> void:
@@ -118,6 +138,22 @@ func jeter_vers_souris(distance_px: float = 80.0) -> void:
 	if effets:
 		effets.jet_distance_px = distance_px
 		effets.jeter_vers_souris()
+
+func equipe_par(p: Node2D) -> void:
+	super.equipe_par(p)
+	_maj_visuel_sol_equipe()
+	_jouer_animation_arme(animation_repos)
+
+func liberer_au_sol() -> void:
+	super.liberer_au_sol()
+	annuler_charge()
+	_maj_visuel_sol_equipe()
+
+func _maj_visuel_sol_equipe() -> void:
+	if _icone_au_sol != null:
+		_icone_au_sol.visible = est_au_sol
+	if _animation_arme != null:
+		_animation_arme.visible = not est_au_sol
 
 func _muzzle_pos() -> Vector2:
 	if is_instance_valid(_muzzle):
@@ -133,8 +169,92 @@ func _forward_dir() -> Vector2:
 	return Vector2.RIGHT.rotated(ang)
 
 func attaquer() -> void:
+	if not peut_attaquer() or _attaque_en_preparation:
+		return
+
+	if _animation_disponible(animation_encochage):
+		_demarrer_sequence_tir_animee()
+	else:
+		_executer_tir()
+
+func commencer_charge() -> void:
+	if not peut_attaquer() or _attaque_en_preparation:
+		return
+	_attaque_en_preparation = true
+	_charge_manuelle = true
+	_pret = false
+	_sequence_animation += 1
+	_jouer_animation_arme(animation_encochage)
+
+func relacher_charge() -> void:
+	if not _charge_manuelle:
+		return
+	_charge_manuelle = false
+	_attaque_en_preparation = false
+	var sequence: int = _sequence_animation
+	_executer_tir(true)
+	_jouer_animation_arme(animation_decochage)
+	_finir_animation_decochage(sequence)
+
+func annuler_charge() -> void:
+	if not _charge_manuelle:
+		return
+	_charge_manuelle = false
+	_attaque_en_preparation = false
+	_pret = true
+	_sequence_animation += 1
+	_jouer_animation_arme(animation_repos)
+
+func _finir_animation_decochage(sequence: int) -> void:
+	var duree: float = _duree_animation_arme(animation_decochage)
+	if duree > 0.0:
+		await get_tree().create_timer(duree).timeout
+	if sequence == _sequence_animation and is_inside_tree():
+		_jouer_animation_arme(animation_repos)
+
+func _demarrer_sequence_tir_animee() -> void:
+	_attaque_en_preparation = true
+	_pret = false
+	_sequence_animation += 1
+	var sequence: int = _sequence_animation
+	_jouer_animation_arme(animation_encochage)
+
+	var duree: float = _duree_animation_arme(animation_encochage)
+	if duree > 0.0:
+		await get_tree().create_timer(duree).timeout
+	if sequence != _sequence_animation or not is_inside_tree():
+		return
+
+	_attaque_en_preparation = false
+	_executer_tir(true)
+	_jouer_animation_arme(animation_decochage)
+	_finir_animation_decochage(sequence)
+
+func _animation_disponible(nom: StringName) -> bool:
+	return (
+		_animation_arme != null
+		and _animation_arme.sprite_frames != null
+		and nom != &""
+		and _animation_arme.sprite_frames.has_animation(nom)
+	)
+
+func _jouer_animation_arme(nom: StringName) -> void:
+	if _animation_disponible(nom):
+		_animation_arme.play(nom)
+
+func _duree_animation_arme(nom: StringName) -> float:
+	if not _animation_disponible(nom):
+		return 0.0
+	var frames: SpriteFrames = _animation_arme.sprite_frames
+	var duree: float = 0.0
+	for i: int in range(frames.get_frame_count(nom)):
+		duree += frames.get_frame_duration(nom, i)
+	var vitesse: float = frames.get_animation_speed(nom) * absf(_animation_arme.speed_scale)
+	return duree / vitesse if vitesse > 0.0 else 0.0
+
+func _executer_tir(ignore_etat_pret: bool = false) -> void:
 	var now: float = Time.get_ticks_msec() * 0.001
-	if not peut_attaquer():
+	if not ignore_etat_pret and not peut_attaquer():
 		return
 
 	# Upgrades appliqués une seule fois par tir — pas une fois par projectile
@@ -392,10 +512,7 @@ func _resoudre_effets_runtime_si_necessaire(rt: ProjectileVisualRuntime) -> void
 		rt.impact_scene_resolue = VisualEffectRegistry.resoudre_impact(rt.famille_impact)
 
 func _maj_etat_pickup() -> void:
-	if _pickup:
-		_pickup.set_deferred("monitoring", est_au_sol)
-		_pickup.set_deferred("monitorable", est_au_sol)
-		_pickup.process_mode = (Node.PROCESS_MODE_INHERIT if not est_au_sol else Node.PROCESS_MODE_DISABLED)
+	set_pickup_enabled(est_au_sol)
 
 func stop_drop() -> void:
 	if effets:
