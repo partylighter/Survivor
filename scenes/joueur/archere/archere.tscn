@@ -30,6 +30,8 @@
 [ext_resource type="Texture2D" uid="uid://d4drfp6435ivr" path="res://assets/archere/animation jambe gauche.png" id="23_s88oj"]
 [ext_resource type="Texture2D" uid="uid://bo7a3qf7j2tb6" path="res://assets/archere/animation allbody.png" id="24_hveao"]
 [ext_resource type="Script" uid="uid://dyarrnfqci0fy" path="res://scripts/joueur/GestionnaireOrientationCorps.gd" id="25_l1a4x"]
+[ext_resource type="Script" uid="uid://dfqiib4t51xl8" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="26_modes"]
+[ext_resource type="Script" uid="uid://dfbi1qwwfkb3c" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="27_libre"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1202,7 +1204,6 @@ animation = &"torse en course bas"
 frame_progress = 0.8512501
 
 [node name="inactif" type="Node2D" parent="squelette du corps" unique_id=1002468245]
-visible = false
 
 [node name="inactif torse" type="Sprite2D" parent="squelette du corps/inactif" unique_id=1239734821]
 texture = ExtResource("20_i13yx")
@@ -1279,6 +1280,8 @@ metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=2005448771]
 script = ExtResource("13_xeymn")
+chemin_gestionnaire_modes_deplacement = NodePath("../GestionnaireModesDeplacement")
+chemin_gestionnaire_deplacement_libre = NodePath("../GestionDeplacementLibreJoueur")
 acceleration_px_s2 = 23500.0
 deceleration_px_s2 = 8500.0
 freinage_virage_mult = 2.0
@@ -1296,6 +1299,13 @@ dash_knockback_force_bord_mult = 0.55
 dash_autoriser_sans_direction = false
 dash_recharge_pendant_dash = true
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
+
+[node name="GestionnaireModesDeplacement" type="Node" parent="." unique_id=70369585]
+script = ExtResource("26_modes")
+
+[node name="GestionDeplacementLibreJoueur" type="Node" parent="." unique_id=1315611554]
+script = ExtResource("27_libre")
+marche_multiplicateur_vitesse = 0.35
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1829424238]
 script = ExtResource("14_3s74m")

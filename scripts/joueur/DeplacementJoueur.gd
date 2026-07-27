@@ -1,6 +1,10 @@
 extends Node
 class_name GestionDeplacementJoueur
 
+@export_group("Refs")
+@export_node_path("GestionnaireModesDeplacement") var chemin_gestionnaire_modes_deplacement: NodePath
+@export_node_path("GestionDeplacementLibreJoueur") var chemin_gestionnaire_deplacement_libre: NodePath
+
 @export_group("Deplacement")
 @export var inertie_active: bool = true
 @export var acceleration_px_s2: float = 9000.0
@@ -39,7 +43,12 @@ var _derniere_direction: Vector2 = Vector2.RIGHT
 var _avait_entree: bool = false
 var _elan_blocage_restant_s: float = 0.0
 var _ennemis_touches_dash: Dictionary = {}
+var _gestionnaire_modes_deplacement: GestionnaireModesDeplacement
+var _gestionnaire_deplacement_libre: GestionDeplacementLibreJoueur
 
+func _ready() -> void:
+	_gestionnaire_modes_deplacement = get_node_or_null(chemin_gestionnaire_modes_deplacement) as GestionnaireModesDeplacement
+	_gestionnaire_deplacement_libre = get_node_or_null(chemin_gestionnaire_deplacement_libre) as GestionDeplacementLibreJoueur
 
 func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if _elan_blocage_restant_s > 0.0:
@@ -60,7 +69,11 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 
 	var vitesse_stats: float = stats.get_vitesse_effective()
 	var vitesse_base: float = vitesse_stats
-	if len_dir > 0.0:
+	var mode_libre_actif: bool = not est_en_mode_combat() and _gestionnaire_deplacement_libre != null
+	if mode_libre_actif:
+		_gestionnaire_deplacement_libre.traiter_changement_allure()
+		vitesse_base = _gestionnaire_deplacement_libre.obtenir_vitesse_max(vitesse_stats)
+	elif len_dir > 0.0:
 		vitesse_base *= _calculer_multiplicateur_direction_souris(joueur, dir.normalized())
 	var dash_max: int = stats.get_dash_max_effectif()
 	var dash_cooldown_s: float = stats.get_dash_cooldown_effectif()
@@ -73,7 +86,7 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if joueur is Player:
 		dash_ok = (joueur as Player).dash_autorise
 
-	var dash_appuye: bool = dash_ok and Input.is_action_just_pressed("dash")
+	var dash_appuye: bool = dash_ok and not mode_libre_actif and Input.is_action_just_pressed("dash")
 	var dash_possible: bool = dash_ok and joueur.dash_t_restant_s <= 0.0 and (joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0)
 
 	if dash_appuye and dash_possible:
@@ -115,7 +128,9 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	else:
 		var vitesse_voulue: Vector2 = dir * vitesse_base
 
-		if inertie_active:
+		if mode_libre_actif:
+			joueur.velocity = _gestionnaire_deplacement_libre.calculer_vitesse(joueur.velocity, dir, vitesse_stats, dt)
+		elif inertie_active:
 			var taux: float = acceleration_px_s2 if len_dir > 0.0 else deceleration_px_s2
 			if len_dir > 0.0 and joueur.velocity.length_squared() > 0.0001:
 				var direction_vitesse: Vector2 = joueur.velocity.normalized()
@@ -162,6 +177,9 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 
 	if joueur is Player:
 		(joueur as Player).collision_ennemis_post(dt)
+
+func est_en_mode_combat() -> bool:
+	return _gestionnaire_modes_deplacement != null and _gestionnaire_modes_deplacement.est_en_mode_combat()
 
 func _calculer_multiplicateur_direction_souris(joueur: CharacterBody2D, direction_deplacement: Vector2) -> float:
 	var direction_souris: Vector2 = joueur.get_global_mouse_position() - joueur.global_position

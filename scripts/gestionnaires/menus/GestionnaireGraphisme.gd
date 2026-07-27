@@ -30,6 +30,7 @@ var _preview_fullscreen: bool = DEFAULT_FULLSCREEN
 var _preview_glow_actif: bool = DEFAULT_GLOW_ACTIF
 var _world_environment: WorldEnvironment
 var _environment: Environment
+var _environment_scene: Environment
 
 func _ready() -> void:
 	resolution_index = _get_default_res_index()
@@ -153,6 +154,18 @@ func get_current_resolution() -> Vector2i:
 	resolution_index = clampi(resolution_index, 0, resolutions.size() - 1)
 	return resolutions[resolution_index]
 
+func utiliser_environment_scene(nouvel_environment: Environment) -> void:
+	if nouvel_environment == null:
+		return
+	_environment_scene = nouvel_environment
+	call_deferred("_apply_world_environment")
+
+func liberer_environment_scene(environment_a_liberer: Environment) -> void:
+	if _environment_scene != environment_a_liberer:
+		return
+	_environment_scene = null
+	_apply_world_environment()
+
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	var r := get_current_resolution()
@@ -183,8 +196,9 @@ func _apply_world_environment() -> void:
 		get_tree().root.add_child(_world_environment)
 	if _environment == null:
 		_environment = _creer_environment_par_defaut()
-	_world_environment.environment = _environment
-	_environment.glow_enabled = glow_actif
+	var environment_actif: Environment = _environment_scene if _environment_scene != null else _environment
+	_world_environment.environment = environment_actif
+	environment_actif.glow_enabled = glow_actif
 
 func _creer_environment_par_defaut() -> Environment:
 	var env := Environment.new()

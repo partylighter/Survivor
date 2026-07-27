@@ -21,6 +21,8 @@
 [ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="15_dash"]
 [ext_resource type="Texture2D" uid="uid://1s5vl1ymqtq6" path="res://assets/player/torse.png" id="20_p6id3"]
 [ext_resource type="Texture2D" uid="uid://cku6fruc3stgx" path="res://assets/player/tete.png" id="21_wucgo"]
+[ext_resource type="Script" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="22_modes"]
+[ext_resource type="Script" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -229,6 +231,8 @@ metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=85766498]
 script = ExtResource("12_t6q27")
+chemin_gestionnaire_modes_deplacement = NodePath("../GestionnaireModesDeplacement")
+chemin_gestionnaire_deplacement_libre = NodePath("../GestionDeplacementLibreJoueur")
 acceleration_px_s2 = 23500.0
 deceleration_px_s2 = 8500.0
 freinage_virage_mult = 2.0
@@ -245,6 +249,12 @@ dash_knockback_rayon_px = 500.0
 dash_knockback_force_bord_mult = 0.55
 dash_recharge_pendant_dash = true
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
+
+[node name="GestionnaireModesDeplacement" type="Node" parent="."]
+script = ExtResource("22_modes")
+
+[node name="GestionDeplacementLibreJoueur" type="Node" parent="."]
+script = ExtResource("23_libre")
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1157013637]
 script = ExtResource("9_wwtew")

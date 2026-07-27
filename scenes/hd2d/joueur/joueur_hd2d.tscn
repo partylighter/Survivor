@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://ct2xje4d2ovrk"]
+
+[ext_resource type="Script" uid="uid://da8bu7y0p24nu" path="res://scripts/hd2d/joueur/joueur_hd2d.gd" id="1_joueur"]
+[ext_resource type="Texture2D" uid="uid://bo7a3qf7j2tb6" path="res://assets/archere/animation allbody.png" id="2_archere"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_joueur"]
+radius = 0.3
+height = 1.6
+
+[node name="JoueurHD2D" type="CharacterBody3D" unique_id=918086325]
+script = ExtResource("1_joueur")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1307084136]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_joueur")
+
+[node name="Visuel" type="Sprite3D" parent="." unique_id=612229596]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+pixel_size = 0.0225
+billboard = 1
+alpha_cut = 2
+texture_filter = 0
+texture = ExtResource("2_archere")
+hframes = 16
+
+[node name="CameraRig" type="Node3D" parent="." unique_id=356931241]
+
+[node name="Camera3D" type="Camera3D" parent="CameraRig" unique_id=94155622]
+transform = Transform3D(1, 0, 0, 0, 0.788011, 0.615662, 0, -0.615662, 0.788011, 0, 9.5, 10.5)
+current = true
+fov = 32.0
+far = 200.0

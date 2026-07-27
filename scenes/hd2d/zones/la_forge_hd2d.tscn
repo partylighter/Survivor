@@ -1,0 +1,157 @@
+[gd_scene format=3 uid="uid://4ttki700m5kl"]
+
+[ext_resource type="Script" uid="uid://baibyhf7b0sp0" path="res://scripts/hd2d/monde/la_forge_hd2d.gd" id="1_forge"]
+[ext_resource type="PackedScene" uid="uid://ct2xje4d2ovrk" path="res://scenes/hd2d/joueur/joueur_hd2d.tscn" id="2_joueur"]
+
+[sub_resource type="Environment" id="Environment_forge"]
+background_mode = 1
+background_color = Color(0.075, 0.052, 0.045, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.58, 0.42, 0.34, 1)
+ambient_light_sky_contribution = 0.0
+ambient_light_energy = 1.35
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.35
+glow_bloom = 0.1
+fog_enabled = true
+fog_light_color = Color(0.18, 0.09, 0.055, 1)
+fog_density = 0.012
+
+[sub_resource type="StandardMaterial3D" id="Material_sol"]
+albedo_color = Color(0.28, 0.21, 0.17, 1)
+roughness = 0.95
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_sol"]
+material = SubResource("Material_sol")
+size = Vector2(40, 28)
+
+[sub_resource type="BoxShape3D" id="BoxShape_sol"]
+size = Vector3(40, 0.2, 28)
+
+[sub_resource type="StandardMaterial3D" id="Material_mur"]
+albedo_color = Color(0.22, 0.15, 0.12, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="BoxMesh_mur_horizontal"]
+material = SubResource("Material_mur")
+size = Vector3(40, 2.5, 0.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape_mur_horizontal"]
+size = Vector3(40, 2.5, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mur_vertical"]
+material = SubResource("Material_mur")
+size = Vector3(0.4, 2.5, 28)
+
+[sub_resource type="BoxShape3D" id="BoxShape_mur_vertical"]
+size = Vector3(0.4, 2.5, 28)
+
+[sub_resource type="StandardMaterial3D" id="Material_foyer"]
+albedo_color = Color(0.2, 0.055, 0.018, 1)
+roughness = 0.75
+emission_enabled = true
+emission = Color(1, 0.12, 0.01, 1)
+emission_energy_multiplier = 1.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_foyer"]
+material = SubResource("Material_foyer")
+size = Vector3(3, 0.5, 2)
+
+[sub_resource type="BoxShape3D" id="BoxShape_foyer"]
+size = Vector3(3, 0.5, 2)
+
+[sub_resource type="StandardMaterial3D" id="Material_enclume"]
+albedo_color = Color(0.12, 0.13, 0.15, 1)
+metallic = 0.85
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_enclume"]
+material = SubResource("Material_enclume")
+size = Vector3(1.4, 0.8, 0.7)
+
+[sub_resource type="BoxShape3D" id="BoxShape_enclume"]
+size = Vector3(1.4, 0.8, 0.7)
+
+[node name="LaForgeHD2D" type="Node3D" unique_id=364974245]
+script = ExtResource("1_forge")
+environnement = SubResource("Environment_forge")
+
+[node name="Sol" type="MeshInstance3D" parent="." unique_id=1959561159]
+mesh = SubResource("PlaneMesh_sol")
+
+[node name="CollisionSol" type="StaticBody3D" parent="." unique_id=166151656]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="CollisionSol" unique_id=1584278089]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+shape = SubResource("BoxShape_sol")
+
+[node name="MurNord" type="StaticBody3D" parent="." unique_id=1399118635]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -14)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MurNord" unique_id=1029341773]
+mesh = SubResource("BoxMesh_mur_horizontal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MurNord" unique_id=112853007]
+shape = SubResource("BoxShape_mur_horizontal")
+
+[node name="MurSud" type="StaticBody3D" parent="." unique_id=1543288553]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 14)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MurSud" unique_id=799037688]
+mesh = SubResource("BoxMesh_mur_horizontal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MurSud" unique_id=357313002]
+shape = SubResource("BoxShape_mur_horizontal")
+
+[node name="MurOuest" type="StaticBody3D" parent="." unique_id=1649275090]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 1.25, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MurOuest" unique_id=1090459556]
+mesh = SubResource("BoxMesh_mur_vertical")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MurOuest" unique_id=8706015]
+shape = SubResource("BoxShape_mur_vertical")
+
+[node name="MurEst" type="StaticBody3D" parent="." unique_id=574857705]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 1.25, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MurEst" unique_id=344431484]
+mesh = SubResource("BoxMesh_mur_vertical")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MurEst" unique_id=1129665277]
+shape = SubResource("BoxShape_mur_vertical")
+
+[node name="Foyer" type="StaticBody3D" parent="." unique_id=535679427]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.25, -4)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Foyer" unique_id=449142408]
+mesh = SubResource("BoxMesh_foyer")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Foyer" unique_id=2128676564]
+shape = SubResource("BoxShape_foyer")
+
+[node name="LumiereFoyer" type="OmniLight3D" parent="Foyer" unique_id=1327772566]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+light_color = Color(1, 0.24, 0.07, 1)
+light_energy = 3.0
+shadow_enabled = true
+omni_range = 9.0
+
+[node name="Enclume" type="StaticBody3D" parent="." unique_id=807682432]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.4, -2)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Enclume" unique_id=1082644167]
+mesh = SubResource("BoxMesh_enclume")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Enclume" unique_id=694689221]
+shape = SubResource("BoxShape_enclume")
+
+[node name="LumierePrincipale" type="DirectionalLight3D" parent="." unique_id=143435444]
+transform = Transform3D(0.8660254, 0.40957603, -0.28678823, 0, 0.57357645, 0.81915206, 0.5, -0.7094065, 0.49673176, 0, 0, 0)
+light_color = Color(0.72, 0.8, 1, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="JoueurHD2D" parent="." unique_id=1959834220 instance=ExtResource("2_joueur")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45257002, 3)
