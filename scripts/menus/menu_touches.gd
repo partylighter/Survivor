@@ -6,17 +6,14 @@ class_name MenuTouches
 	{"action": "gauche", "label": "Aller à gauche"},
 	{"action": "haut", "label": "Haut / Saut / Monter"},
 	{"action": "bas", "label": "Bas / Descendre"},
-	{"action": "dash", "label": "Dash / Esquive"},
+	{"action": "dash", "label": "Changer d'allure"},
 	{"action": "interagir", "label": "Interagir"},
 	{"action": "pause", "label": "Pause / Menu"},
 	{"action": "switch_mains", "label": "Switch mains"},
 	{"action": "attaque_main_droite", "label": "Attaque main droite"},
 	{"action": "attaque_main_gauche", "label": "Attaque main gauche"},
-	{"action": "ramasser", "label": "Ramasser"},
-	{"action": "lacher_main_gauche", "label": "Lâcher main gauche"},
-	{"action": "lacher_main_droite", "label": "Lâcher main droite"},
-	{"action": "jeter_main_gauche", "label": "Jeter main gauche"},
-	{"action": "jeter_main_droite", "label": "Jeter main droite"},
+	{"action": "lacher_main_gauche", "label": "Prendre / deposer main gauche"},
+	{"action": "lacher_main_droite", "label": "Prendre / deposer main droite"},
 	{"action": "mode_joint_armes", "label": "Mode joint armes"}
 ]
 

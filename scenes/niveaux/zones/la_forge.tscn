@@ -20,7 +20,10 @@
 [ext_resource type="Script" uid="uid://dslxitu3lclfq" path="res://scripts/forge/martelage/GestionnaireMartelage.gd" id="19_gestionnaire_martelage"]
 [ext_resource type="Script" uid="uid://dw5l3h8uxkiff" path="res://scripts/forge/moulage/GestionnaireMoulage.gd" id="20_gestionnaire_moulage"]
 [ext_resource type="Resource" path="res://ressources/forge/commandes/commande_arc_en_bois.tres" id="21_commande_arc"]
-[ext_resource type="Resource" path="res://ressources/forge/commandes/commande_renfort_arc.tres" id="22_commande_renfort_arc"]
+[ext_resource type="Resource" uid="uid://pt1xbmxvknsh" path="res://ressources/forge/recettes/renfort_arc.tres" id="23_recette_renfort_arc"]
+[ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="24_recette_composant"]
+[ext_resource type="Resource" uid="uid://cwl3dp8n7wf08" path="res://ressources/forge/recettes/branche_arc_bois.tres" id="25_recette_branche_arc"]
+[ext_resource type="Resource" uid="uid://4cpqpb7nrvxe" path="res://ressources/forge/recettes/piece_moulee_fer.tres" id="26_recette_piece_fer"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_camera_1"]
 size = Vector2(1461.3, 773.7)
@@ -456,7 +459,8 @@ chemin_interface_moulage = NodePath("../InterfaceMoulageForge")
 chemin_interface_assemblage = NodePath("../InterfaceAssemblageForge")
 chemin_interface_coffre_reserve = NodePath("../InterfaceCoffreReserve")
 commande_disponible = ExtResource("7_commande")
-commandes_disponibles = Array[ExtResource("13_donnees_commande")]([ExtResource("7_commande"), ExtResource("21_commande_arc"), ExtResource("22_commande_renfort_arc")])
+commandes_disponibles = Array[ExtResource("13_donnees_commande")]([ExtResource("7_commande"), ExtResource("21_commande_arc")])
+recettes_composants_libres = Array[ExtResource("24_recette_composant")]([ExtResource("23_recette_renfort_arc"), ExtResource("25_recette_branche_arc"), ExtResource("26_recette_piece_fer")])
 
 [node name="gestionnaires de mini jeux" type="Node" parent="zone de forge" unique_id=1532956834]
 
@@ -468,19 +472,19 @@ niveaux_difficile = PackedFloat32Array(24, 44, 64, 84)
 
 [node name="fonte" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=818256642]
 script = ExtResource("18_gestionnaire_fonte")
-niveaux_facile = PackedFloat32Array()
+niveaux_facile = PackedFloat32Array(10, 30, 50, 30, 70)
 
 [node name="martelage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=611486871]
 script = ExtResource("19_gestionnaire_martelage")
-nombre_points_facile = 10
-nombre_points_normal = 14
-nombre_points_difficile = 18
 
 [node name="moulage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1984598946]
 script = ExtResource("20_gestionnaire_moulage")
 nombre_points_facile = 8
 nombre_points_normal = 10
 nombre_points_difficile = 12
+puissance_tremblement_facile = 0.018
+puissance_tremblement_normale = 0.028
+puissance_tremblement_difficile = 0.04
 
 [node name="chauffe" type="Node2D" parent="zone de forge" unique_id=2051139579]
 

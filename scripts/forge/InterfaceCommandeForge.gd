@@ -24,6 +24,7 @@ var message_action: String = ""
 func _ready() -> void:
 	interface.hide()
 	invite.visible = false
+	choix_commande.get_popup().always_on_top = true
 	bouton_accepter.pressed.connect(_accepter_commande)
 	bouton_fermer.pressed.connect(fermer)
 	choix_commande.item_selected.connect(_selectionner_commande)

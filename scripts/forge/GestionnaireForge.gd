@@ -33,6 +33,8 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @export_node_path("InterfaceCoffreReserve") var chemin_interface_coffre_reserve: NodePath
 @export var commande_disponible: DonneesCommandeForge
 @export var commandes_disponibles: Array[DonneesCommandeForge] = []
+@export var recettes_composants_libres: Array[RecetteComposant] = []
+@export var difficulte_fabrication_libre: DonneesCommandeForge.Difficulte = DonneesCommandeForge.Difficulte.NORMALE
 @export var action_interagir: StringName = &"interagir"
 
 @onready var zone_chauffe: Area2D = get_node_or_null(chemin_zone_chauffe) as Area2D
@@ -237,21 +239,34 @@ func obtenir_etat_commande() -> CommandeForgeActive.Etat:
 	return commande_active.etat
 
 func obtenir_recette_commande_active() -> RecetteComposant:
-	if commande_active == null or commande_active.etat != CommandeForgeActive.Etat.EN_COURS:
-		return null
-	if recette_composant_selectionnee != null:
+	if fabrication_active != null:
+		return fabrication_active.recette
+	var recettes: Array[RecetteComposant] = obtenir_recettes_composants_commande_active()
+	if recette_composant_selectionnee != null and recettes.has(recette_composant_selectionnee):
 		return recette_composant_selectionnee
+	if commande_active == null:
+		return recettes[0] if not recettes.is_empty() else null
 	return _trouver_recette_composant_a_fabriquer()
 
 func obtenir_recettes_composants_commande_active() -> Array[RecetteComposant]:
 	var recettes: Array[RecetteComposant] = []
 	if commande_active == null or commande_active.donnees == null:
-		return recettes
+		return recettes_composants_libres
 	if not commande_active.donnees.recettes_composants.is_empty():
 		return commande_active.donnees.recettes_composants
 	if commande_active.donnees.recette != null:
 		recettes.append(commande_active.donnees.recette)
 	return recettes
+
+func selectionner_recette_fabrication(index: int) -> bool:
+	if fabrication_active != null:
+		return false
+	var recettes: Array[RecetteComposant] = obtenir_recettes_composants_commande_active()
+	if index < 0 or index >= recettes.size() or recettes[index] == null:
+		return false
+	recette_composant_selectionnee = recettes[index]
+	fabrication_changee.emit()
+	return true
 
 func obtenir_recette_assemblage_commande_active() -> RecetteEquipement:
 	if commande_active == null or commande_active.etat != CommandeForgeActive.Etat.EN_COURS:
@@ -288,10 +303,13 @@ func preparer_fabrication(selection: Dictionary) -> bool:
 		return false
 	var recette: RecetteComposant = obtenir_recette_commande_active()
 	if recette == null:
-		derniere_erreur_preparation = "Aucune commande active."
+		derniere_erreur_preparation = "Aucune recette disponible."
 		return false
 	if not recette.est_valide():
 		derniere_erreur_preparation = "La recette de la commande est invalide."
+		return false
+	if recette.etapes[0].type_etape != poste_preparation_actuel:
+		derniere_erreur_preparation = "Cette recette ne commence pas sur ce poste."
 		return false
 	var inventaire: GestionnaireInventaire = obtenir_inventaire_joueur_preparation()
 	if inventaire == null:
@@ -312,7 +330,8 @@ func preparer_fabrication(selection: Dictionary) -> bool:
 			derniere_erreur_preparation = "Materiaux insuffisants."
 			return false
 	var nouvelle_fabrication := FabricationActive.new()
-	if not nouvelle_fabrication.initialiser(recette, commande_active.donnees.difficulte, selection):
+	var difficulte: DonneesCommandeForge.Difficulte = commande_active.donnees.difficulte if commande_active != null else difficulte_fabrication_libre
+	if not nouvelle_fabrication.initialiser(recette, difficulte, selection):
 		derniere_erreur_preparation = "Impossible de preparer la fabrication."
 		return false
 	fabrication_active = nouvelle_fabrication

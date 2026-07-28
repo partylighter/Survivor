@@ -60,6 +60,16 @@ layout_mode = 2
 text = "I pour ouvrir ou fermer"
 horizontal_alignment = 1
 
+[node name="EquipementMainDroite" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+
+[node name="RangerArme" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 38)
+layout_mode = 2
+text = "Ranger dans l'inventaire"
+
 [node name="InventaireVide" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=918877063]
 layout_mode = 2
 text = "L'inventaire est vide."

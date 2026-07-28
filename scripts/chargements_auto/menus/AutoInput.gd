@@ -14,11 +14,8 @@ const ACTIONS_JEU: Array[StringName] = [
 	"attaque_main_droite",
 	"attaque_main_gauche",
 	"interagir",
-	"ramasser",
 	"lacher_main_gauche",
-	"lacher_main_droite",
-	"jeter_main_gauche",
-	"jeter_main_droite"
+	"lacher_main_droite"
 ]
 
 const DEFAULT_BINDS: Dictionary = {
@@ -34,13 +31,9 @@ const DEFAULT_BINDS: Dictionary = {
 	"attaque_main_gauche":  {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_LEFT,  "dbl": true},
 
 	"interagir":            {"type": "key",   "key": Key.KEY_E},
-	"ramasser":             {"type": "key",   "key": Key.KEY_E},
 
 	"lacher_main_gauche":   {"type": "key",   "key": Key.KEY_F},
-	"lacher_main_droite":   {"type": "key",   "key": Key.KEY_C},
-
-	"jeter_main_gauche":    {"type": "key",   "key": Key.KEY_G},
-	"jeter_main_droite":    {"type": "key",   "key": Key.KEY_V}
+	"lacher_main_droite":   {"type": "key",   "key": Key.KEY_C}
 }
 
 

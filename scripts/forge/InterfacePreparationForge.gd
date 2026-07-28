@@ -6,6 +6,7 @@ class_name InterfacePreparationForge
 @onready var gestionnaire: GestionnaireForge = get_node_or_null(chemin_gestionnaire) as GestionnaireForge
 @onready var interface: Control = $Interface
 @onready var commande: Label = $Interface/Panneau/Marge/Colonne/Commande
+@onready var choix_recette: OptionButton = $Interface/Panneau/Marge/Colonne/ChoixRecette
 @onready var liste_materiaux: VBoxContainer = $Interface/Panneau/Marge/Colonne/ListeMateriaux
 @onready var prochaine_etape: Label = $Interface/Panneau/Marge/Colonne/ProchaineEtape
 @onready var message: Label = $Interface/Panneau/Marge/Colonne/Message
@@ -18,8 +19,10 @@ var inventaire_actuel: GestionnaireInventaire
 
 func _ready() -> void:
 	interface.hide()
+	choix_recette.get_popup().always_on_top = true
 	bouton_preparer.pressed.connect(_preparer)
 	bouton_fermer.pressed.connect(_fermer)
+	choix_recette.item_selected.connect(_selectionner_recette)
 	if gestionnaire != null:
 		gestionnaire.fabrication_changee.connect(_quand_fabrication_changee)
 	else:
@@ -90,6 +93,7 @@ func _rafraichir(effacer_message: bool = true) -> void:
 		prochaine_etape.text = ""
 		bouton_preparer.disabled = true
 		return
+	_actualiser_choix_recettes()
 	var recette: RecetteComposant = gestionnaire.obtenir_recette_commande_active()
 	if recette == null:
 		commande.text = "Aucune commande active."
@@ -103,7 +107,7 @@ func _rafraichir(effacer_message: bool = true) -> void:
 		message.text = " ".join(recette.obtenir_erreurs())
 		bouton_preparer.disabled = true
 		return
-	commande.text = "Composant : %s" % recette.resultat.nom_affiche
+	commande.text = "Commande : %s" % recette.resultat.nom_affiche if gestionnaire.commande_est_active() else "Fabrication libre : %s" % recette.resultat.nom_affiche
 	var inventaire: GestionnaireInventaire = inventaire_actuel
 	for ingredient: IngredientRecette in recette.ingredients:
 		if ingredient != null and ingredient.objet != null:
@@ -140,6 +144,29 @@ func _rafraichir(effacer_message: bool = true) -> void:
 		bouton_preparer.disabled = not chauffe_disponible and not fonte_disponible
 		if message.text == "":
 			message.text = "Fabrication déjà préparée."
+
+func _actualiser_choix_recettes() -> void:
+	choix_recette.clear()
+	var affichage_libre: bool = not gestionnaire.commande_est_active() and gestionnaire.fabrication_active == null
+	choix_recette.visible = affichage_libre
+	if not affichage_libre:
+		return
+	var recettes: Array[RecetteComposant] = gestionnaire.obtenir_recettes_composants_commande_active()
+	for index: int in recettes.size():
+		var recette: RecetteComposant = recettes[index]
+		if recette == null or recette.etapes.is_empty() or recette.etapes[0] == null or recette.etapes[0].type_etape != type_poste_actuel:
+			continue
+		var index_element: int = choix_recette.item_count
+		choix_recette.add_item(recette.nom if recette != null else "Recette invalide")
+		choix_recette.set_item_metadata(index_element, index)
+		if recette == gestionnaire.obtenir_recette_commande_active():
+			choix_recette.select(index_element)
+	choix_recette.disabled = choix_recette.item_count <= 1
+
+func _selectionner_recette(index: int) -> void:
+	if gestionnaire != null:
+		gestionnaire.selectionner_recette_fabrication(int(choix_recette.get_item_metadata(index)))
+		_rafraichir()
 
 func _ajouter_ligne_materiau(ingredient: IngredientRecette, inventaire: GestionnaireInventaire) -> void:
 	var identifiant: StringName = ingredient.objet.item_id

@@ -9,12 +9,15 @@ class_name InterfaceInventaire
 @onready var interface: Control = $Interface
 @onready var grille: GridContainer = $Interface/Panneau/Marge/Colonne/Defilement/Grille
 @onready var etiquette_vide: Label = $Interface/Panneau/Marge/Colonne/InventaireVide
+@onready var etiquette_equipement: Label = $Interface/Panneau/Marge/Colonne/EquipementMainDroite
+@onready var bouton_ranger_arme: Button = $Interface/Panneau/Marge/Colonne/RangerArme
 @onready var bouton_fermer: Button = $Interface/Panneau/Marge/Colonne/Fermer
 
 func _ready() -> void:
 	add_to_group(&"inputs_jeu")
 	interface.visible = false
 	bouton_fermer.pressed.connect(fermer_inventaire)
+	bouton_ranger_arme.pressed.connect(_ranger_arme)
 	if inventaire != null:
 		inventaire.inventaire_change.connect(_rafraichir)
 	_rafraichir()
@@ -37,6 +40,7 @@ func fermer_inventaire() -> void:
 func _rafraichir() -> void:
 	if grille == null:
 		return
+	_actualiser_equipement_main_droite()
 	for enfant: Node in grille.get_children():
 		grille.remove_child(enfant)
 		enfant.queue_free()
@@ -100,6 +104,22 @@ func _equiper_equipement(identifiant_instance: StringName) -> void:
 		return
 	gestionnaire_arme.equiper_equipement_depuis_inventaire(identifiant_instance)
 	_rafraichir()
+
+func _ranger_arme() -> void:
+	if gestionnaire_arme == null:
+		return
+	gestionnaire_arme.ranger_arme_principale_dans_inventaire()
+	_rafraichir()
+
+func _actualiser_equipement_main_droite() -> void:
+	var arme: ArmeBase = gestionnaire_arme.arme_principale if gestionnaire_arme != null else null
+	var arme_forge: bool = arme != null and is_instance_valid(arme) and arme.definition_equipement != null and not arme.donnees_instance_forge.is_empty()
+	etiquette_equipement.visible = arme_forge
+	bouton_ranger_arme.visible = arme_forge
+	if not arme_forge:
+		return
+	var qualite: String = String(arme.donnees_instance_forge.get("qualite", "correcte")).capitalize()
+	etiquette_equipement.text = "Main droite : %s | Qualite : %s" % [arme.definition_equipement.nom_affiche, qualite]
 
 func _ajouter_boutons_ameliorations(colonne: VBoxContainer, donnees: Dictionary, identifiant_instance: StringName) -> void:
 	if inventaire == null:

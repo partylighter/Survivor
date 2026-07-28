@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/forge/InterfacePreparationForge.gd" id="1_interface"]
 
 [node name="InterfacePreparationForge" type="CanvasLayer"]
-layer = 8091
+layer = 500
 script = ExtResource("1_interface")
 
 [node name="Interface" type="Control" parent="."]
@@ -58,6 +58,10 @@ horizontal_alignment = 1
 layout_mode = 2
 text = "Aucune commande active."
 horizontal_alignment = 1
+
+[node name="ChoixRecette" type="OptionButton" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
 
 [node name="EnteteMateriaux" type="Label" parent="Interface/Panneau/Marge/Colonne"]
 layout_mode = 2

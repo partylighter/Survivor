@@ -389,15 +389,15 @@ func _est_equipee(n: Node) -> bool:
 		meta_bool = bool(n.get_meta("equipped"))
 	return n.is_in_group(GROUPE_EQUIPEE) or meta_bool
 
-func _essayer_ramasser() -> void:
+func _essayer_ramasser(main_droite: bool) -> void:
 	if _joueur != null and bool(_joueur.get_meta(&"interaction_forge_active", false)):
 		return
 	if zone == null or not is_instance_valid(zone):
 		return
-
-	if arme_principale != null and (arme_unique or arme_secondaire != null):
+	if main_droite and arme_principale != null:
 		return
-
+	if not main_droite and (arme_unique or arme_secondaire != null):
+		return
 	var ref_pos: Vector2 = global_position
 	if _joueur != null and is_instance_valid(_joueur):
 		ref_pos = _joueur.global_position
@@ -424,13 +424,10 @@ func _essayer_ramasser() -> void:
 		if n is ArmeBase:
 			var arme: ArmeBase = n as ArmeBase
 			arme.scene_source = ps
-			if arme_principale == null:
+			if main_droite:
 				equiper_arme_principale(arme)
-			elif not arme_unique:
-				equiper_arme_secondaire(arme)
 			else:
-				n.queue_free()
-				return
+				equiper_arme_secondaire(arme)
 			cible.queue_free()
 		else:
 			n.queue_free()
@@ -443,12 +440,10 @@ func _essayer_ramasser() -> void:
 		var parent: Node = arme_sol.get_parent()
 		if parent:
 			parent.remove_child(arme_sol)
-		if arme_principale == null:
+		if main_droite:
 			equiper_arme_principale(arme_sol)
-		elif not arme_unique:
-			equiper_arme_secondaire(arme_sol)
 		else:
-			return
+			equiper_arme_secondaire(arme_sol)
 		_set_pickup_enabled(arme_sol, false)
 
 func equiper_arme_principale(a: ArmeBase) -> void:
@@ -491,6 +486,26 @@ func equiper_equipement_depuis_inventaire(identifiant_instance: StringName) -> b
 	equiper_arme_principale(arme)
 	return true
 
+func ranger_arme_principale_dans_inventaire() -> bool:
+	if _joueur == null or _joueur.inventaire == null or arme_principale == null:
+		return false
+	var arme: ArmeBase = arme_principale
+	var definition: LootItemEntry = arme.definition_equipement
+	var donnees_instance: Dictionary = arme.donnees_instance_forge.duplicate(true)
+	var identifiant_instance: StringName = donnees_instance.get("identifiant_instance", &"")
+	if definition == null or String(identifiant_instance) == "" or not _joueur.inventaire.obtenir_equipement_instance(identifiant_instance).is_empty():
+		return false
+	var parent: Node = arme.get_parent()
+	if parent != null:
+		parent.remove_child(arme)
+	arme_principale = null
+	_marquer_equipee(arme, false)
+	arme.queue_free()
+	_joueur.inventaire.ajouter_objet(definition.item_id, definition.nom_affiche, 1, definition.icone, Loot.TypeItem.EQUIPEMENT, donnees_instance)
+	_actualiser_mode_mains_auto()
+	_maj_main_vide_visu_et_process()
+	return not _joueur.inventaire.obtenir_equipement_instance(identifiant_instance).is_empty()
+
 func equiper_arme_secondaire(a: ArmeBase) -> void:
 	if arme_unique or a == null or a == arme_principale:
 		return
@@ -509,7 +524,7 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
 
-func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> void:
+func _liberer_interne(main_droite: bool, lockout_ms: int) -> void:
 	var a: ArmeBase = arme_principale if main_droite else arme_secondaire
 	var s: Node2D = _socket_principale if main_droite else _socket_secondaire
 	if a == null or s == null:
@@ -529,15 +544,6 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 	_marquer_equipee(a, false)
 	_apply_pickup_lockout(a, lockout_ms)
 
-	if mode_jet:
-		var gp: Vector2 = s.global_position
-		var d: Vector2 = get_global_mouse_position() - gp
-		var dir: Vector2 = d.normalized() if d.length() > 0.0001 else Vector2.RIGHT
-		if a.has_method("jeter"):
-			a.call("jeter", dir)
-		elif a.has_method("jeter_vers_souris"):
-			a.call("jeter_vers_souris")
-
 	if a == arme_principale:
 		arme_principale = null
 	else:
@@ -547,10 +553,14 @@ func _liberer_interne(main_droite: bool, mode_jet: bool, lockout_ms: int) -> voi
 	_maj_main_vide_visu_et_process()
 
 func _lacher(main_droite: bool) -> void:
-	_liberer_interne(main_droite, false, 250)
+	_liberer_interne(main_droite, 250)
 
-func _jeter(main_droite: bool) -> void:
-	_liberer_interne(main_droite, true, 250)
+func _utiliser_touche_main(main_droite: bool) -> void:
+	var arme: ArmeBase = arme_principale if main_droite else arme_secondaire
+	if arme == null:
+		_essayer_ramasser(main_droite)
+		return
+	_lacher(main_droite)
 
 func _detach_to_world(a: Node2D, s: Node2D) -> void:
 	var world: Node = _get_world_node()
@@ -576,16 +586,10 @@ func _stopper_drop_si_effets(a: ArmeBase) -> void:
 			at.stop_drop()
 
 func _handle_inputs() -> void:
-	if Input.is_action_just_pressed("ramasser"):
-		_essayer_ramasser()
 	if Input.is_action_just_pressed("lacher_main_droite"):
-		_lacher(true)
+		_utiliser_touche_main(true)
 	if not arme_unique and Input.is_action_just_pressed("lacher_main_gauche"):
-		_lacher(false)
-	if Input.is_action_just_pressed("jeter_main_droite"):
-		_jeter(true)
-	if not arme_unique and Input.is_action_just_pressed("jeter_main_gauche"):
-		_jeter(false)
+		_utiliser_touche_main(false)
 	if not arme_unique and switch_actif and Input.is_action_just_pressed(action_switch_mains):
 		_switch_mains()
 	if not arme_unique and Input.is_action_just_pressed(action_mode_joint):

@@ -277,7 +277,7 @@ objets_temporaires = Array[Dictionary]([{
 "quantite": 8,
 "type_item": 3
 }, {
-"id": &"renfort_fer",
+"id": &"piece_moulee_fer",
 "nom_affiche": "Renfort en fer",
 "quantite": 2,
 "type_item": 4
