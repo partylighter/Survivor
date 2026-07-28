@@ -26,6 +26,7 @@ var effets: ArmeEffets2D
 var upgrades: GestionnaireUpgradesArmeContact = null
 
 func _ready() -> void:
+	super._ready()
 	add_to_group("armes_contact")
 
 	hitbox = get_node_or_null(chemin_hitbox) as HitBoxContact

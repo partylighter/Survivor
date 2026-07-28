@@ -1,0 +1,194 @@
+[gd_scene format=3 uid="uid://oxnxep7d7byd"]
+
+[ext_resource type="Script" uid="uid://dexy7sjxl8gen" path="res://scripts/forge/InterfaceCommandeForge.gd" id="1_interface"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panneau"]
+bg_color = Color(0, 0, 0, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.3)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bouton"]
+bg_color = Color(0, 0, 0, 0.45)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bouton_survole"]
+bg_color = Color(0, 0, 0, 0.65)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bouton_desactive"]
+bg_color = Color(0, 0, 0, 0.2)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[node name="InterfaceCommandeForge" type="CanvasLayer" unique_id=827791529]
+layer = 5000
+script = ExtResource("1_interface")
+
+[node name="Invite" type="Label" parent="." unique_id=190956695]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -86.0
+offset_right = 210.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 22
+text = "E - Consulter les demandes"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Interface" type="Control" parent="." unique_id=572513225]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface" unique_id=668289819]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.78)
+
+[node name="Panneau" type="PanelContainer" parent="Interface" unique_id=706383482]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -390.0
+offset_top = -410.0
+offset_right = 390.0
+offset_bottom = 410.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panneau")
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau" unique_id=444059207]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge" unique_id=605411101]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1915791313]
+z_index = 2
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Lame pour le forgeron"
+horizontal_alignment = 1
+
+[node name="ChoixCommande" type="OptionButton" parent="Interface/Panneau/Marge/Colonne" unique_id=1475880663]
+z_index = 3
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+
+[node name="Objet" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=2108508105]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 21
+autowrap_mode = 2
+text = "Objet demande : Lame en fer x1"
+
+[node name="Materiaux" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1232447336]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+text = "Materiaux :
+- Minerai de fer x2"
+
+[node name="Etapes" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1384215441]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+text = "Etapes : Chauffe -> Martelage"
+
+[node name="Assemblage" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+autowrap_mode = 2
+text = "Assemblage :"
+
+[node name="Difficulte" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1280556234]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 17
+text = "Difficulte : Facile"
+
+[node name="Recompense" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1248056814]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "Recompense : 20"
+
+[node name="Etat" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1360775061]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+autowrap_mode = 2
+text = "Etat : En attente"
+
+[node name="Boutons" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne" unique_id=1617943387]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Accepter" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons" unique_id=658239059]
+custom_minimum_size = Vector2(240, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_bouton_desactive")
+text = "Accepter"
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons" unique_id=929452747]
+custom_minimum_size = Vector2(190, 48)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+text = "Fermer"

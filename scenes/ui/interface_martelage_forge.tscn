@@ -1,0 +1,85 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/InterfaceMartelageForge.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/forge/martelage/ZoneMartelage.gd" id="3_zone"]
+
+[node name="InterfaceMartelageForge" type="CanvasLayer"]
+layer = 8093
+script = ExtResource("1_interface")
+
+[node name="Interface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.92)
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -470.0
+offset_top = -330.0
+offset_right = 470.0
+offset_bottom = 330.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "MARTELAGE"
+horizontal_alignment = 1
+
+[node name="Progression" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Points : 0/5"
+horizontal_alignment = 1
+
+[node name="ZoneMartelage" type="Control" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 420)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+script = ExtResource("3_zone")
+
+[node name="Evaluation" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+text = "Clique lorsque le cercle blanc rejoint le point."
+horizontal_alignment = 1
+
+[node name="Resultat" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="BoutonAction" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Fermer"

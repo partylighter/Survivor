@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RecetteComposant" format=3 uid="uid://cyvic4iorvyln"]
+
+[ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="1_recette"]
+[ext_resource type="Script" uid="uid://dv2q4mhv2lccn" path="res://scripts/forge/donnees/IngredientRecette.gd" id="2_ingredient"]
+[ext_resource type="Script" uid="uid://dldw7mx7ssgh4" path="res://scripts/forge/donnees/EtapeFabrication.gd" id="3_etape"]
+[ext_resource type="Resource" path="res://ressources/items/materiaux/minerai_fer.tres" id="4_minerai"]
+[ext_resource type="Resource" uid="uid://bxht2c2cc7tsf" path="res://ressources/items/composants/lame_fer.tres" id="5_lame"]
+
+[sub_resource type="Resource" id="Etape_chauffe"]
+script = ExtResource("3_etape")
+
+[sub_resource type="Resource" id="Etape_martelage"]
+script = ExtResource("3_etape")
+type_etape = 3
+
+[sub_resource type="Resource" id="Ingredient_minerai"]
+script = ExtResource("2_ingredient")
+objet = ExtResource("4_minerai")
+quantite = 2
+
+[resource]
+script = ExtResource("1_recette")
+identifiant = &"lame_fer"
+nom = "Lame en fer"
+ingredients = Array[ExtResource("2_ingredient")]([SubResource("Ingredient_minerai")])
+etapes = Array[ExtResource("3_etape")]([SubResource("Etape_chauffe"), SubResource("Etape_martelage")])
+resultat = ExtResource("5_lame")

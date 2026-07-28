@@ -23,6 +23,8 @@
 [ext_resource type="Texture2D" uid="uid://cku6fruc3stgx" path="res://assets/player/tete.png" id="21_wucgo"]
 [ext_resource type="Script" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="22_modes"]
 [ext_resource type="Script" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
+[ext_resource type="Script" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="24_inventaire"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -96,6 +98,7 @@ script = ExtResource("1_g2els")
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
+chemin_inventaire = NodePath("GestionnaireInventaire")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
 collision_ennemis_actif = false
@@ -261,8 +264,33 @@ script = ExtResource("9_wwtew")
 chemin_gestionnaire = NodePath("../GestionnaireArme")
 metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
+[node name="GestionnaireInventaire" type="Node" parent="."]
+script = ExtResource("24_inventaire")
+objets_temporaires = Array[Dictionary]([{
+"id": &"minerai_fer",
+"nom_affiche": "Minerai de fer",
+"quantite": 12,
+"type_item": 3
+}, {
+"id": &"bois_brut",
+"nom_affiche": "Bois brut",
+"quantite": 8,
+"type_item": 3
+}, {
+"id": &"renfort_fer",
+"nom_affiche": "Renfort en fer",
+"quantite": 2,
+"type_item": 4
+}, {
+"id": &"epee_fer",
+"nom_affiche": "Épée en fer",
+"quantite": 1,
+"type_item": 5
+}])
+
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1146967959]
 script = ExtResource("10_uxo23")
+chemin_inventaire = NodePath("../GestionnaireInventaire")
 conso_overheal_1_amount = 1.0
 conso_overheal_2_amount = 2.0
 conso_overheal_3_amount = 6.0
@@ -296,6 +324,9 @@ script = ExtResource("11_n7rn1")
 chemin_loot = NodePath("../GestionnaireLoot")
 ui_position = Vector2(16, 580)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
+
+[node name="InterfaceInventaire" parent="." instance=ExtResource("25_interface_inventaire")]
+chemin_inventaire = NodePath("../GestionnaireInventaire")
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=353504141]
 script = ExtResource("13_jxtnq")

@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="LootItemEntry" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="1_materiau"]
+
+[resource]
+script = ExtResource("1_materiau")
+item_id = &"minerai_fer"
+nom_affiche = "Minerai de fer"

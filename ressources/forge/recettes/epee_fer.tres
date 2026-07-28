@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecetteEquipement" format=3 uid="uid://d2fnobptfbxf2"]
+
+[ext_resource type="Script" uid="uid://dm81iihtqqfga" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="1_recette"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="2_item"]
+[ext_resource type="Resource" uid="uid://bxht2c2cc7tsf" path="res://ressources/items/composants/lame_fer.tres" id="3_lame"]
+[ext_resource type="Resource" path="res://ressources/items/composants/piece_moulee_fer.tres" id="4_piece"]
+[ext_resource type="Resource" path="res://ressources/items/equipements/epee_fer.tres" id="5_epee"]
+
+[resource]
+script = ExtResource("1_recette")
+identifiant = &"epee_fer"
+nom = "Epee en fer"
+hauteur_motif = 2
+motif = Array[ExtResource("2_item")]([ExtResource("3_lame"), ExtResource("4_piece")])
+resultat = ExtResource("5_epee")

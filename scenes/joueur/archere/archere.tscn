@@ -32,6 +32,8 @@
 [ext_resource type="Script" uid="uid://dyarrnfqci0fy" path="res://scripts/joueur/GestionnaireOrientationCorps.gd" id="25_l1a4x"]
 [ext_resource type="Script" uid="uid://dfqiib4t51xl8" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="26_modes"]
 [ext_resource type="Script" uid="uid://dfbi1qwwfkb3c" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="27_libre"]
+[ext_resource type="Script" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="28_inventaire"]
+[ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="29_interface_inventaire"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1080,6 +1082,7 @@ script = ExtResource("1_qjs34")
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
 chemin_GestionnaireLoot = NodePath("GestionnaireLoot")
+chemin_inventaire = NodePath("GestionnaireInventaire")
 chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
 chemin_sprite = NodePath("squelette du corps")
@@ -1312,8 +1315,33 @@ script = ExtResource("14_3s74m")
 chemin_gestionnaire = NodePath("../GestionnaireArme")
 metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
+[node name="GestionnaireInventaire" type="Node" parent="."]
+script = ExtResource("28_inventaire")
+objets_temporaires = Array[Dictionary]([{
+"id": &"minerai_fer",
+"nom_affiche": "Minerai de fer",
+"quantite": 12,
+"type_item": 3
+}, {
+"id": &"bois_brut",
+"nom_affiche": "Bois brut",
+"quantite": 8,
+"type_item": 3
+}, {
+"id": &"renfort_fer",
+"nom_affiche": "Renfort en fer",
+"quantite": 2,
+"type_item": 4
+}, {
+"id": &"epee_fer",
+"nom_affiche": "Épée en fer",
+"quantite": 1,
+"type_item": 5
+}])
+
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1363142192]
 script = ExtResource("15_6qcki")
+chemin_inventaire = NodePath("../GestionnaireInventaire")
 conso_overheal_1_amount = 1.0
 conso_overheal_2_amount = 2.0
 conso_overheal_3_amount = 6.0
@@ -1346,6 +1374,9 @@ script = ExtResource("18_urclj")
 chemin_loot = NodePath("../GestionnaireLoot")
 ui_position = Vector2(16, 580)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
+
+[node name="InterfaceInventaire" parent="." instance=ExtResource("29_interface_inventaire")]
+chemin_inventaire = NodePath("../GestionnaireInventaire")
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=781955153]
 script = ExtResource("19_83r8v")

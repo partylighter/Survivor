@@ -390,6 +390,8 @@ func _est_equipee(n: Node) -> bool:
 	return n.is_in_group(GROUPE_EQUIPEE) or meta_bool
 
 func _essayer_ramasser() -> void:
+	if _joueur != null and bool(_joueur.get_meta(&"interaction_forge_active", false)):
+		return
 	if zone == null or not is_instance_valid(zone):
 		return
 
@@ -465,6 +467,29 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_marquer_equipee(a, true)
 	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
+
+func equiper_equipement_depuis_inventaire(identifiant_instance: StringName) -> bool:
+	if _joueur == null or _joueur.inventaire == null or arme_principale != null:
+		return false
+	var equipement: Dictionary = _joueur.inventaire.obtenir_equipement_instance(identifiant_instance)
+	if equipement.is_empty():
+		return false
+	var donnees_instance: Dictionary = equipement.get("donnees", {})
+	var chemin_definition: String = String(donnees_instance.get("chemin_definition", ""))
+	if chemin_definition.is_empty():
+		return false
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
+	if definition == null or definition.scene_arme_equipee == null:
+		return false
+	var arme: ArmeBase = definition.scene_arme_equipee.instantiate() as ArmeBase
+	if arme == null:
+		return false
+	if _joueur.inventaire.retirer_equipement_instance(identifiant_instance).is_empty():
+		arme.queue_free()
+		return false
+	arme.appliquer_instance_forge(definition, donnees_instance)
+	equiper_arme_principale(arme)
+	return true
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
 	if arme_unique or a == null or a == arme_principale:

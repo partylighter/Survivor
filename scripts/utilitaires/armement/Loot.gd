@@ -6,7 +6,7 @@ const ACT_VERS_AIMANT: int = 1
 const ACT_SUPPRIMER: int = 2
 
 enum TypeLoot { C, B, A, S }
-enum TypeItem { CONSO, UPGRADE, ARME }
+enum TypeItem { CONSO, UPGRADE, ARME, MATERIAU, COMPOSANT, EQUIPEMENT }
 
 @export_enum("C","B","A","S") var type_loot: int = TypeLoot.C
 @export_enum("CONSO","UPGRADE","ARME") var type_item: int = TypeItem.CONSO

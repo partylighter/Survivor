@@ -14,13 +14,46 @@ var _pickup: Area2D
 var est_au_sol: bool = true
 var porteur: Node2D = null
 var _pret: bool = true
+var degats_base_sans_forge: int = 0
+var cooldown_base_sans_forge: float = 0.0
+var recul_base_sans_forge: float = 0.0
+var definition_equipement: LootItemEntry
+var donnees_instance_forge: Dictionary = {}
 
 
 
 func _ready() -> void:
+	if degats_base_sans_forge <= 0:
+		degats_base_sans_forge = degats
+	if cooldown_base_sans_forge <= 0.0:
+		cooldown_base_sans_forge = cooldown_s
+	if recul_base_sans_forge <= 0.0:
+		recul_base_sans_forge = recul_force
 	if chemin_pickup != NodePath():
 		_pickup = get_node(chemin_pickup) as Area2D
 	_maj_etat_pickup()
+
+func appliquer_instance_forge(definition: LootItemEntry, donnees_instance: Dictionary) -> void:
+	definition_equipement = definition
+	donnees_instance_forge = donnees_instance.duplicate(true)
+	if degats_base_sans_forge <= 0:
+		degats_base_sans_forge = degats
+	if cooldown_base_sans_forge <= 0.0:
+		cooldown_base_sans_forge = cooldown_s
+	if recul_base_sans_forge <= 0.0:
+		recul_base_sans_forge = recul_force
+	degats = degats_base_sans_forge
+	cooldown_s = cooldown_base_sans_forge
+	recul_force = recul_base_sans_forge
+	if definition == null or definition.profil_qualite_forge == null:
+		return
+	var qualite: StringName = donnees_instance.get("qualite", QualiteForge.QUALITE_CORRECTE)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_DEGATS):
+		degats = QualiteForge.appliquer_sur_entier(degats_base_sans_forge, qualite)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_RECUL):
+		recul_force = QualiteForge.appliquer_sur_reel(recul_base_sans_forge, qualite)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_VITESSE_ATTAQUE):
+		cooldown_s = QualiteForge.appliquer_vitesse_sur_reel(cooldown_base_sans_forge, qualite)
 
 func _maj_etat_pickup() -> void:
 	set_pickup_enabled(est_au_sol)

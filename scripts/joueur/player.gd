@@ -5,6 +5,7 @@ class_name Player
 @export_node_path("StatsJoueur") var chemin_stats: NodePath
 @export_node_path("Sante") var chemin_sante: NodePath
 @export_node_path("GestionnaireLoot") var chemin_GestionnaireLoot: NodePath
+@export_node_path("GestionnaireInventaire") var chemin_inventaire: NodePath
 @export_node_path("GestionDeplacementJoueur") var chemin_GestionDeplacementJoueur: NodePath
 @export_node_path("Soif") var chemin_soif: NodePath
 @export_node_path("Node2D") var chemin_sprite: NodePath = NodePath("Sprite2D")
@@ -23,7 +24,7 @@ class_name Player
 @export var collision_push_mult: float = 0.8
 
 @export_group("Barriere mathematique")
-@export var barriere_actif: bool = true
+@export var barriere_actif: bool = false
 @export var limite_haut: float = -600.0
 @export var limite_bas: float = 600.0
 @export var rayon_barriere_joueur: float = 12.0
@@ -52,6 +53,7 @@ var dash_autorise: bool = true
 @onready var stats: StatsJoueur = get_node_or_null(chemin_stats) as StatsJoueur
 @onready var sante: Sante = get_node_or_null(chemin_sante) as Sante
 @onready var gestionnaire_loot: GestionnaireLoot = get_node_or_null(chemin_GestionnaireLoot) as GestionnaireLoot
+@onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
 @onready var gestion_deplacement: GestionDeplacementJoueur = get_node_or_null(chemin_GestionDeplacementJoueur) as GestionDeplacementJoueur
 @onready var soif: Soif = get_node_or_null(chemin_soif) as Soif
 @onready var sprite_joueur: Node2D = _trouver_sprite_joueur()
@@ -254,6 +256,8 @@ func _resoudre_barriere_verticale(pos: Vector2) -> Vector2:
 	return pos
 
 func _resoudre_barriere_horizontale(pos: Vector2) -> Vector2:
+	if not barriere_actif:
+		return pos
 	pos.x = clamp(
 		pos.x,
 		_limite_gauche + rayon_barriere_joueur,

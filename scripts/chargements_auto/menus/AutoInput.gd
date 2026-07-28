@@ -13,6 +13,7 @@ const ACTIONS_JEU: Array[StringName] = [
 	"pause",
 	"attaque_main_droite",
 	"attaque_main_gauche",
+	"interagir",
 	"ramasser",
 	"lacher_main_gauche",
 	"lacher_main_droite",
@@ -32,6 +33,7 @@ const DEFAULT_BINDS: Dictionary = {
 	"attaque_main_droite":  {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_RIGHT, "dbl": false},
 	"attaque_main_gauche":  {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_LEFT,  "dbl": true},
 
+	"interagir":            {"type": "key",   "key": Key.KEY_E},
 	"ramasser":             {"type": "key",   "key": Key.KEY_E},
 
 	"lacher_main_gauche":   {"type": "key",   "key": Key.KEY_F},
@@ -172,6 +174,8 @@ func charger() -> void:
 	for nom_action: StringName in ACTIONS_JEU:
 		if not InputMap.has_action(nom_action):
 			InputMap.add_action(nom_action)
+		if not cfg.has_section_key("bind", nom_action):
+			continue
 
 		var infos: Variant = cfg.get_value("bind", nom_action, null)
 		if infos == null:

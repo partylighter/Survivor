@@ -1,0 +1,102 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/InterfaceChauffeForge.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/forge/chauffe/JaugeChauffe.gd" id="3_jauge"]
+
+[node name="InterfaceChauffeForge" type="CanvasLayer"]
+layer = 8092
+script = ExtResource("1_interface")
+
+[node name="Interface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.92)
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -260.0
+offset_right = 430.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 24
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "CHAUFFE"
+horizontal_alignment = 1
+
+[node name="Temperature" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Temperature : 0"
+horizontal_alignment = 1
+
+[node name="Jauge" type="Control" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+script = ExtResource("3_jauge")
+
+[node name="Niveau" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Niveau 1/2"
+horizontal_alignment = 1
+
+[node name="TempsRestant" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Temps restant : 7.0 s"
+horizontal_alignment = 1
+
+[node name="Progression" type="ProgressBar" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+show_percentage = false
+
+[node name="Indication" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+text = "Clique rapidement pour monter, puis ralentis pour stabiliser dans la zone verte."
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="Resultat" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="BoutonAction" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Fermer"

@@ -13,6 +13,7 @@ const ID_CARB_2: StringName = &"carburant_2"
 const ID_CARB_3: StringName = &"carburant_3"
 
 @export var debug_loot: bool = false
+@export_node_path("GestionnaireInventaire") var chemin_inventaire: NodePath
 
 @export_group("Conso: Heal simple")
 @export_range(0, 200, 5) var conso_heal_amount: int = 100
@@ -72,6 +73,7 @@ var joueur: Player = null
 var stats: StatsJoueur = null
 var sante: Sante = null
 var soif_ref: Soif = null
+var inventaire: GestionnaireInventaire = null
 
 var stats_loot: Dictionary = {}
 var xp_upgrade: Dictionary = {}
@@ -97,6 +99,9 @@ var _refs_ok: bool = false
 func _ready() -> void:
 	add_to_group("gestionnaire_loot")
 	joueur = get_parent() as Player
+	inventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
+	if inventaire != null and not inventaire.inventaire_change.is_connected(_on_inventaire_change):
+		inventaire.inventaire_change.connect(_on_inventaire_change)
 	_ensure_refs()
 	# _process désactivé par défaut — activé uniquement quand un effet est actif
 	set_process(false)
@@ -140,9 +145,13 @@ func _ensure_refs() -> void:
 	_refs_ok = (joueur != null and stats != null and sante != null)
 
 func get_quantite_loot(id_item: StringName) -> int:
+	if inventaire != null:
+		return inventaire.obtenir_quantite(id_item)
 	return int(stats_loot.get(id_item, 0))
 
 func consommer_loot(id_item: StringName, quantite: int) -> int:
+	if inventaire != null:
+		return inventaire.retirer_objet(id_item, quantite)
 	var q_demande: int = maxi(quantite, 0)
 	if q_demande <= 0:
 		return 0
@@ -170,20 +179,35 @@ func get_nom_affiche_pour_id(id_any) -> String:
 	var sid := StringName(String(id_any))
 	if _nom_par_id.has(sid):
 		return String(_nom_par_id[sid])
+	if inventaire != null:
+		var objet: Dictionary = inventaire.obtenir_objet(sid)
+		if not objet.is_empty():
+			return String(objet.get("nom", ""))
 	return ""
 
 func _d_loot(msg: String) -> void:
 	if debug_loot:
 		print(msg)
 
-func _enregistrer_loot(identifiant: StringName, quantite: int) -> void:
+func _enregistrer_loot(identifiant: StringName, quantite: int, payload: Dictionary = {}) -> void:
 	if String(identifiant) == "":
+		return
+	if inventaire != null:
+		var donnees: Dictionary = payload.duplicate(true)
+		donnees["id"] = identifiant
+		donnees["quantite"] = quantite
+		inventaire.ajouter_depuis_payload(donnees)
 		return
 	stats_loot[identifiant] = int(stats_loot.get(identifiant, 0)) + quantite
 	emit_signal("loot_change")
 
 func get_stats_loot() -> Dictionary:
+	if inventaire != null:
+		return inventaire.obtenir_quantites()
 	return stats_loot.duplicate()
+
+func _on_inventaire_change() -> void:
+	emit_signal("loot_change")
 
 func get_carburant_stocke() -> float:
 	return carburant_stocke
@@ -208,16 +232,18 @@ func on_loot_collecte(payload: Dictionary) -> void:
 
 	match type_item:
 		Loot.TypeItem.CONSO:
-			_enregistrer_loot(identifiant, quantite)
+			_enregistrer_loot(identifiant, quantite, payload)
 			_appliquer_consommable(identifiant, quantite)
 		Loot.TypeItem.UPGRADE:
 			if not _appliquer_amelioration(identifiant, quantite):
-				_enregistrer_loot(identifiant, quantite)
+				_enregistrer_loot(identifiant, quantite, payload)
 		Loot.TypeItem.ARME:
 			if scene_contenu:
 				_generer_arme_au_sol(scene_contenu)
 			else:
 				_debloquer_arme_par_id(identifiant, rarete, quantite)
+		Loot.TypeItem.MATERIAU, Loot.TypeItem.COMPOSANT, Loot.TypeItem.EQUIPEMENT:
+			_enregistrer_loot(identifiant, quantite, payload)
 
 func _generer_arme_au_sol(scene_src: PackedScene) -> void:
 	var arme := scene_src.instantiate() as ArmeBase

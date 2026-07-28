@@ -1,0 +1,83 @@
+[gd_scene format=3 uid="uid://b2gkwphybhcur"]
+
+[ext_resource type="Script" uid="uid://derj73hds8i7x" path="res://scripts/inventaire/InterfaceInventaire.gd" id="1_interface"]
+
+[node name="InterfaceInventaire" type="CanvasLayer" unique_id=878911250]
+layer = 220
+script = ExtResource("1_interface")
+
+[node name="Interface" type="Control" parent="." unique_id=2009786060]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface" unique_id=461135920]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.9)
+
+[node name="Panneau" type="PanelContainer" parent="Interface" unique_id=229481504]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -596.0
+offset_top = -345.0
+offset_right = 551.0
+offset_bottom = 314.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau" unique_id=942372809]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge" unique_id=393678448]
+layout_mode = 2
+offset_transform_enabled = true
+theme_override_constants/separation = 10
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1453143710]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "INVENTAIRE"
+horizontal_alignment = 1
+
+[node name="Aide" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=2005144173]
+layout_mode = 2
+text = "I pour ouvrir ou fermer"
+horizontal_alignment = 1
+
+[node name="InventaireVide" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=918877063]
+layout_mode = 2
+text = "L'inventaire est vide."
+horizontal_alignment = 1
+
+[node name="Defilement" type="ScrollContainer" parent="Interface/Panneau/Marge/Colonne" unique_id=652561910]
+custom_minimum_size = Vector2(0, 430)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Grille" type="GridContainer" parent="Interface/Panneau/Marge/Colonne/Defilement" unique_id=126611387]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 4
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne" unique_id=1289517801]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+text = "Fermer"

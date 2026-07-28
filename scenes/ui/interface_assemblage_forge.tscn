@@ -1,0 +1,288 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/InterfaceAssemblageForge.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/forge/assemblage/TableForge.gd" id="2_table"]
+[ext_resource type="Script" path="res://scripts/forge/assemblage/GestionnaireAssemblage.gd" id="3_assemblage"]
+[ext_resource type="Script" path="res://scripts/forge/assemblage/GestionnaireRecettesAssemblage.gd" id="4_recettes"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/epee_fer.tres" id="5_epee"]
+[ext_resource type="Script" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="6_recette"]
+[ext_resource type="Script" path="res://scripts/forge/assemblage/SlotAssemblageForge.gd" id="7_slot"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/arc_en_bois.tres" id="8_arc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panneau"]
+bg_color = Color(0, 0, 0, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.35)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot"]
+bg_color = Color(0, 0, 0, 0.35)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.25)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot_survole"]
+bg_color = Color(0, 0, 0, 0.55)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bouton"]
+bg_color = Color(0, 0, 0, 0.45)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.35)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_bouton_survole"]
+bg_color = Color(0, 0, 0, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 1, 1, 0.8)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="InterfaceAssemblageForge" type="CanvasLayer"]
+layer = 8096
+script = ExtResource("1_interface")
+
+[node name="TableForge" type="Node" parent="."]
+script = ExtResource("2_table")
+
+[node name="GestionnaireAssemblage" type="Node" parent="."]
+script = ExtResource("3_assemblage")
+
+[node name="GestionnaireRecettesAssemblage" type="Node" parent="."]
+script = ExtResource("4_recettes")
+recettes_disponibles = Array[ExtResource("6_recette")]([ExtResource("5_epee"), ExtResource("8_arc")])
+
+[node name="Interface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.92)
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -340.0
+offset_right = 500.0
+offset_bottom = 340.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panneau")
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 22
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 22
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "TABLE DE FINITION"
+horizontal_alignment = 1
+
+[node name="Recette" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Recette :"
+horizontal_alignment = 1
+
+[node name="Qualite" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Qualite finale :"
+horizontal_alignment = 1
+
+[node name="Detection" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Recette non reconnue."
+horizontal_alignment = 1
+
+[node name="Corps" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 370)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Inventaire" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/Corps"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+
+[node name="ListeInventaire" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/Corps/Inventaire"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Table" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/Corps"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Slots" type="GridContainer" parent="Interface/Panneau/Marge/Colonne/Corps/Table"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 3
+
+[node name="Slot0" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 1\nVide"
+script = ExtResource("7_slot")
+
+[node name="Slot1" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 2\nVide"
+script = ExtResource("7_slot")
+index_slot = 1
+
+[node name="Slot2" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 3\nVide"
+script = ExtResource("7_slot")
+index_slot = 2
+
+[node name="Slot3" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 4\nVide"
+script = ExtResource("7_slot")
+index_slot = 3
+
+[node name="Slot4" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 5\nVide"
+script = ExtResource("7_slot")
+index_slot = 4
+
+[node name="Slot5" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 6\nVide"
+script = ExtResource("7_slot")
+index_slot = 5
+
+[node name="Slot6" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 7\nVide"
+script = ExtResource("7_slot")
+index_slot = 6
+
+[node name="Slot7" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 8\nVide"
+script = ExtResource("7_slot")
+index_slot = 7
+
+[node name="Slot8" type="Button" parent="Interface/Panneau/Marge/Colonne/Corps/Table/Slots"]
+custom_minimum_size = Vector2(190, 105)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+theme_override_styles/hover = SubResource("StyleBoxFlat_slot_survole")
+text = "Emplacement 9\nVide"
+script = ExtResource("7_slot")
+index_slot = 8
+
+[node name="Message" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Resultat" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Retirer" type="Button" parent="Interface/Panneau/Marge/Colonne/Actions"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+text = "Retirer"
+
+[node name="Assembler" type="Button" parent="Interface/Panneau/Marge/Colonne/Actions"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+text = "Fabriquer"
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne/Actions"]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+text = "Fermer"
+
+[node name="Recommencer" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_bouton")
+theme_override_styles/hover = SubResource("StyleBoxFlat_bouton_survole")
+text = "Vider la grille"

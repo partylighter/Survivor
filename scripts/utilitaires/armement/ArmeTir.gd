@@ -41,6 +41,7 @@ var _base_cooldown_s: float = 0.0
 var _base_degats: int = 0
 var _base_nb_balles: int = 0
 var _base_dispersion_deg: float = 0.0
+var _statistiques_de_base_capturees: bool = false
 var _upgrades_signal_connecte: bool = false
 var _effets_authoring_signature: Array = []
 var _visuel_runtime: ProjectileVisualRuntime = ProjectileVisualRuntime.new()
@@ -52,10 +53,7 @@ var _famille_impact_resolue: StringName = &""
 func _ready() -> void:
 	super._ready()
 	add_to_group("armes_tir")
-	_base_cooldown_s = cooldown_s
-	_base_degats = degats
-	_base_nb_balles = nb_balles
-	_base_dispersion_deg = dispersion_deg
+	_capturer_statistiques_de_base()
 
 	if chemin_effets != NodePath():
 		effets = get_node(chemin_effets) as ArmeEffets2D
@@ -103,6 +101,34 @@ func _ready() -> void:
 	_rebuild_effets_runtime()
 	if effets != null:
 		_effets_authoring_signature = effets.get_authoring_signature()
+
+func appliquer_instance_forge(definition: LootItemEntry, donnees_instance: Dictionary) -> void:
+	super.appliquer_instance_forge(definition, donnees_instance)
+	_capturer_statistiques_de_base()
+	nb_balles = _base_nb_balles
+	dispersion_deg = _base_dispersion_deg
+	if definition == null or definition.profil_qualite_forge == null:
+		return
+	var qualite: StringName = donnees_instance.get("qualite", QualiteForge.QUALITE_CORRECTE)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_CADENCE):
+		cooldown_s = QualiteForge.appliquer_vitesse_sur_reel(_base_cooldown_s, qualite)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_DISPERSION):
+		dispersion_deg = QualiteForge.appliquer_vitesse_sur_reel(_base_dispersion_deg, qualite)
+	if definition.profil_qualite_forge.influence_statistique(ProfilQualiteForge.STAT_NOMBRE_PROJECTILES):
+		nb_balles = maxi(QualiteForge.appliquer_sur_entier(_base_nb_balles, qualite), 1)
+	for identifiant_amelioration: StringName in GestionnaireAmeliorationsEquipement.obtenir_ameliorations_installees(donnees_instance):
+		var amelioration: AmeliorationForge = definition.obtenir_amelioration_forge(identifiant_amelioration)
+		if amelioration != null:
+			cooldown_s = cooldown_s / amelioration.multiplicateur_cadence
+
+func _capturer_statistiques_de_base() -> void:
+	if _statistiques_de_base_capturees:
+		return
+	_base_cooldown_s = cooldown_s
+	_base_degats = degats
+	_base_nb_balles = nb_balles
+	_base_dispersion_deg = dispersion_deg
+	_statistiques_de_base_capturees = true
 
 func _trouver_upgrades() -> void:
 	if upgrades == null or not is_instance_valid(upgrades):

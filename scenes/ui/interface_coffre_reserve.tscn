@@ -1,0 +1,99 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/InterfaceCoffreReserve.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/forge/reserve/GestionnaireCoffreReserve.gd" id="2_coffre"]
+[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="3_objet"]
+[ext_resource type="Resource" path="res://ressources/items/materiaux/minerai_fer.tres" id="4_minerai"]
+[ext_resource type="Resource" path="res://ressources/items/materiaux/bois_brut.tres" id="5_bois"]
+
+[node name="InterfaceCoffreReserve" type="CanvasLayer"]
+layer = 8091
+script = ExtResource("1_interface")
+
+[node name="GestionnaireCoffreReserve" type="Node" parent="."]
+script = ExtResource("2_coffre")
+objets_disponibles = Array[ExtResource("3_objet")]([ExtResource("4_minerai"), ExtResource("5_bois")])
+quantites_initiales = PackedInt32Array(50, 50)
+
+[node name="Interface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.9)
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -440.0
+offset_top = -240.0
+offset_right = 440.0
+offset_bottom = 240.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "RÉSERVE DE MATÉRIAUX"
+horizontal_alignment = 1
+
+[node name="Commande" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Aucune commande active."
+horizontal_alignment = 1
+
+[node name="EnteteStock" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Contenu du coffre"
+
+[node name="ListeStock" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Message" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Boutons" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Recuperer" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons"]
+custom_minimum_size = Vector2(300, 44)
+layout_mode = 2
+text = "Récupérer les ingrédients manquants"
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons"]
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+text = "Fermer"

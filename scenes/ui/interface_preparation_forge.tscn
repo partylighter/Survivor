@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/InterfacePreparationForge.gd" id="1_interface"]
+
+[node name="InterfacePreparationForge" type="CanvasLayer"]
+layer = 8091
+script = ExtResource("1_interface")
+
+[node name="Interface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fond" type="ColorRect" parent="Interface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.015, 0.015, 0.02, 0.9)
+
+[node name="Panneau" type="PanelContainer" parent="Interface"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -430.0
+offset_top = -260.0
+offset_right = 430.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "PRÉPARATION DES MATÉRIAUX"
+horizontal_alignment = 1
+
+[node name="Commande" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Aucune commande active."
+horizontal_alignment = 1
+
+[node name="EnteteMateriaux" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Matériaux sélectionnés"
+
+[node name="ListeMateriaux" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ProchaineEtape" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Première étape :"
+
+[node name="Message" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Boutons" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Preparer" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+text = "Préparer"
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne/Boutons"]
+custom_minimum_size = Vector2(180, 44)
+layout_mode = 2
+text = "Fermer"

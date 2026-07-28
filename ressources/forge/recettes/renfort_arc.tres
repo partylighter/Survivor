@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="RecetteComposant" format=3 uid="uid://pt1xbmxvknsh"]
+
+[ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="1_recette"]
+[ext_resource type="Script" uid="uid://dv2q4mhv2lccn" path="res://scripts/forge/donnees/IngredientRecette.gd" id="2_ingredient"]
+[ext_resource type="Script" uid="uid://dldw7mx7ssgh4" path="res://scripts/forge/donnees/EtapeFabrication.gd" id="3_etape"]
+[ext_resource type="Resource" path="res://ressources/items/materiaux/minerai_fer.tres" id="4_minerai"]
+[ext_resource type="Resource" path="res://ressources/items/composants/renfort_arc.tres" id="5_renfort"]
+
+[sub_resource type="Resource" id="Etape_fonte"]
+script = ExtResource("3_etape")
+type_etape = 1
+
+[sub_resource type="Resource" id="Etape_moulage"]
+script = ExtResource("3_etape")
+type_etape = 2
+
+[sub_resource type="Resource" id="Ingredient_minerai"]
+script = ExtResource("2_ingredient")
+objet = ExtResource("4_minerai")
+
+[resource]
+script = ExtResource("1_recette")
+identifiant = &"renfort_arc"
+nom = "Renfort d'arc"
+ingredients = Array[ExtResource("2_ingredient")]([SubResource("Ingredient_minerai")])
+etapes = Array[ExtResource("3_etape")]([SubResource("Etape_fonte"), SubResource("Etape_moulage")])
+resultat = ExtResource("5_renfort")

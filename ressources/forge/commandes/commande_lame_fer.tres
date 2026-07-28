@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="DonneesCommandeForge" format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/commandes/DonneesCommandeForge.gd" id="1_commande"]
+[ext_resource type="Resource" path="res://ressources/items/composants/lame_fer.tres" id="2_lame"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/lame_fer.tres" id="3_recette"]
+
+[resource]
+script = ExtResource("1_commande")
+identifiant = &"commande_lame_fer"
+nom = "Lame pour le forgeron"
+objet_demande = ExtResource("2_lame")
+recette = ExtResource("3_recette")
+quantite_demandee = 1
+difficulte = 0
+prix = 20
