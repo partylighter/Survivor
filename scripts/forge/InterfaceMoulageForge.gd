@@ -11,26 +11,31 @@ const RESULTAT_ECHEC: StringName = &"echec"
 @onready var interface: Control = $Interface
 @onready var zone_moulage: ZoneMoulage = $Interface/Panneau/Marge/Colonne/ZoneMoulage
 @onready var progression: ProgressBar = $Interface/Panneau/Marge/Colonne/Progression
+@onready var matiere_fondue: ProgressBar = $Interface/Panneau/Marge/Colonne/MatiereFondue
 @onready var point_actuel: Label = $Interface/Panneau/Marge/Colonne/PointActuel
 @onready var indication: Label = $Interface/Panneau/Marge/Colonne/Indication
 @onready var resultat: Label = $Interface/Panneau/Marge/Colonne/Resultat
 @onready var bouton_action: Button = $Interface/Panneau/Marge/Colonne/BoutonAction
+@onready var bouton_valider: Button = $Interface/Panneau/Marge/Colonne/BoutonValider
+@onready var bouton_quitter: Button = $Interface/Panneau/Marge/Colonne/BoutonQuitter
 
 var en_cours: bool = false
 var dernier_resultat: StringName = &""
-var mode_souris_avant: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
-var souris_capturee: bool = false
+var mode_souris_precedent: Input.MouseMode = Input.MOUSE_MODE_VISIBLE
+var mode_souris_modifie: bool = false
 
 func _ready() -> void:
 	interface.hide()
 	set_process(false)
+	bouton_action.pressed.connect(_action_resultat)
+	bouton_valider.pressed.connect(_valider_resultat)
+	bouton_quitter.pressed.connect(_quitter)
 	if gestionnaire_moulage == null:
 		push_error("GestionnaireMoulage introuvable. Verifie chemin_gestionnaire_moulage dans InterfaceMoulageForge.")
 		return
 	zone_moulage.definir_gestionnaire(gestionnaire_moulage)
 	gestionnaire_moulage.moulage_actualise.connect(_rafraichir)
 	gestionnaire_moulage.moulage_termine.connect(_quand_moulage_termine)
-	bouton_action.pressed.connect(_action_resultat)
 	if gestionnaire_forge == null:
 		push_error("GestionnaireForge introuvable. Verifie chemin_gestionnaire_forge dans InterfaceMoulageForge.")
 
@@ -43,11 +48,11 @@ func _input(event: InputEvent) -> void:
 	var mouvement: InputEventMouseMotion = event as InputEventMouseMotion
 	if zone_moulage.size.x <= 0.0 or zone_moulage.size.y <= 0.0:
 		return
-	gestionnaire_moulage.deplacer_curseur(Vector2(mouvement.relative.x / zone_moulage.size.x, mouvement.relative.y / zone_moulage.size.y))
+	gestionnaire_moulage.definir_position_curseur((mouvement.position - zone_moulage.get_global_rect().position) / zone_moulage.size)
 	get_viewport().set_input_as_handled()
 
 func ouvrir() -> bool:
-	if gestionnaire_forge == null or gestionnaire_forge.fabrication_active == null:
+	if gestionnaire_forge == null or gestionnaire_moulage == null or gestionnaire_forge.fabrication_active == null:
 		return false
 	if not gestionnaire_moulage.demarrer(gestionnaire_forge.fabrication_active.difficulte):
 		return false
@@ -55,56 +60,73 @@ func ouvrir() -> bool:
 	en_cours = true
 	dernier_resultat = &""
 	resultat.text = ""
-	indication.text = "Maintiens le curseur dans le point orange et resiste aux tremblements."
+	indication.text = "Maintiens le curseur dans le point actif."
 	bouton_action.hide()
-	mode_souris_avant = Input.mouse_mode
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	souris_capturee = true
+	bouton_valider.hide()
+	if not mode_souris_modifie:
+		mode_souris_precedent = Input.mouse_mode
+		mode_souris_modifie = true
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	call_deferred("_initialiser_position_souris")
 	set_process(true)
 	_rafraichir()
 	return true
 
+func _initialiser_position_souris() -> void:
+	if not en_cours or zone_moulage.size.x <= 0.0 or zone_moulage.size.y <= 0.0:
+		return
+	gestionnaire_moulage.definir_position_curseur((get_viewport().get_mouse_position() - zone_moulage.get_global_rect().position) / zone_moulage.size)
+
 func fermer() -> void:
 	en_cours = false
-	gestionnaire_moulage.actif = false
+	if gestionnaire_moulage != null:
+		gestionnaire_moulage.actif = false
 	set_process(false)
-	if souris_capturee:
-		Input.mouse_mode = mode_souris_avant
-		souris_capturee = false
 	interface.hide()
+	_restaurer_mode_souris()
+
+func _restaurer_mode_souris() -> void:
+	if not mode_souris_modifie:
+		return
+	Input.mouse_mode = mode_souris_precedent
+	mode_souris_modifie = false
 
 func _rafraichir() -> void:
 	progression.value = gestionnaire_moulage.obtenir_progression() * 100.0
+	matiere_fondue.value = gestionnaire_moulage.obtenir_matiere_fondue()
 	point_actuel.text = "Point : %d/%d" % [mini(gestionnaire_moulage.index_point_actuel + 1, gestionnaire_moulage.nombre_points_actuel), gestionnaire_moulage.nombre_points_actuel]
-	zone_moulage.queue_redraw()
+	zone_moulage.rafraichir()
 
 func _quand_moulage_termine(nouveau_resultat: StringName) -> void:
 	en_cours = false
 	dernier_resultat = nouveau_resultat
 	set_process(false)
-	if souris_capturee:
-		Input.mouse_mode = mode_souris_avant
-		souris_capturee = false
-	if gestionnaire_forge != null:
-		gestionnaire_forge.terminer_moulage(nouveau_resultat)
 	if nouveau_resultat == RESULTAT_ECHEC:
-		resultat.text = "Resultat : ECHEC"
+		resultat.text = "Resultat : ECHEC | Score : %d%%" % roundi(gestionnaire_moulage.obtenir_score_final() * 100.0)
 		indication.text = "Tu peux recommencer sans perdre les materiaux."
 		bouton_action.text = "Recommencer"
+		bouton_valider.hide()
 	else:
-		resultat.text = "Resultat : %s" % String(nouveau_resultat).to_upper()
-		indication.text = "Composant ajoute a l'inventaire."
-		bouton_action.text = "Fermer"
+		resultat.text = "Resultat : %s | Score : %d%%" % [String(nouveau_resultat).to_upper(), roundi(gestionnaire_moulage.obtenir_score_final() * 100.0)]
+		indication.text = "Resultat pret. Valide-le ou essaie de faire mieux."
+		bouton_action.text = "Reessayer"
+		bouton_valider.show()
 	bouton_action.show()
 
 func _action_resultat() -> void:
-	if dernier_resultat == RESULTAT_ECHEC:
-		ouvrir()
-	elif gestionnaire_forge != null:
-		gestionnaire_forge.fermer_interfaces_forge()
+	ouvrir()
+
+func _valider_resultat() -> void:
+	if gestionnaire_forge == null or dernier_resultat == &"" or dernier_resultat == RESULTAT_ECHEC:
+		return
+	gestionnaire_forge.terminer_moulage(dernier_resultat)
+	gestionnaire_forge.fermer_interfaces_forge()
+
+func _quitter() -> void:
+	if gestionnaire_forge != null:
+		gestionnaire_forge.abandonner_fabrication_active()
 	else:
 		fermer()
 
 func _exit_tree() -> void:
-	if souris_capturee:
-		Input.mouse_mode = mode_souris_avant
+	_restaurer_mode_souris()

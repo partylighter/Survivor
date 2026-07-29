@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="DonneesCommandeForge" format=3 uid="uid://min7fdx1dlhf"]
 
 [ext_resource type="Script" uid="uid://bjcdwsr5ceqyg" path="res://scripts/forge/commandes/DonneesCommandeForge.gd" id="1_commande"]
-[ext_resource type="Resource" path="res://ressources/items/equipements/epee_fer.tres" id="2_epee"]
+[ext_resource type="Resource" uid="uid://xvvt6ieyicn7" path="res://ressources/items/equipements/epee_fer.tres" id="2_epee"]
 [ext_resource type="Resource" uid="uid://cyvic4iorvyln" path="res://ressources/forge/recettes/lame_fer.tres" id="3_lame"]
 [ext_resource type="Resource" uid="uid://4cpqpb7nrvxe" path="res://ressources/forge/recettes/piece_moulee_fer.tres" id="4_piece"]
 [ext_resource type="Resource" uid="uid://d2fnobptfbxf2" path="res://ressources/forge/recettes/epee_fer.tres" id="5_assemblage"]
@@ -14,4 +14,5 @@ nom = "Epee en fer pour le client"
 objet_demande = ExtResource("2_epee")
 recettes_composants = Array[ExtResource("6_recette_composant")]([ExtResource("3_lame"), ExtResource("4_piece")])
 recette_assemblage = ExtResource("5_assemblage")
+difficulte = 2
 prix = 50

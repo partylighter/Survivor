@@ -32,9 +32,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -430.0
-offset_top = -260.0
+offset_top = -380.0
 offset_right = 430.0
-offset_bottom = 260.0
+offset_bottom = 380.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -76,10 +76,20 @@ layout_mode = 2
 text = "Temps restant : 7.0 s"
 horizontal_alignment = 1
 
+[node name="Maintien" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Maintien : 0.0 / 0.0 s"
+horizontal_alignment = 1
+
 [node name="Progression" type="ProgressBar" parent="Interface/Panneau/Marge/Colonne"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 show_percentage = false
+
+[node name="EtatTemperature" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Etat : Hors zone"
+horizontal_alignment = 1
 
 [node name="Indication" type="Label" parent="Interface/Panneau/Marge/Colonne"]
 custom_minimum_size = Vector2(0, 52)
@@ -100,3 +110,15 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Fermer"
+
+[node name="BoutonValider" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Valider"
+
+[node name="BoutonQuitter" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Quitter"

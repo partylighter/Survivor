@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="DonneesCommandeForge" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="DonneesCommandeForge" format=3 uid="uid://bomkrvbq0be15"]
 
-[ext_resource type="Script" path="res://scripts/forge/commandes/DonneesCommandeForge.gd" id="1_commande"]
+[ext_resource type="Script" uid="uid://bjcdwsr5ceqyg" path="res://scripts/forge/commandes/DonneesCommandeForge.gd" id="1_commande"]
 [ext_resource type="Resource" path="res://ressources/items/equipements/arc_en_bois.tres" id="2_arc"]
-[ext_resource type="Resource" path="res://ressources/forge/recettes/branche_arc_bois.tres" id="3_branche"]
-[ext_resource type="Resource" path="res://ressources/forge/recettes/piece_moulee_fer.tres" id="4_renfort"]
+[ext_resource type="Resource" uid="uid://cwl3dp8n7wf08" path="res://ressources/forge/recettes/branche_arc_bois.tres" id="3_branche"]
+[ext_resource type="Resource" uid="uid://4cpqpb7nrvxe" path="res://ressources/forge/recettes/piece_moulee_fer.tres" id="4_renfort"]
 [ext_resource type="Resource" path="res://ressources/forge/recettes/arc_en_bois.tres" id="5_assemblage"]
-[ext_resource type="Script" path="res://scripts/forge/donnees/RecetteComposant.gd" id="6_recette_composant"]
+[ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="6_recette_composant"]
 
 [resource]
 script = ExtResource("1_commande")
@@ -14,5 +14,5 @@ nom = "Arc en bois pour le client"
 objet_demande = ExtResource("2_arc")
 recettes_composants = Array[ExtResource("6_recette_composant")]([ExtResource("3_branche"), ExtResource("4_renfort")])
 recette_assemblage = ExtResource("5_assemblage")
-difficulte = 1
+difficulte = 2
 prix = 60

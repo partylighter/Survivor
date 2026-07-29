@@ -1092,6 +1092,7 @@ limite_bas = 1200.0
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1940575337]
 unique_name_in_owner = true
+visible = false
 offset_left = 69.0
 offset_top = -104.0
 offset_right = 199.0
@@ -1105,6 +1106,7 @@ page = 100.0
 
 [node name="HScrollBarPV" type="HScrollBar" parent="." unique_id=1350295114]
 unique_name_in_owner = true
+visible = false
 offset_left = -61.0
 offset_top = -104.0
 offset_right = 69.0
@@ -1117,6 +1119,7 @@ theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_fab7w")
 page = 100.0
 
 [node name="HScrollBarSoif" type="HScrollBar" parent="." unique_id=1334387232]
+visible = false
 offset_left = -61.0
 offset_top = -139.0
 offset_right = 201.0

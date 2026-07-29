@@ -19,7 +19,7 @@
 [ext_resource type="Script" uid="uid://dkrpatl4map41" path="res://scripts/forge/fonte/GestionnaireFonte.gd" id="18_gestionnaire_fonte"]
 [ext_resource type="Script" uid="uid://dslxitu3lclfq" path="res://scripts/forge/martelage/GestionnaireMartelage.gd" id="19_gestionnaire_martelage"]
 [ext_resource type="Script" uid="uid://dw5l3h8uxkiff" path="res://scripts/forge/moulage/GestionnaireMoulage.gd" id="20_gestionnaire_moulage"]
-[ext_resource type="Resource" path="res://ressources/forge/commandes/commande_arc_en_bois.tres" id="21_commande_arc"]
+[ext_resource type="Resource" uid="uid://bomkrvbq0be15" path="res://ressources/forge/commandes/commande_arc_en_bois.tres" id="21_commande_arc"]
 [ext_resource type="Resource" uid="uid://pt1xbmxvknsh" path="res://ressources/forge/recettes/renfort_arc.tres" id="23_recette_renfort_arc"]
 [ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="24_recette_composant"]
 [ext_resource type="Resource" uid="uid://cwl3dp8n7wf08" path="res://ressources/forge/recettes/branche_arc_bois.tres" id="25_recette_branche_arc"]
@@ -297,7 +297,7 @@ tile_set = SubResource("TileSet_eiucn")
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("2_j7u3n")]
 z_index = 1
-position = Vector2(-1191, -555)
+position = Vector2(-1365, -861)
 scale = Vector2(0.64, 0.64)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=340274008]
@@ -466,9 +466,9 @@ recettes_composants_libres = Array[ExtResource("24_recette_composant")]([ExtReso
 
 [node name="chauffe" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1949019182]
 script = ExtResource("17_gestionnaire_chauffe")
-niveaux_facile = PackedFloat32Array(32, 60, 15, 80, 70, 50)
-niveaux_normal = PackedFloat32Array(28, 52, 72)
-niveaux_difficile = PackedFloat32Array(24, 44, 64, 84)
+niveaux_facile = PackedFloat32Array(32, 60, 15, 80, 70, 50, 20)
+niveaux_normal = PackedFloat32Array(90, 60, 40, 80, 70, 50, 90, 20, 10)
+niveaux_difficile = PackedFloat32Array(24, 44, 64, 84, 10, 50, 70, 10)
 
 [node name="fonte" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=818256642]
 script = ExtResource("18_gestionnaire_fonte")
@@ -476,15 +476,20 @@ niveaux_facile = PackedFloat32Array(10, 30, 50, 30, 70)
 
 [node name="martelage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=611486871]
 script = ExtResource("19_gestionnaire_martelage")
+nombre_points_normal = 50
+delai_apparition_minimum_normal = 0.2
+delai_apparition_maximum_normal = 0.5
+duree_vie_minimum_normale = 1.8
+duree_vie_maximum_normale = 2.1
+delai_frappe_minimum_normal = 0.0
+delai_frappe_maximum_normal = 0.0
 
 [node name="moulage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1984598946]
 script = ExtResource("20_gestionnaire_moulage")
-nombre_points_facile = 8
-nombre_points_normal = 10
-nombre_points_difficile = 12
-puissance_tremblement_facile = 0.018
-puissance_tremblement_normale = 0.028
-puissance_tremblement_difficile = 0.04
+nombre_points_normal = 16
+rayon_point_normal = 0.03
+rayon_point_difficile = 0.02
+position_reapparition_droite = 100.0
 
 [node name="chauffe" type="Node2D" parent="zone de forge" unique_id=2051139579]
 

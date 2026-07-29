@@ -34,8 +34,8 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @export var commande_disponible: DonneesCommandeForge
 @export var commandes_disponibles: Array[DonneesCommandeForge] = []
 @export var recettes_composants_libres: Array[RecetteComposant] = []
-@export var difficulte_fabrication_libre: DonneesCommandeForge.Difficulte = DonneesCommandeForge.Difficulte.NORMALE
 @export var action_interagir: StringName = &"interagir"
+@export var action_fermer_interface: StringName = &"fermer_interface"
 
 @onready var zone_chauffe: Area2D = get_node_or_null(chemin_zone_chauffe) as Area2D
 @onready var zone_demandes: Area2D = get_node_or_null(chemin_zone_demandes) as Area2D
@@ -113,6 +113,13 @@ func _exit_tree() -> void:
 		joueur_zone_reserve.set_meta(META_INTERACTION_FORGE, false)
 
 func _input(event: InputEvent) -> void:
+	if event.is_action_pressed(action_fermer_interface) and _une_interface_est_ouverte():
+		if _un_mini_jeu_est_ouvert():
+			abandonner_fabrication_active()
+		else:
+			fermer_interfaces_forge()
+		get_viewport().set_input_as_handled()
+		return
 	if not event.is_action_pressed(action_interagir):
 		return
 	if _une_interface_est_ouverte():
@@ -330,7 +337,7 @@ func preparer_fabrication(selection: Dictionary) -> bool:
 			derniere_erreur_preparation = "Materiaux insuffisants."
 			return false
 	var nouvelle_fabrication := FabricationActive.new()
-	var difficulte: DonneesCommandeForge.Difficulte = commande_active.donnees.difficulte if commande_active != null else difficulte_fabrication_libre
+	var difficulte: DonneesCommandeForge.Difficulte = commande_active.donnees.difficulte if commande_active != null else recette.difficulte
 	if not nouvelle_fabrication.initialiser(recette, difficulte, selection):
 		derniere_erreur_preparation = "Impossible de preparer la fabrication."
 		return false
@@ -489,6 +496,12 @@ func fermer_interfaces_forge() -> void:
 	poste_preparation_actuel = -1
 	_fermer_interfaces_sauf(null)
 	_actualiser_contexte()
+
+func abandonner_fabrication_active() -> void:
+	fabrication_active = null
+	recette_composant_selectionnee = null
+	fermer_interfaces_forge()
+	fabrication_changee.emit()
 
 func _quand_joueur_entre_zone_chauffe(corps: Node) -> void:
 	var joueur := _obtenir_joueur(corps)
@@ -735,6 +748,14 @@ func _une_interface_est_ouverte() -> bool:
 		or interface_moulage != null and interface_moulage.interface.visible
 		or interface_assemblage != null and interface_assemblage.interface.visible
 		or interface_coffre_reserve != null and interface_coffre_reserve.interface.visible
+	)
+
+func _un_mini_jeu_est_ouvert() -> bool:
+	return (
+		interface_chauffe != null and interface_chauffe.interface.visible
+		or interface_martelage != null and interface_martelage.interface.visible
+		or interface_fonte != null and interface_fonte.interface.visible
+		or interface_moulage != null and interface_moulage.interface.visible
 	)
 
 func _fermer_interfaces_sauf(interface_conservee: CanvasLayer) -> void:

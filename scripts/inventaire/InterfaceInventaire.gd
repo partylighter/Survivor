@@ -3,6 +3,7 @@ class_name InterfaceInventaire
 
 @export_node_path("GestionnaireInventaire") var chemin_inventaire: NodePath
 @export var touche_ouverture: Key = KEY_I
+@export var action_fermer_interface: StringName = &"fermer_interface"
 
 @onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
 @onready var gestionnaire_arme: GestionnaireArme = get_node_or_null("../GestionnaireArme") as GestionnaireArme
@@ -23,6 +24,10 @@ func _ready() -> void:
 	_rafraichir()
 
 func _input(event: InputEvent) -> void:
+	if interface.visible and event.is_action_pressed(action_fermer_interface):
+		fermer_inventaire()
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == touche_ouverture:
 		if interface.visible:
 			fermer_inventaire()

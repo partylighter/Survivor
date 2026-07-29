@@ -32,9 +32,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -470.0
-offset_top = -330.0
+offset_top = -470.0
 offset_right = 470.0
-offset_bottom = 330.0
+offset_bottom = 470.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -60,16 +60,62 @@ layout_mode = 2
 text = "Points : 0/5"
 horizontal_alignment = 1
 
-[node name="ZoneMartelage" type="Control" parent="Interface/Panneau/Marge/Colonne"]
-custom_minimum_size = Vector2(0, 420)
+[node name="Rythme" type="Label" parent="Interface/Panneau/Marge/Colonne"]
 layout_mode = 2
+text = "Rythme : frappe disponible"
+horizontal_alignment = 1
+
+[node name="DelaiFrappe" type="ProgressBar" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="ZoneMartelage" type="Control" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 380)
+layout_mode = 2
+clip_contents = true
 mouse_default_cursor_shape = 2
 script = ExtResource("3_zone")
+
+[node name="FondZone" type="ColorRect" parent="Interface/Panneau/Marge/Colonne/ZoneMartelage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.035, 0.035, 0.04, 1)
+
+[node name="CadreZone" type="Panel" parent="Interface/Panneau/Marge/Colonne/ZoneMartelage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ConteneurPoints" type="Control" parent="Interface/Panneau/Marge/Colonne/ZoneMartelage"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="Evaluation" type="Label" parent="Interface/Panneau/Marge/Colonne"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 text = "Clique lorsque le cercle blanc rejoint le point."
+horizontal_alignment = 1
+
+[node name="Score" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+text = "Score : 0%"
 horizontal_alignment = 1
 
 [node name="Resultat" type="Label" parent="Interface/Panneau/Marge/Colonne"]
@@ -83,3 +129,15 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Fermer"
+
+[node name="BoutonValider" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Valider"
+
+[node name="BoutonQuitter" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Quitter"

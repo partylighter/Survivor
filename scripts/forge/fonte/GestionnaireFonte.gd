@@ -21,6 +21,10 @@ var niveaux_defaut_difficile: PackedFloat32Array = PackedFloat32Array([30.0, 50.
 @export var tolerance_facile: float = 7.0
 @export var tolerance_normale: float = 5.0
 @export var tolerance_difficile: float = 3.5
+@export var multiplicateur_zone_correcte: float = 2.0
+@export var multiplicateur_zone_tolerance: float = 3.5
+@export var multiplicateur_progression_zone_correcte: float = 0.7
+@export var multiplicateur_progression_zone_tolerance: float = 0.4
 @export var duree_maintien_facile: float = 1.2
 @export var duree_maintien_normale: float = 1.45
 @export var duree_maintien_difficile: float = 1.7
@@ -40,6 +44,8 @@ var temperature_actuelle: float = 0.0
 var niveaux_a_maintenir: PackedFloat32Array = PackedFloat32Array()
 var index_niveau: int = 0
 var tolerance_actuelle: float = 0.0
+var largeur_zone_correcte: float = 0.0
+var largeur_zone_tolerance: float = 0.0
 var duree_maintien_actuelle: float = 0.0
 var temps_maximum_actuel: float = 0.0
 var amplitude_instabilite: float = 0.0
@@ -87,6 +93,12 @@ func mettre_a_jour(delta: float, clic_maintenu: bool) -> void:
 		temps_total_dans_zone += delta
 		if ecart <= tolerance_actuelle * 0.35:
 			temps_total_parfait += delta
+	elif ecart <= largeur_zone_correcte:
+		temps_maintien += delta * multiplicateur_progression_zone_correcte
+		temps_total_dans_zone += delta * multiplicateur_progression_zone_correcte
+	elif ecart <= largeur_zone_tolerance:
+		temps_maintien += delta * multiplicateur_progression_zone_tolerance
+		temps_total_dans_zone += delta * multiplicateur_progression_zone_tolerance
 	else:
 		temps_maintien = 0.0
 	if temps_maintien >= duree_maintien_actuelle:
@@ -105,6 +117,18 @@ func obtenir_limite_basse() -> float:
 
 func obtenir_limite_haute() -> float:
 	return minf(100.0, obtenir_niveau_cible() + tolerance_actuelle)
+
+func obtenir_limite_correcte_basse() -> float:
+	return maxf(0.0, obtenir_niveau_cible() - largeur_zone_correcte)
+
+func obtenir_limite_correcte_haute() -> float:
+	return minf(100.0, obtenir_niveau_cible() + largeur_zone_correcte)
+
+func obtenir_limite_tolerance_basse() -> float:
+	return maxf(0.0, obtenir_niveau_cible() - largeur_zone_tolerance)
+
+func obtenir_limite_tolerance_haute() -> float:
+	return minf(100.0, obtenir_niveau_cible() + largeur_zone_tolerance)
 
 func obtenir_progression_maintien() -> float:
 	if duree_maintien_actuelle <= 0.0:
@@ -154,6 +178,8 @@ func _configurer_difficulte(difficulte: DonneesCommandeForge.Difficulte) -> void
 			duree_maintien_actuelle = duree_maintien_facile
 			temps_maximum_actuel = temps_maximum_facile
 			amplitude_instabilite = instabilite_facile
+	largeur_zone_correcte = tolerance_actuelle * multiplicateur_zone_correcte
+	largeur_zone_tolerance = tolerance_actuelle * multiplicateur_zone_tolerance
 
 func _obtenir_niveaux(niveaux: PackedFloat32Array, niveaux_defaut: PackedFloat32Array) -> PackedFloat32Array:
 	return niveaux.duplicate() if not niveaux.is_empty() else niveaux_defaut.duplicate()

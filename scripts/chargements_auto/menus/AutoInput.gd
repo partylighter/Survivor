@@ -11,6 +11,7 @@ const ACTIONS_JEU: Array[StringName] = [
 	"bas",
 	"attaque",
 	"pause",
+	"fermer_interface",
 	"attaque_main_droite",
 	"attaque_main_gauche",
 	"interagir",
@@ -26,6 +27,7 @@ const DEFAULT_BINDS: Dictionary = {
 
 	"attaque":              {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_LEFT,  "dbl": false},
 	"pause":                {"type": "key",   "key": Key.KEY_ESCAPE},
+	"fermer_interface":     {"type": "key",   "key": Key.KEY_ESCAPE},
 
 	"attaque_main_droite":  {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_RIGHT, "dbl": false},
 	"attaque_main_gauche":  {"type": "mouse", "btn": MouseButton.MOUSE_BUTTON_LEFT,  "dbl": true},

@@ -32,9 +32,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -440.0
-offset_top = -310.0
+offset_top = -375.0
 offset_right = 440.0
-offset_bottom = 310.0
+offset_bottom = 375.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -109,3 +109,15 @@ custom_minimum_size = Vector2(220, 44)
 layout_mode = 2
 size_flags_horizontal = 4
 text = "Fermer"
+
+[node name="BoutonValider" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Valider"
+
+[node name="BoutonQuitter" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Quitter"

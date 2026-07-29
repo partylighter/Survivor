@@ -3,6 +3,7 @@ class_name RecetteComposant
 
 @export var identifiant: StringName = &""
 @export var nom: String = ""
+@export var difficulte: DonneesCommandeForge.Difficulte = DonneesCommandeForge.Difficulte.NORMALE
 @export var ingredients: Array[IngredientRecette] = []
 @export var etapes: Array[EtapeFabrication] = []
 @export var resultat: LootItemEntry
