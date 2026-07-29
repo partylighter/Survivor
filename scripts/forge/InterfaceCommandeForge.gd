@@ -253,8 +253,6 @@ func _actualiser_invite() -> void:
 		invite.text = "E - Commencer le moulage" if gestionnaire != null and gestionnaire.moulage_est_disponible() else ""
 	elif contexte_actuel == GestionnaireForge.CONTEXTE_ASSEMBLAGE:
 		invite.text = "E - Commencer l'assemblage" if gestionnaire != null and gestionnaire.assemblage_est_disponible() else ""
-	elif contexte_actuel == GestionnaireForge.CONTEXTE_RESERVE:
-		invite.text = "E - Ouvrir le coffre de la réserve"
 	elif contexte_actuel == GestionnaireForge.CONTEXTE_CHAUFFE:
 		if gestionnaire != null and gestionnaire.chauffe_est_disponible():
 			invite.text = "E - Commencer la chauffe" if gestionnaire.fabrication_active != null else "E - Préparer la chauffe"

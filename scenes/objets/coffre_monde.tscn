@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://cwxgoqt3xg4nj"]
+
+[ext_resource type="Script" uid="uid://dcqw6r168md8i" path="res://scripts/coffres/CoffreMonde.gd" id="1_coffre"]
+[ext_resource type="Script" uid="uid://dejsboyxp0e1v" path="res://scripts/coffres/GestionnaireCoffre.gd" id="2_gestionnaire"]
+[ext_resource type="Script" uid="uid://c6iq8bwwqa368" path="res://scripts/coffres/ContenuInitialCoffre.gd" id="3_vnege"]
+[ext_resource type="Resource" uid="uid://xvvt6ieyicn7" path="res://ressources/items/equipements/epee_fer.tres" id="4_uf0kj"]
+[ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="5_uf0kj"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_coffre"]
+bg_color = Color(0.05, 0.05, 0.055, 0.9)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.7, 0.7, 0.72, 1)
+
+[sub_resource type="Resource" id="Resource_2b4rd"]
+script = ExtResource("3_vnege")
+objet = ExtResource("4_uf0kj")
+type_item = 2
+type_loot = 3
+metadata/_custom_type_script = "uid://c6iq8bwwqa368"
+
+[sub_resource type="Resource" id="Resource_upn53"]
+script = ExtResource("3_vnege")
+objet = ExtResource("5_uf0kj")
+type_item = 2
+metadata/_custom_type_script = "uid://c6iq8bwwqa368"
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
+size = Vector2(500, 223)
+
+[node name="CoffreMonde" type="Node2D" unique_id=1442808756]
+script = ExtResource("1_coffre")
+
+[node name="Visuel" type="Panel" parent="." unique_id=265432251]
+offset_left = -70.0
+offset_top = -38.0
+offset_right = 70.0
+offset_bottom = 38.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_coffre")
+
+[node name="Nom" type="Label" parent="Visuel" unique_id=479557522]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "COFFRE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GestionnaireCoffre" type="Node" parent="." unique_id=1829550866]
+script = ExtResource("2_gestionnaire")
+contenu_initial = Array[ExtResource("3_vnege")]([SubResource("Resource_2b4rd"), SubResource("Resource_upn53")])
+
+[node name="ZoneInteraction" type="Area2D" parent="." unique_id=129302775]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneInteraction" unique_id=842961394]
+shape = SubResource("RectangleShape2D_zone")

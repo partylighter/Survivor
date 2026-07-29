@@ -12,7 +12,6 @@ const CONTEXTE_MARTELAGE: StringName = &"martelage"
 const CONTEXTE_FONTE: StringName = &"fonte"
 const CONTEXTE_MOULAGE: StringName = &"moulage"
 const CONTEXTE_ASSEMBLAGE: StringName = &"assemblage"
-const CONTEXTE_RESERVE: StringName = &"reserve"
 const RESULTAT_ECHEC_MOULAGE: StringName = &"echec"
 const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 
@@ -22,7 +21,6 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @export_node_path("Area2D") var chemin_zone_fonte: NodePath
 @export_node_path("Area2D") var chemin_zone_moulage: NodePath
 @export_node_path("Area2D") var chemin_zone_assemblage: NodePath
-@export_node_path("Area2D") var chemin_zone_reserve: NodePath
 @export_node_path("InterfaceCommandeForge") var chemin_interface_commande: NodePath
 @export_node_path("InterfacePreparationForge") var chemin_interface_preparation: NodePath
 @export_node_path("InterfaceChauffeForge") var chemin_interface_chauffe: NodePath
@@ -30,7 +28,6 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @export_node_path("InterfaceFonteForge") var chemin_interface_fonte: NodePath
 @export_node_path("InterfaceMoulageForge") var chemin_interface_moulage: NodePath
 @export_node_path("InterfaceAssemblageForge") var chemin_interface_assemblage: NodePath
-@export_node_path("InterfaceCoffreReserve") var chemin_interface_coffre_reserve: NodePath
 @export var commande_disponible: DonneesCommandeForge
 @export var commandes_disponibles: Array[DonneesCommandeForge] = []
 @export var recettes_composants_libres: Array[RecetteComposant] = []
@@ -43,7 +40,6 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @onready var zone_fonte: Area2D = get_node_or_null(chemin_zone_fonte) as Area2D
 @onready var zone_moulage: Area2D = get_node_or_null(chemin_zone_moulage) as Area2D
 @onready var zone_assemblage: Area2D = get_node_or_null(chemin_zone_assemblage) as Area2D
-@onready var zone_reserve: Area2D = get_node_or_null(chemin_zone_reserve) as Area2D
 @onready var interface_commande: InterfaceCommandeForge = get_node_or_null(chemin_interface_commande) as InterfaceCommandeForge
 @onready var interface_preparation: InterfacePreparationForge = get_node_or_null(chemin_interface_preparation) as InterfacePreparationForge
 @onready var interface_chauffe: InterfaceChauffeForge = get_node_or_null(chemin_interface_chauffe) as InterfaceChauffeForge
@@ -51,7 +47,6 @@ const META_INTERACTION_FORGE: StringName = &"interaction_forge_active"
 @onready var interface_fonte: InterfaceFonteForge = get_node_or_null(chemin_interface_fonte) as InterfaceFonteForge
 @onready var interface_moulage: InterfaceMoulageForge = get_node_or_null(chemin_interface_moulage) as InterfaceMoulageForge
 @onready var interface_assemblage: InterfaceAssemblageForge = get_node_or_null(chemin_interface_assemblage) as InterfaceAssemblageForge
-@onready var interface_coffre_reserve: InterfaceCoffreReserve = get_node_or_null(chemin_interface_coffre_reserve) as InterfaceCoffreReserve
 
 var commande_active: CommandeForgeActive
 var fabrication_active: FabricationActive
@@ -62,7 +57,6 @@ var joueur_zone_martelage: Player
 var joueur_zone_fonte: Player
 var joueur_zone_moulage: Player
 var joueur_zone_assemblage: Player
-var joueur_zone_reserve: Player
 var preparation_active: bool = false
 var poste_preparation_actuel: int = -1
 var derniere_erreur_preparation: String = ""
@@ -91,9 +85,6 @@ func _ready() -> void:
 	if zone_assemblage != null:
 		zone_assemblage.body_entered.connect(_quand_joueur_entre_zone_assemblage)
 		zone_assemblage.body_exited.connect(_quand_joueur_sort_zone_assemblage)
-	if zone_reserve != null:
-		zone_reserve.body_entered.connect(_quand_joueur_entre_zone_reserve)
-		zone_reserve.body_exited.connect(_quand_joueur_sort_zone_reserve)
 
 func _exit_tree() -> void:
 	_fermer_interfaces_sauf(null)
@@ -109,8 +100,6 @@ func _exit_tree() -> void:
 		joueur_zone_moulage.set_meta(META_INTERACTION_FORGE, false)
 	if joueur_zone_assemblage != null and is_instance_valid(joueur_zone_assemblage):
 		joueur_zone_assemblage.set_meta(META_INTERACTION_FORGE, false)
-	if joueur_zone_reserve != null and is_instance_valid(joueur_zone_reserve):
-		joueur_zone_reserve.set_meta(META_INTERACTION_FORGE, false)
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(action_fermer_interface) and _une_interface_est_ouverte():
@@ -146,12 +135,6 @@ func _input(event: InputEvent) -> void:
 	elif joueur_zone_assemblage != null:
 		if not demarrer_assemblage():
 			return
-	elif joueur_zone_reserve != null:
-		if interface_coffre_reserve == null:
-			push_error("InterfaceCoffreReserve introuvable. Verifie chemin_interface_coffre_reserve.")
-			return
-		_fermer_interfaces_sauf(interface_coffre_reserve)
-		interface_coffre_reserve.ouvrir()
 	elif joueur_zone_chauffe != null:
 		if fabrication_active == null:
 			if not _ouvrir_preparation(EtapeFabrication.TypeEtape.CHAUFFE):
@@ -293,9 +276,6 @@ func obtenir_inventaire_joueur_preparation() -> GestionnaireInventaire:
 	elif poste_preparation_actuel == EtapeFabrication.TypeEtape.FONTE:
 		joueur = joueur_zone_fonte
 	return _obtenir_inventaire_joueur(joueur)
-
-func obtenir_inventaire_joueur_reserve() -> GestionnaireInventaire:
-	return _obtenir_inventaire_joueur(joueur_zone_reserve)
 
 func obtenir_inventaire_joueur_demandes() -> GestionnaireInventaire:
 	return _obtenir_inventaire_joueur(joueur_zone_demandes)
@@ -621,24 +601,6 @@ func _quand_joueur_sort_zone_assemblage(corps: Node) -> void:
 	_actualiser_blocage_ramassage(joueur)
 	_actualiser_contexte()
 
-func _quand_joueur_entre_zone_reserve(corps: Node) -> void:
-	var joueur := _obtenir_joueur(corps)
-	if joueur == null:
-		return
-	joueur_zone_reserve = joueur
-	_actualiser_blocage_ramassage(joueur)
-	_actualiser_contexte()
-
-func _quand_joueur_sort_zone_reserve(corps: Node) -> void:
-	if corps != joueur_zone_reserve:
-		return
-	var joueur := joueur_zone_reserve
-	joueur_zone_reserve = null
-	if interface_coffre_reserve != null:
-		interface_coffre_reserve.fermer()
-	_actualiser_blocage_ramassage(joueur)
-	_actualiser_contexte()
-
 func _obtenir_joueur(corps: Node) -> Player:
 	if corps is Player and corps.is_in_group(&"joueur_principal"):
 		return corps as Player
@@ -654,7 +616,7 @@ func _obtenir_inventaire_joueur(joueur: Player) -> GestionnaireInventaire:
 func _actualiser_blocage_ramassage(joueur: Player) -> void:
 	if joueur == null or not is_instance_valid(joueur):
 		return
-	var interaction_active: bool = joueur == joueur_zone_chauffe or joueur == joueur_zone_demandes or joueur == joueur_zone_martelage or joueur == joueur_zone_fonte or joueur == joueur_zone_moulage or joueur == joueur_zone_assemblage or joueur == joueur_zone_reserve
+	var interaction_active: bool = joueur == joueur_zone_chauffe or joueur == joueur_zone_demandes or joueur == joueur_zone_martelage or joueur == joueur_zone_fonte or joueur == joueur_zone_moulage or joueur == joueur_zone_assemblage
 	joueur.set_meta(META_INTERACTION_FORGE, interaction_active)
 
 func _actualiser_contexte() -> void:
@@ -668,8 +630,6 @@ func _actualiser_contexte() -> void:
 		contexte_change.emit(CONTEXTE_MOULAGE)
 	elif joueur_zone_assemblage != null:
 		contexte_change.emit(CONTEXTE_ASSEMBLAGE)
-	elif joueur_zone_reserve != null:
-		contexte_change.emit(CONTEXTE_RESERVE)
 	elif joueur_zone_chauffe != null:
 		contexte_change.emit(CONTEXTE_CHAUFFE)
 	else:
@@ -713,7 +673,7 @@ func _trouver_recette_composant_a_fabriquer(type_etape: int = -1) -> RecetteComp
 	return null
 
 func _obtenir_inventaire_forge() -> GestionnaireInventaire:
-	var joueurs: Array[Player] = [joueur_zone_chauffe, joueur_zone_demandes, joueur_zone_martelage, joueur_zone_fonte, joueur_zone_moulage, joueur_zone_assemblage, joueur_zone_reserve]
+	var joueurs: Array[Player] = [joueur_zone_chauffe, joueur_zone_demandes, joueur_zone_martelage, joueur_zone_fonte, joueur_zone_moulage, joueur_zone_assemblage]
 	for joueur: Player in joueurs:
 		var inventaire: GestionnaireInventaire = _obtenir_inventaire_joueur(joueur)
 		if inventaire != null:
@@ -747,7 +707,6 @@ func _une_interface_est_ouverte() -> bool:
 		or interface_fonte != null and interface_fonte.interface.visible
 		or interface_moulage != null and interface_moulage.interface.visible
 		or interface_assemblage != null and interface_assemblage.interface.visible
-		or interface_coffre_reserve != null and interface_coffre_reserve.interface.visible
 	)
 
 func _un_mini_jeu_est_ouvert() -> bool:
@@ -773,8 +732,6 @@ func _fermer_interfaces_sauf(interface_conservee: CanvasLayer) -> void:
 		interface_moulage.fermer()
 	if interface_assemblage != null and interface_assemblage != interface_conservee:
 		interface_assemblage.fermer()
-	if interface_coffre_reserve != null and interface_coffre_reserve != interface_conservee:
-		interface_coffre_reserve.fermer()
 
 func _verifier_configuration() -> void:
 	_verifier_zone(zone_chauffe, "chemin_zone_chauffe")
@@ -783,8 +740,7 @@ func _verifier_configuration() -> void:
 	_verifier_zone(zone_fonte, "chemin_zone_fonte")
 	_verifier_zone(zone_moulage, "chemin_zone_moulage")
 	_verifier_zone(zone_assemblage, "chemin_zone_assemblage")
-	_verifier_zone(zone_reserve, "chemin_zone_reserve")
-	if interface_commande == null or interface_preparation == null or interface_chauffe == null or interface_martelage == null or interface_fonte == null or interface_moulage == null or interface_assemblage == null or interface_coffre_reserve == null:
+	if interface_commande == null or interface_preparation == null or interface_chauffe == null or interface_martelage == null or interface_fonte == null or interface_moulage == null or interface_assemblage == null:
 		push_error("Une ou plusieurs interfaces de forge sont introuvables. Verifie les chemins exportes du GestionnaireForge.")
 	if not InputMap.has_action(action_interagir):
 		push_error("L'action d'entree '%s' utilisee par la forge n'existe pas." % String(action_interagir))

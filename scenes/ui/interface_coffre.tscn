@@ -1,0 +1,138 @@
+[gd_scene format=3 uid="uid://b64ycikxk3l17"]
+
+[ext_resource type="Script" uid="uid://gw6x3pipxe4c" path="res://scripts/coffres/InterfaceCoffre.gd" id="1_interface"]
+[ext_resource type="PackedScene" path="res://scenes/ui/emplacement_coffre.tscn" id="2_emplacement"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fond"]
+bg_color = Color(0.015686275, 0.015686275, 0.019607844, 0.36078432)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.7, 0.7, 0.72, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="InterfaceCoffre" type="CanvasLayer" unique_id=1782526605]
+layer = 8091
+script = ExtResource("1_interface")
+
+[node name="Interface" type="Control" parent="." unique_id=1959984575]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FondNoir" type="ColorRect" parent="Interface" unique_id=335557164]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0.078431375)
+
+[node name="Fond" type="PanelContainer" parent="Interface" unique_id=129527067]
+custom_minimum_size = Vector2(1040, 700)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -520.0
+offset_top = -350.0
+offset_right = 520.0
+offset_bottom = 350.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fond")
+
+[node name="Marge" type="MarginContainer" parent="Interface/Fond" unique_id=1230452212]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Fond/Marge" unique_id=1856154962]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Titre" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=301766381]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "COFFRE"
+horizontal_alignment = 1
+
+[node name="TitreCoffre" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=2087835060]
+layout_mode = 2
+text = "Contenu du coffre"
+
+[node name="DefilementCoffre" type="ScrollContainer" parent="Interface/Fond/Marge/Colonne" unique_id=1351856389]
+custom_minimum_size = Vector2(0, 350)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="GrilleCoffre" type="GridContainer" parent="Interface/Fond/Marge/Colonne/DefilementCoffre" unique_id=1540902707]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 5
+columns = 9
+
+[node name="TitreInventaire" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=2053659111]
+layout_mode = 2
+text = "Inventaire du joueur"
+
+[node name="DefilementInventaire" type="ScrollContainer" parent="Interface/Fond/Marge/Colonne" unique_id=1387776920]
+custom_minimum_size = Vector2(0, 145)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="GrilleInventaire" type="GridContainer" parent="Interface/Fond/Marge/Colonne/DefilementInventaire" unique_id=1621330714]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 5
+theme_override_constants/v_separation = 5
+columns = 9
+
+[node name="InventaireVide" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=796552698]
+layout_mode = 2
+text = "Inventaire vide"
+horizontal_alignment = 1
+
+[node name="DepotInventaire" parent="Interface/Fond/Marge/Colonne" unique_id=103933020 instance=ExtResource("2_emplacement")]
+custom_minimum_size = Vector2(250, 58)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="Message" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=16241647]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Aide" type="Label" parent="Interface/Fond/Marge/Colonne" unique_id=2009401206]
+layout_mode = 2
+text = "Glisser-déposer | Maj + clic : déplacer la pile | Clic droit : déplacer 1"
+horizontal_alignment = 1
+
+[node name="Fermer" type="Button" parent="Interface/Fond/Marge/Colonne" unique_id=895784896]
+custom_minimum_size = Vector2(180, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Fermer"
+
+[node name="Invite" type="Label" parent="." unique_id=1440829603]
+offset_left = 760.0
+offset_top = 900.0
+offset_right = 1160.0
+offset_bottom = 940.0
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 22
+text = "E - Ouvrir le coffre"
+horizontal_alignment = 1

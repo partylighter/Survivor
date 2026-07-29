@@ -1,10 +1,10 @@
-[gd_resource type="Resource" script_class="RecetteEquipement" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="RecetteEquipement" format=3 uid="uid://cqpcnw4ftsmx6"]
 
-[ext_resource type="Script" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="1_recette"]
-[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="2_item"]
+[ext_resource type="Script" uid="uid://dm81iihtqqfga" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="1_recette"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="2_item"]
 [ext_resource type="Resource" path="res://ressources/items/composants/branche_arc_bois.tres" id="3_branche"]
 [ext_resource type="Resource" path="res://ressources/items/composants/piece_moulee_fer.tres" id="4_renfort"]
-[ext_resource type="Resource" path="res://ressources/items/equipements/arc_en_bois.tres" id="5_arc"]
+[ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="5_arc"]
 
 [resource]
 script = ExtResource("1_recette")
