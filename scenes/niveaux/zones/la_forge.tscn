@@ -466,9 +466,11 @@ chemin_interface_coffre = NodePath("../../InterfaceCoffre")
 
 [node name="chauffe" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1949019182]
 script = ExtResource("17_gestionnaire_chauffe")
-niveaux_facile = PackedFloat32Array(32, 60, 15, 80, 70, 50, 20)
-niveaux_normal = PackedFloat32Array(90, 60, 40, 80, 70, 50, 90, 20, 10)
-niveaux_difficile = PackedFloat32Array(24, 44, 64, 84, 10, 50, 70, 10)
+niveaux_facile = PackedFloat32Array(32, 60, 15, 70, 50, 20)
+niveaux_normal = PackedFloat32Array(90, 60, 80, 70, 90, 40)
+niveaux_difficile = PackedFloat32Array(24, 44, 84, 70, 10)
+temps_maximum_normal = 15.0
+temps_maximum_difficile = 15.0
 
 [node name="fonte" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=818256642]
 script = ExtResource("18_gestionnaire_fonte")
@@ -477,12 +479,15 @@ niveaux_facile = PackedFloat32Array(10, 30, 50, 30, 70)
 [node name="martelage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=611486871]
 script = ExtResource("19_gestionnaire_martelage")
 nombre_points_normal = 50
-delai_apparition_minimum_normal = 0.2
+delai_apparition_minimum_normal = 0.5
 delai_apparition_maximum_normal = 0.5
 duree_vie_minimum_normale = 1.8
 duree_vie_maximum_normale = 2.1
+rayon_exterieur_minimum_normal = 0.1
+rayon_exterieur_maximum_normal = 0.19
+ratio_rayon_correct_normal = 0.9
+ratio_rayon_parfait_normal = 0.5
 delai_frappe_minimum_normal = 0.0
-delai_frappe_maximum_normal = 0.0
 
 [node name="moulage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1984598946]
 script = ExtResource("20_gestionnaire_moulage")

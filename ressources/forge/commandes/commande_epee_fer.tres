@@ -14,5 +14,5 @@ nom = "Epee en fer pour le client"
 objet_demande = ExtResource("2_epee")
 recettes_composants = Array[ExtResource("6_recette_composant")]([ExtResource("3_lame"), ExtResource("4_piece")])
 recette_assemblage = ExtResource("5_assemblage")
-difficulte = 2
+difficulte = 1
 prix = 50
