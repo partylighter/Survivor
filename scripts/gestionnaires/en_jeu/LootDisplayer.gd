@@ -47,6 +47,8 @@ var _sub: Label
 var _list: VBoxContainer
 
 var _items_labels: Array[Label] = []
+var dialogue_actif: bool = false
+var interpolation_visibilite_hud: Tween = null
 
 func _ready() -> void:
 	_ui_visible = ui_visible
@@ -56,6 +58,7 @@ func _ready() -> void:
 	_apply_ui_visible()
 	_attach_loot_signal()
 	_refresh_ui()
+	call_deferred(&"_connecter_systeme_dialogue")
 
 func _dbg(msg: String) -> void:
 	if debug_enabled:
@@ -64,8 +67,47 @@ func _dbg(msg: String) -> void:
 func _apply_ui_visible() -> void:
 	visible = _ui_visible
 	if _panel != null:
-		_panel.visible = _ui_visible
+		_panel.visible = _ui_visible and not dialogue_actif
 	set_process(_ui_visible and actif)
+
+func _connecter_systeme_dialogue() -> void:
+	var systeme_dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	if systeme_dialogue == null:
+		return
+	if not systeme_dialogue.dialogue_commence.is_connected(_quand_dialogue_commence):
+		systeme_dialogue.dialogue_commence.connect(_quand_dialogue_commence)
+	if not systeme_dialogue.dialogue_termine.is_connected(_quand_dialogue_termine):
+		systeme_dialogue.dialogue_termine.connect(_quand_dialogue_termine)
+	if systeme_dialogue.est_dialogue_ouvert():
+		_quand_dialogue_commence()
+
+func _quand_dialogue_commence() -> void:
+	dialogue_actif = true
+	_changer_visibilite_hud(false)
+
+func _quand_dialogue_termine() -> void:
+	dialogue_actif = false
+	_changer_visibilite_hud(_ui_visible)
+
+func _changer_visibilite_hud(doit_afficher: bool) -> void:
+	if _panel == null:
+		return
+	if interpolation_visibilite_hud != null and interpolation_visibilite_hud.is_valid():
+		interpolation_visibilite_hud.kill()
+	if doit_afficher:
+		visible = true
+		_panel.visible = true
+	elif not _panel.visible:
+		return
+	interpolation_visibilite_hud = create_tween()
+	interpolation_visibilite_hud.tween_property(_panel, "modulate:a", 1.0 if doit_afficher else 0.0, 0.15)
+	if not doit_afficher:
+		interpolation_visibilite_hud.finished.connect(_masquer_panneau_apres_transition)
+
+func _masquer_panneau_apres_transition() -> void:
+	if dialogue_actif and _panel != null:
+		_panel.visible = false
+		_panel.modulate.a = 1.0
 
 func _creer_ui() -> void:
 	_panel = Panel.new()

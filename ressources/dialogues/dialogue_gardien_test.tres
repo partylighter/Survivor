@@ -6,13 +6,14 @@
 [sub_resource type="Resource" id="Choix_reponse"]
 script = ExtResource("1_choix")
 texte_bouton = "Réponse : Qui es-tu ?"
-texte_resultat = "Je suis le gardien de cette scène de test."
+replique_joueur = "Qui es-tu exactement ?"
+replique_pnj = "Je suis le gardien de cette scène de test."
 
 [sub_resource type="Resource" id="Choix_action"]
 script = ExtResource("1_choix")
-texte_bouton = "Action : Recevoir une potion"
+texte_bouton = "Action : Accepter la potion"
+replique_joueur = "Je veux bien prendre cette potion."
 type_choix = 1
-texte_resultat = "Potion reçue : l'action a bien été demandée."
 identifiant_action = &"donner_potion"
 
 [sub_resource type="Resource" id="Choix_fermer"]

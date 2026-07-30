@@ -2,16 +2,16 @@
 
 [ext_resource type="Script" path="res://scripts/dialogues/SystemeDialogue.gd" id="1_systeme"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gb6p1"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_principal"]
 bg_color = Color(0, 0, 0, 0.54901963)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_eiucn"]
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_separateur"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_23hdg"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_texte"]
 bg_color = Color(0, 0, 0, 0.42352942)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
@@ -69,16 +69,7 @@ layout_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 
-[node name="AffichagePNJ" type="Control" parent="Interface"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 9
-anchor_bottom = 1.0
-offset_top = 309.0
-offset_right = 347.0
-grow_vertical = 2
-
-[node name="ImagePNJ" type="TextureRect" parent="Interface/AffichagePNJ"]
+[node name="BoiteDialogueJoueur" type="Control" parent="Interface"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -86,10 +77,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+
+[node name="PortraitJoueur" type="TextureRect" parent="Interface/BoiteDialogueJoueur"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = -411.0
+offset_right = 347.0
+grow_vertical = 2
 stretch_mode = 5
 
-[node name="BoiteDialogue" type="Control" parent="Interface"]
-unique_name_in_owner = true
+[node name="PanneauDialogue" type="Control" parent="Interface/BoiteDialogueJoueur"]
 clip_contents = true
 layout_mode = 1
 anchors_preset = 12
@@ -101,63 +101,156 @@ offset_top = -179.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialogue"]
+[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialogueJoueur/PanneauDialogue"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_gb6p1")
+theme_override_styles/panel = SubResource("StyleBoxFlat_principal")
 
-[node name="MarginContainer" type="MarginContainer" parent="Interface/BoiteDialogue/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer"]
 layout_mode = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer"]
 layout_mode = 2
 
-[node name="VSeparator" type="VSeparator" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer"]
+[node name="VSeparator" type="VSeparator" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
-theme_override_styles/separator = SubResource("StyleBoxEmpty_eiucn")
+theme_override_styles/separator = SubResource("StyleBoxEmpty_separateur")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 
-[node name="NomInterlocuteur" type="Label" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="NomJoueur" type="Label" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(14.53, 0)
 propagate_maximum_size = true
 clip_contents = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
-text = "nom"
+text = "Joueur"
 
-[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_23hdg")
+theme_override_styles/panel = SubResource("StyleBoxFlat_texte")
 
-[node name="TexteDialogue" type="RichTextLabel" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/PanelContainer"]
+[node name="TexteDialogueJoueur" type="RichTextLabel" parent="Interface/BoiteDialogueJoueur/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/PanelContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(900, 90)
 layout_mode = 2
 offset_transform_enabled = true
 bbcode_enabled = true
-text = "texte dialogue"
+text = "Réplique du joueur"
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
-layout_mode = 2
-theme_override_constants/separation = 40
-
-[node name="BoutonContinuer" type="Button" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+[node name="BoiteDialoguePNJ" type="Control" parent="Interface"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(100, 0)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PortraitPNJ" type="TextureRect" parent="Interface/BoiteDialoguePNJ"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -347.0
+offset_top = -411.0
+grow_horizontal = 0
+grow_vertical = 0
+stretch_mode = 5
+
+[node name="PanneauDialogue" type="Control" parent="Interface/BoiteDialoguePNJ"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -179.0
+offset_right = -361.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialoguePNJ/PanneauDialogue"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_principal")
+
+[node name="MarginContainer" type="MarginContainer" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer"]
 layout_mode = 2
-size_flags_horizontal = 8
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="VSeparator" type="VSeparator" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_styles/separator = SubResource("StyleBoxEmpty_separateur")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="NomPNJ" type="Label" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(14.53, 0)
+propagate_maximum_size = true
+clip_contents = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 25
+text = "PNJ"
+
+[node name="PanelContainer" type="PanelContainer" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_texte")
+
+[node name="TexteDialoguePNJ" type="RichTextLabel" parent="Interface/BoiteDialoguePNJ/PanneauDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/PanelContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(900, 90)
+layout_mode = 2
+offset_transform_enabled = true
+bbcode_enabled = true
+text = "Réplique du PNJ"
+
+[node name="CommandesDialogue" type="Control" parent="Interface"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -48.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Interface/CommandesDialogue"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="BoutonContinuer" type="Button" parent="Interface/CommandesDialogue/HBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 40)
+layout_mode = 2
 text = "Continuer"
 
-[node name="BoutonSortir" type="Button" parent="Interface/BoiteDialogue/PanelContainer/MarginContainer/HBoxContainer/VBoxContainer/HBoxContainer"]
+[node name="BoutonSortir" type="Button" parent="Interface/CommandesDialogue/HBoxContainer"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(100, 40)
 layout_mode = 2
-size_flags_horizontal = 8
 text = "Sortir"

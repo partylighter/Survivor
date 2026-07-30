@@ -10,6 +10,8 @@ class_name Player
 @export_node_path("Soif") var chemin_soif: NodePath
 @export_node_path("Node2D") var chemin_sprite: NodePath = NodePath("Sprite2D")
 @export var can_die_of_soif : bool = false
+@export var nom_dialogue: String = "Joueur"
+@export var portrait_dialogue: Texture2D
 
 @export_group("Vehicule")
 @export var chemin_base_vehicle: NodePath
@@ -82,7 +84,7 @@ func _ready() -> void:
 		_sprite_scale_neutre = sprite_joueur.scale
 	if soif != null and not soif.died_of_thirst.is_connected(_on_soif_died):
 		soif.died_of_thirst.connect(_on_soif_died)
-	
+
 	if stats != null and sante != null:
 		stats.set_sante_ref(sante)
 	base_vehicle = get_node_or_null(chemin_base_vehicle) as Node2D
@@ -105,7 +107,7 @@ func _trouver_sprite_joueur() -> Node2D:
 func _visuel_est_visible(noeud: Node2D) -> bool:
 	var item: CanvasItem = noeud as CanvasItem
 	return item == null or item.visible
-	
+
 func _on_sante_died() -> void:
 	mourir()
 func _on_soif_died() -> void:

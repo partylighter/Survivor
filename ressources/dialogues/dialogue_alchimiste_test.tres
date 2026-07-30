@@ -6,13 +6,13 @@
 [sub_resource type="Resource" id="Choix_reponse"]
 script = ExtResource("1_choix")
 texte_bouton = "Réponse : Que prépares-tu ?"
-texte_resultat = "Je teste les réactions de mes potions."
+replique_joueur = "Que prépares-tu dans ton laboratoire ?"
+replique_pnj = "Je teste les réactions de mes potions."
 
 [sub_resource type="Resource" id="Choix_action"]
 script = ExtResource("1_choix")
 texte_bouton = "Action : Demander une potion"
 type_choix = 1
-texte_resultat = "L'alchimiste prépare une potion."
 identifiant_action = &"donner_potion"
 
 [sub_resource type="Resource" id="Choix_fermer"]

@@ -14,6 +14,10 @@ class_name InterfaceInventaire
 @onready var bouton_ranger_arme: Button = $Interface/Panneau/Marge/Colonne/RangerArme
 @onready var bouton_fermer: Button = $Interface/Panneau/Marge/Colonne/Fermer
 
+var dialogue_actif: bool = false
+var interface_etait_visible_avant_dialogue: bool = false
+var interpolation_visibilite_hud: Tween = null
+
 func _ready() -> void:
 	add_to_group(&"inputs_jeu")
 	interface.visible = false
@@ -22,6 +26,44 @@ func _ready() -> void:
 	if inventaire != null:
 		inventaire.inventaire_change.connect(_rafraichir)
 	_rafraichir()
+	call_deferred(&"_connecter_systeme_dialogue")
+
+func _connecter_systeme_dialogue() -> void:
+	var systeme_dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	if systeme_dialogue == null:
+		return
+	if not systeme_dialogue.dialogue_commence.is_connected(_quand_dialogue_commence):
+		systeme_dialogue.dialogue_commence.connect(_quand_dialogue_commence)
+	if not systeme_dialogue.dialogue_termine.is_connected(_quand_dialogue_termine):
+		systeme_dialogue.dialogue_termine.connect(_quand_dialogue_termine)
+	if systeme_dialogue.est_dialogue_ouvert():
+		_quand_dialogue_commence()
+
+func _quand_dialogue_commence() -> void:
+	dialogue_actif = true
+	interface_etait_visible_avant_dialogue = interface.visible
+	_changer_visibilite_hud(false)
+
+func _quand_dialogue_termine() -> void:
+	dialogue_actif = false
+	_changer_visibilite_hud(interface_etait_visible_avant_dialogue)
+
+func _changer_visibilite_hud(doit_afficher: bool) -> void:
+	if interpolation_visibilite_hud != null and interpolation_visibilite_hud.is_valid():
+		interpolation_visibilite_hud.kill()
+	if doit_afficher:
+		interface.visible = true
+	elif not interface.visible:
+		return
+	interpolation_visibilite_hud = create_tween()
+	interpolation_visibilite_hud.tween_property(interface, "modulate:a", 1.0 if doit_afficher else 0.0, 0.15)
+	if not doit_afficher:
+		interpolation_visibilite_hud.finished.connect(_masquer_interface_apres_transition)
+
+func _masquer_interface_apres_transition() -> void:
+	if dialogue_actif:
+		interface.visible = false
+		interface.modulate.a = 1.0
 
 func _input(event: InputEvent) -> void:
 	if interface.visible and event.is_action_pressed(action_fermer_interface):

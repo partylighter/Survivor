@@ -9,12 +9,15 @@
 [ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_gardien_test.tres" id="7_portrait"]
 [ext_resource type="Resource" path="res://ressources/dialogues/dialogue_alchimiste_test.tres" id="8_dialogue"]
 [ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_alchimiste_test.tres" id="9_portrait"]
+[ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_joueur_test.tres" id="10_portrait_joueur"]
 
 [node name="TestDialogue" type="Node2D" unique_id=515213700]
 script = ExtResource("1_test")
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("3_archere")]
 position = Vector2(270, 389)
+nom_dialogue = "Archère"
+portrait_dialogue = ExtResource("10_portrait_joueur")
 
 [node name="Titre" type="Label" parent="." unique_id=149020537]
 offset_left = 32.0

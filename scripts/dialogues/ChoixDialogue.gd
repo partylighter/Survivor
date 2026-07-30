@@ -7,7 +7,8 @@ enum TypeChoix {
 	FERMER
 }
 
-@export var texte_bouton: String = "Choix"
+@export var texte_bouton: String = "Répondre"
+@export_multiline var replique_joueur: String = ""
+@export_multiline var replique_pnj: String = ""
 @export var type_choix: TypeChoix = TypeChoix.REPONSE
-@export_multiline var texte_resultat: String = ""
 @export var identifiant_action: StringName = &""
