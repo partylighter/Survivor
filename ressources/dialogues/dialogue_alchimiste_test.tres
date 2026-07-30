@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="DonneeDialogue" format=3 uid="uid://d134mf2mqo5h3"]
+
+[ext_resource type="Script" uid="uid://d1g7pmiardoax" path="res://scripts/dialogues/ChoixDialogue.gd" id="1_choix"]
+[ext_resource type="Script" uid="uid://tkc3vv4vuwkp" path="res://scripts/dialogues/DonneeDialogue.gd" id="2_dialogue"]
+
+[sub_resource type="Resource" id="Choix_reponse"]
+script = ExtResource("1_choix")
+texte_bouton = "Réponse : Que prépares-tu ?"
+texte_resultat = "Je teste les réactions de mes potions."
+
+[sub_resource type="Resource" id="Choix_action"]
+script = ExtResource("1_choix")
+texte_bouton = "Action : Demander une potion"
+type_choix = 1
+texte_resultat = "L'alchimiste prépare une potion."
+identifiant_action = &"donner_potion"
+
+[sub_resource type="Resource" id="Choix_fermer"]
+script = ExtResource("1_choix")
+texte_bouton = "Quitter la conversation"
+type_choix = 2
+
+[resource]
+script = ExtResource("2_dialogue")
+texte_initial = "Bienvenue dans mon laboratoire. Que veux-tu savoir ?"
+choix = Array[ExtResource("1_choix")]([SubResource("Choix_reponse"), SubResource("Choix_action"), SubResource("Choix_fermer")])

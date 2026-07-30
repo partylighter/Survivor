@@ -102,6 +102,8 @@ func _exit_tree() -> void:
 		joueur_zone_assemblage.set_meta(META_INTERACTION_FORGE, false)
 
 func _input(event: InputEvent) -> void:
+	if _dialogue_est_ouvert():
+		return
 	if event.is_action_pressed(action_fermer_interface) and _une_interface_est_ouverte():
 		if _un_mini_jeu_est_ouvert():
 			abandonner_fabrication_active()
@@ -144,6 +146,10 @@ func _input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+func _dialogue_est_ouvert() -> bool:
+	var dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	return dialogue != null and dialogue.est_dialogue_ouvert()
 
 func accepter_commande() -> bool:
 	var commande_selectionnee: DonneesCommandeForge = obtenir_commande_selectionnee()

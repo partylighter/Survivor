@@ -1379,6 +1379,7 @@ ui_position = Vector2(16, 580)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
 
 [node name="InterfaceInventaire" parent="." unique_id=649383341 instance=ExtResource("29_interface_inventaire")]
+visible = true
 chemin_inventaire = NodePath("../GestionnaireInventaire")
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=781955153]

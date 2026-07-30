@@ -4,6 +4,7 @@
 
 [node name="InterfaceInventaire" type="CanvasLayer" unique_id=878911250]
 layer = 220
+visible = false
 script = ExtResource("1_interface")
 
 [node name="Interface" type="Control" parent="." unique_id=2009786060]
@@ -60,12 +61,11 @@ layout_mode = 2
 text = "I pour ouvrir ou fermer"
 horizontal_alignment = 1
 
-[node name="EquipementMainDroite" type="Label" parent="Interface/Panneau/Marge/Colonne"]
+[node name="EquipementMainDroite" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1988782918]
 layout_mode = 2
-text = ""
 horizontal_alignment = 1
 
-[node name="RangerArme" type="Button" parent="Interface/Panneau/Marge/Colonne"]
+[node name="RangerArme" type="Button" parent="Interface/Panneau/Marge/Colonne" unique_id=264676303]
 custom_minimum_size = Vector2(220, 38)
 layout_mode = 2
 text = "Ranger dans l'inventaire"

@@ -68,6 +68,7 @@ var _sprite_scale_neutre: Vector2 = Vector2.ONE
 var _temps_visuel_deplacement: float = 0.0
 var _dash_etait_actif: bool = false
 var _invulnerabilite_apres_dash_restant_s: float = 0.0
+var dialogue_actif: bool = false
 
 # Limites horizontales — contrôlées par GestionnaireZones pour les zones boss.
 # Valeurs par défaut = pas de contrainte.
@@ -139,10 +140,24 @@ func mourir() -> void:
 		push_warning("DeathScreen introuvable ou pas de show_auto() (groupe 'death_screen')")
 
 func _physics_process(dt: float) -> void:
+	if dialogue_actif:
+		velocity = Vector2.ZERO
+		dash_t_restant_s = 0.0
+		dash_direction = Vector2.ZERO
+		_mettre_a_jour_invulnerabilite_dash(dt)
+		_mettre_a_jour_visuel_deplacement(dt)
+		return
 	if gestion_deplacement:
 		gestion_deplacement.traiter(self, stats, dt)
 	_mettre_a_jour_invulnerabilite_dash(dt)
 	_mettre_a_jour_visuel_deplacement(dt)
+
+func definir_dialogue_actif(actif: bool) -> void:
+	dialogue_actif = actif
+	if actif:
+		velocity = Vector2.ZERO
+		dash_t_restant_s = 0.0
+		dash_direction = Vector2.ZERO
 
 func set_base_vehicle(n: Node2D) -> void:
 	base_vehicle = n

@@ -1,0 +1,46 @@
+[gd_scene format=3 uid="uid://bqk8cxo2x6cax"]
+
+[ext_resource type="Script" uid="uid://c32fpf4kf265p" path="res://scripts/tests/GestionnaireDialogueTest.gd" id="1_test"]
+[ext_resource type="PackedScene" uid="uid://dxcpvlmm4vii5" path="res://scenes/pnj/pnj_base.tscn" id="2_pnj"]
+[ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="3_archere"]
+[ext_resource type="Script" uid="uid://bqs5kntfq4b1k" path="res://scripts/monde/SolDamier.gd" id="4_sol"]
+[ext_resource type="PackedScene" path="res://scenes/ui/systeme_dialogue.tscn" id="5_systeme"]
+[ext_resource type="Resource" uid="uid://bpymmw26fbu2n" path="res://ressources/dialogues/dialogue_gardien_test.tres" id="6_dialogue"]
+[ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_gardien_test.tres" id="7_portrait"]
+[ext_resource type="Resource" path="res://ressources/dialogues/dialogue_alchimiste_test.tres" id="8_dialogue"]
+[ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_alchimiste_test.tres" id="9_portrait"]
+
+[node name="TestDialogue" type="Node2D" unique_id=515213700]
+script = ExtResource("1_test")
+
+[node name="Archere" parent="." unique_id=783124346 instance=ExtResource("3_archere")]
+position = Vector2(270, 389)
+
+[node name="Titre" type="Label" parent="." unique_id=149020537]
+offset_left = 32.0
+offset_top = 24.0
+offset_right = 850.0
+offset_bottom = 63.0
+theme_override_font_sizes/font_size = 26
+text = "Test du système de dialogue"
+
+[node name="PNJBase" parent="." unique_id=1307358234 instance=ExtResource("2_pnj")]
+position = Vector2(561, 364)
+nom_pnj = "Gardien du test"
+identifiant_pnj = &"gardien_test"
+portrait_dialogue = ExtResource("7_portrait")
+donnee_dialogue = ExtResource("6_dialogue")
+texte_proximite = "Appuie sur E pour me parler."
+
+[node name="AlchimisteTest" parent="." unique_id=1657095980 instance=ExtResource("2_pnj")]
+position = Vector2(997, 339)
+nom_pnj = "Alchimiste du test"
+identifiant_pnj = &"alchimiste_test"
+portrait_dialogue = ExtResource("9_portrait")
+donnee_dialogue = ExtResource("8_dialogue")
+texte_proximite = "Approche-toi pour parler à l'alchimiste."
+
+[node name="SystemeDialogue" parent="." unique_id=611665431 instance=ExtResource("5_systeme")]
+
+[node name="SolDamier" type="Node2D" parent="." unique_id=343691508]
+script = ExtResource("4_sol")

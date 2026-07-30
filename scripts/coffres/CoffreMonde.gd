@@ -29,6 +29,8 @@ func _ready() -> void:
 		push_error("L'action '%s' du coffre n'existe pas." % String(action_interagir))
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _dialogue_est_ouvert():
+		return
 	if joueur_proche == null or not event.is_action_pressed(action_interagir):
 		return
 	if interface_coffre == null:
@@ -40,6 +42,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	interface_coffre.ouvrir(self, inventaire)
 	get_viewport().set_input_as_handled()
+
+func _dialogue_est_ouvert() -> bool:
+	var dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	return dialogue != null and dialogue.est_dialogue_ouvert()
 
 func _quand_corps_entre(corps: Node) -> void:
 	if not corps is Player or not corps.is_in_group(&"joueur_principal"):

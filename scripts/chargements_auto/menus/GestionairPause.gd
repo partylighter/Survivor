@@ -21,6 +21,8 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause"):
+		if _dialogue_est_ouvert():
+			return
 		var echo: bool = (event is InputEventKey) and (event as InputEventKey).echo
 		_d("INPUT pause echo=" + str(echo) + " paused=" + str(get_tree().paused))
 		var t := Time.get_ticks_msec()
@@ -33,6 +35,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		else:
 			mettre_en_pause()
 		get_viewport().set_input_as_handled()
+
+func _dialogue_est_ouvert() -> bool:
+	var dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	return dialogue != null and dialogue.est_dialogue_ouvert()
 
 func _instancier_menu() -> void:
 	_d("INSTANCIER check existing")

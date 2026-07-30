@@ -43,6 +43,8 @@ func _ready() -> void:
 			print("[SiegePilote] ERREUR: seat_area null (chemin_seat_area invalide)")
 
 func _process(_dt: float) -> void:
+	if _dialogue_est_ouvert():
+		return
 	if not Input.is_action_just_pressed(action_interagir):
 		return
 
@@ -56,6 +58,10 @@ func _process(_dt: float) -> void:
 	else:
 		if debug_siege:
 			print("[SiegePilote] Rien a faire: aucun candidat dans la zone")
+
+func _dialogue_est_ouvert() -> bool:
+	var dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
+	return dialogue != null and dialogue.est_dialogue_ouvert()
 
 
 func _on_body_entered(body: Node) -> void:
