@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://cgess4anum1li"]
+
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_46j2g"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_item"]
+[ext_resource type="Resource" path="res://ressources/cuisine/effets/effet_soupe_legumes.tres" id="2_effet"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"soupe_legumes"
+type_item = 0
+nom_affiche = "Soupe de legumes"
+afficher_sprite_loot = false
+ameliorations_compatibles = null
+effet_nourriture = ExtResource("2_effet")

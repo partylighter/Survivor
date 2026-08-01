@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://dxnlmj8eu0dps"]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_yaffx"]
+[ext_resource type="Resource" path="res://ressources/cuisine/effets/effet_oeufs_brouilles.tres" id="2_effet"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"oeufs_brouilles"
+type_item = 0
+nom_affiche = "Œufs brouillés"
+afficher_sprite_loot = false
+ameliorations_compatibles = null
+effet_nourriture = ExtResource("2_effet")

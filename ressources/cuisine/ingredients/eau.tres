@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://d00e8h31f5x37"]
+
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_b4g6x"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"eau"
+nom_affiche = "Eau"
+afficher_sprite_loot = false
+ameliorations_compatibles = null

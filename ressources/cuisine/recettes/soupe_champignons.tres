@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="RecetteCuisine" format=3]
+
+[ext_resource type="Script" path="res://scripts/cuisine/donnees/RecetteCuisine.gd" id="1_recette"]
+[ext_resource type="Resource" path="res://ressources/cuisine/ingredients/champignon.tres" id="2_champignon"]
+[ext_resource type="Resource" path="res://ressources/cuisine/ingredients/eau.tres" id="3_eau"]
+[ext_resource type="Resource" path="res://ressources/cuisine/nourritures/soupe_champignons.tres" id="4_resultat"]
+
+[resource]
+script = ExtResource("1_recette")
+identifiant = &"soupe_champignons"
+nom = "Soupe de champignons"
+ingredients = Array[ExtResource("2_champignon")]([ExtResource("2_champignon"), ExtResource("2_champignon"), ExtResource("3_eau")])
+resultat = ExtResource("4_resultat")

@@ -4,6 +4,9 @@ class_name LootItemEntry
 @export var item_id: StringName = &""
 @export var poids: float = 1.0
 
+@export_group("Inventaire")
+@export_enum("CONSO", "UPGRADE", "ARME", "MATERIAU", "COMPOSANT", "EQUIPEMENT") var type_item: int = Loot.TypeItem.MATERIAU
+
 @export_group("Visuel")
 @export var nom_affiche: String = ""
 @export var icone: Texture2D
@@ -20,6 +23,9 @@ class_name LootItemEntry
 @export var scene_arme_equipee: PackedScene
 @export var ameliorations_compatibles: PackedStringArray = PackedStringArray()
 @export var ameliorations_forge: Array[AmeliorationForge] = []
+
+@export_group("Cuisine")
+@export var effet_nourriture: EffetNourriture
 
 func obtenir_amelioration_forge(identifiant_amelioration: StringName) -> AmeliorationForge:
 	for amelioration: AmeliorationForge in ameliorations_forge:

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_equipement"]
 [ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_nk78l"]
-[ext_resource type="Resource" path="res://ressources/forge/qualite/profil_epee_fer.tres" id="2_profil"]
+[ext_resource type="Resource" uid="uid://d2gcfpu4v5o5f" path="res://ressources/forge/qualite/profil_epee_fer.tres" id="2_profil"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/armes/contact/arme_contact_1.tscn" id="3_arme"]
 
 [resource]

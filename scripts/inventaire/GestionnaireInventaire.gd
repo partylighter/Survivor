@@ -6,6 +6,7 @@ signal objet_ajoute(identifiant: StringName, quantite: int)
 signal objet_retire(identifiant: StringName, quantite: int)
 
 @export var objets_temporaires: Array[Dictionary] = []
+@export var ressources_temporaires: Array[LootItemEntry] = []
 
 var objets_par_identifiant: Dictionary = {}
 var equipements_par_instance: Dictionary = {}
@@ -14,6 +15,13 @@ func _ready() -> void:
 	add_to_group(&"gestionnaire_inventaire")
 	for objet_temporaire: Dictionary in objets_temporaires:
 		ajouter_depuis_payload(objet_temporaire)
+	for ressource_temporaire: LootItemEntry in ressources_temporaires:
+		_ajouter_depuis_ressource(ressource_temporaire)
+
+func _ajouter_depuis_ressource(ressource: LootItemEntry) -> void:
+	if ressource == null or String(ressource.item_id).is_empty():
+		return
+	ajouter_objet(ressource.item_id, ressource.nom_affiche, 1, ressource.icone, ressource.type_item, {"chemin_definition": ressource.resource_path})
 
 func ajouter_depuis_payload(payload: Dictionary) -> void:
 	var identifiant: StringName = payload.get("id", payload.get("item_id", &""))

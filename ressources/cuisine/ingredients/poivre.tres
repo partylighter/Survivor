@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3]
+
+[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"poivre"
+nom_affiche = "Poivre"
+afficher_sprite_loot = false

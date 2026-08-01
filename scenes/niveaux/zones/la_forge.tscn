@@ -42,6 +42,7 @@
 [ext_resource type="Resource" uid="uid://c5c20dbjuovae" path="res://ressources/items/upg_contact_duree_active.tres" id="40_i0g4e"]
 [ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeContact.gd" id="41_rnj6l"]
 [ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeTir.gd" id="42_awwio"]
+[ext_resource type="PackedScene" path="res://scenes/cuisine/cuisine.tscn" id="43_cuisine"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_camera_1"]
 size = Vector2(1461.3, 773.7)
@@ -136,11 +137,14 @@ size = Vector2(225, 246)
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_12quj"]
 size = Vector2(381, 242)
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_n3ase"]
+size = Vector2(671, 164)
+
 [node name="LaForge" type="Node2D" unique_id=1260028796]
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("2_j7u3n")]
 z_index = 1
-position = Vector2(-41, 667)
+position = Vector2(1894, -687)
 scale = Vector2(0.64, 0.64)
 
 [node name="cameras" type="Node2D" parent="." unique_id=420626491]
@@ -566,6 +570,18 @@ debug_color = Color(0, 1, 0.69803923, 0)
 position = Vector2(240, -891)
 shape = SubResource("RectangleShape2D_12quj")
 debug_color = Color(0.84705883, 0.6, 0.14901961, 0)
+
+[node name="cuisine" type="Node2D" parent="zone de forge" unique_id=537150622]
+
+[node name="Area2D" type="Area2D" parent="zone de forge/cuisine" unique_id=629594404]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zone de forge/cuisine/Area2D" unique_id=43009968]
+position = Vector2(2141.5, -568)
+shape = SubResource("RectangleShape2D_n3ase")
+debug_color = Color(1, 1, 0, 0)
+
+[node name="CuisineFonctionnelle" parent="zone de forge/cuisine" unique_id=816842731 instance=ExtResource("43_cuisine")]
+position = Vector2(2141.5, -568)
 
 [node name="InterfaceCommandeForge" parent="." unique_id=1742577597 instance=ExtResource("6_interface_commande")]
 layer = 8090

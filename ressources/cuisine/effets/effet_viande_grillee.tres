@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EffetNourriture" format=3]
+
+[ext_resource type="Script" path="res://scripts/cuisine/donnees/EffetNourriture.gd" id="1_effet"]
+
+[resource]
+script = ExtResource("1_effet")
+soin = 30
+duree = 30.0
+vitesse_add = 20.0

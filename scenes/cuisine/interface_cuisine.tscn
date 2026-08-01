@@ -1,0 +1,151 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/cuisine/InterfaceCuisine.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/cuisine/SlotCuisine.gd" id="2_slot"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panneau"]
+bg_color = Color(0.08, 0.055, 0.035, 0.96)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.48, 0.2, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_slot"]
+bg_color = Color(0.12, 0.085, 0.055, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.72, 0.52, 0.28, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="InterfaceCuisine" type="Control"]
+custom_minimum_size = Vector2(560, 300)
+offset_right = 560.0
+offset_bottom = 300.0
+mouse_filter = 1
+script = ExtResource("1_interface")
+
+[node name="Panneau" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panneau")
+
+[node name="Marge" type="MarginContainer" parent="Panneau"]
+layout_mode = 2
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 10
+
+[node name="Colonne" type="VBoxContainer" parent="Panneau/Marge"]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="Titre" type="Label" parent="Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "CUISINE"
+horizontal_alignment = 1
+
+[node name="Corps" type="HBoxContainer" parent="Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 145)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Inventaire" type="VBoxContainer" parent="Panneau/Marge/Colonne/Corps"]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+
+[node name="TitreInventaire" type="Label" parent="Panneau/Marge/Colonne/Corps/Inventaire"]
+layout_mode = 2
+text = "Ingredients disponibles"
+horizontal_alignment = 1
+
+[node name="Defilement" type="ScrollContainer" parent="Panneau/Marge/Colonne/Corps/Inventaire"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ListeIngredients" type="VBoxContainer" parent="Panneau/Marge/Colonne/Corps/Inventaire/Defilement"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="InventaireVide" type="Label" parent="Panneau/Marge/Colonne/Corps/Inventaire"]
+layout_mode = 2
+text = "Aucun ingredient de ces recettes\ndans l'inventaire"
+horizontal_alignment = 1
+
+[node name="Preparation" type="VBoxContainer" parent="Panneau/Marge/Colonne/Corps"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TitreSlots" type="Label" parent="Panneau/Marge/Colonne/Corps/Preparation"]
+layout_mode = 2
+text = "Preparation"
+horizontal_alignment = 1
+
+[node name="Slots" type="HBoxContainer" parent="Panneau/Marge/Colonne/Corps/Preparation"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Slot0" type="Button" parent="Panneau/Marge/Colonne/Corps/Preparation/Slots"]
+custom_minimum_size = Vector2(100, 90)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+text = "Slot 1\nVide"
+script = ExtResource("2_slot")
+
+[node name="Slot1" type="Button" parent="Panneau/Marge/Colonne/Corps/Preparation/Slots"]
+custom_minimum_size = Vector2(100, 90)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+text = "Slot 2\nVide"
+script = ExtResource("2_slot")
+index_slot = 1
+
+[node name="Slot2" type="Button" parent="Panneau/Marge/Colonne/Corps/Preparation/Slots"]
+custom_minimum_size = Vector2(100, 90)
+layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_slot")
+text = "Slot 3\nVide"
+script = ExtResource("2_slot")
+index_slot = 2
+
+[node name="Resultat" type="Label" parent="Panneau/Marge/Colonne"]
+layout_mode = 2
+text = "Recette inconnue"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="Panneau/Marge/Colonne"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="Panneau/Marge/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="BoutonCuisiner" type="Button" parent="Panneau/Marge/Colonne/Actions"]
+layout_mode = 2
+disabled = true
+text = "Cuisiner"
+
+[node name="BoutonFermer" type="Button" parent="Panneau/Marge/Colonne/Actions"]
+layout_mode = 2
+text = "Fermer"
