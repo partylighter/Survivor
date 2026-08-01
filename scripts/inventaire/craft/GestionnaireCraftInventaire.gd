@@ -188,6 +188,10 @@ func _actualiser_recette(emettre_table: bool = true) -> void:
 func _trouver_recette() -> RecetteEquipement:
 	if catalogue_recettes == null:
 		return null
+	for index: int in TableCraftInventaire.NOMBRE_SLOTS:
+		var objet: Dictionary = table.obtenir(index)
+		if not objet.is_empty() and int(objet.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT:
+			return null
 	var quantites_table: Dictionary = table.obtenir_quantites()
 	for recette: RecetteEquipement in catalogue_recettes.recettes:
 		if recette == null or not recette.est_valide():
