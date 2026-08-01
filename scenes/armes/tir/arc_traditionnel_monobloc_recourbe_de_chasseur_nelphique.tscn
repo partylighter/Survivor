@@ -1,0 +1,107 @@
+[gd_scene format=3 uid="uid://1ylsu7t5ysq3"]
+
+[ext_resource type="Script" uid="uid://di6ajeojl73qu" path="res://scripts/utilitaires/armement/ArmeTir.gd" id="1_vxmel"]
+[ext_resource type="PackedScene" uid="uid://scqyht4f3wgy" path="res://scenes/armes/tir/projectile_1.tscn" id="2_gxyka"]
+[ext_resource type="Texture2D" uid="uid://bgwtcjj6mfw43" path="res://assets/items/arcs/Arc traditionnel monobloc recourbe de chasseur Nelphique.png" id="2_x1qc6"]
+[ext_resource type="Script" uid="uid://5adwsbkqdlcw" path="res://scripts/utilitaires/armement/ArmeEffets2D.gd" id="3_gxyka"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_o6n6s"]
+radius = 214.8
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s8o3r"]
+atlas = ExtResource("2_x1qc6")
+region = Rect2(0, 0, 73, 193)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_eiucn"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s8o3r")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="Curve" id="Curve_mfc0f"]
+_data = [Vector2(0.08985025, 0.9938006), 0.0, 0.0, 0, 0, Vector2(0.5291181, 0.78302336), -0.9521477, -0.9521477, 0, 0, Vector2(0.9850249, 0.18168819), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_umh3v"]
+offsets = PackedFloat32Array(0, 0.18376069, 0.6047535, 1)
+colors = PackedColorArray(1, 0.9490196, 1, 1, 0.75951695, 0.7047211, 0.7188101, 1, 0.5451556, 0.5263504, 0.50249976, 1, 1, 1, 1, 1)
+
+[sub_resource type="Gradient" id="Gradient_thx55"]
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 1)
+
+[node name="Arc traditionnel monobloc recourbe de chasseur Nelphique" type="Node2D" unique_id=1284968349]
+y_sort_enabled = true
+script = ExtResource("1_vxmel")
+scene_projectile = ExtResource("2_gxyka")
+chemin_effets = NodePath("ArmeEffets2D")
+chemin_socket_muzzle = NodePath("animatedsprite2d/Socket")
+chemin_particles_tir = NodePath("animatedsprite2d/CPUParticles2D")
+tir_manuel_maintenu = true
+chemin_animation_arme = NodePath("animatedsprite2d")
+animation_repos = &"default"
+animation_encochage = &"default"
+animation_decochage = &"default"
+chemin_icone_au_sol = NodePath("IconeAuSol")
+nom_arme = &"Arc traditionnel monobloc recourbe de chasseur Nelphique"
+degats = 50
+recul_force = 4000.0
+chemin_pickup = NodePath("Area2D")
+metadata/_custom_type_script = "uid://di6ajeojl73qu"
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1568871889]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=338049074]
+shape = SubResource("CircleShape2D_o6n6s")
+debug_color = Color(1, 1, 1, 0)
+
+[node name="animatedsprite2d" type="AnimatedSprite2D" parent="." unique_id=72630589]
+y_sort_enabled = true
+position = Vector2(-20, 0)
+scale = Vector2(3, 3)
+sprite_frames = SubResource("SpriteFrames_eiucn")
+
+[node name="Socket" type="Node2D" parent="animatedsprite2d" unique_id=194597588]
+position = Vector2(14.6, 2.3841858e-07)
+scale = Vector2(0.7604562, 0.7604562)
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="animatedsprite2d" unique_id=367378078]
+position = Vector2(42.000004, 0)
+scale = Vector2(0.3708478, 0.51419777)
+emitting = false
+amount = 4
+lifetime = 0.09999999999999999
+one_shot = true
+direction = Vector2(-1, 0)
+spread = 0.0
+gravity = Vector2(0, 0)
+initial_velocity_min = 678.0
+initial_velocity_max = 678.0
+damping_min = 91.424
+damping_max = 92.071
+angle_max = 720.0
+scale_amount_min = 21.62
+scale_amount_max = 44.27
+scale_amount_curve = SubResource("Curve_mfc0f")
+color_ramp = SubResource("Gradient_umh3v")
+color_initial_ramp = SubResource("Gradient_thx55")
+
+[node name="IconeAuSol" type="Sprite2D" parent="." unique_id=562169604]
+position = Vector2(-20, 0)
+scale = Vector2(5, 5)
+texture = ExtResource("2_x1qc6")
+
+[node name="ArmeEffets2D" type="Node" parent="." unique_id=1045244475]
+script = ExtResource("3_gxyka")
+tir_recul_px = 300.0
+tir_lift_px = 100.0
+tir_rot_deg = -20.0
+tir_kick_reactivite = 20.0
+tir_retour = 7.0
+tir_shake_pos_px = 200.0
+tir_shake_fade = 14.0
+metadata/_custom_type_script = "uid://5adwsbkqdlcw"

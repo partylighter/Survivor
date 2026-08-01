@@ -54,10 +54,15 @@ scale = Vector2(0.175, 2.18)
 texture = ExtResource("2_cp136")
 
 [node name="TrailParticles" type="GPUParticles2D" parent="." unique_id=111115223]
-emitting = false
+visible = false
+position = Vector2(-20.400002, -0.59999996)
+rotation = 1.5707964
+scale = Vector2(0.04, 0.425)
 amount = 20
+texture = ExtResource("2_cp136")
 lifetime = 0.12
 preprocess = 0.75
 speed_scale = 1.42
 explosiveness = 0.66
+local_coords = true
 process_material = SubResource("ParticleProcessMaterial_trail")

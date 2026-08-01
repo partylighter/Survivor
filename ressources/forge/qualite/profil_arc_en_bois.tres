@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="ProfilQualiteForge" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ProfilQualiteForge" format=3 uid="uid://bmfpe0w4xw6vi"]
 
-[ext_resource type="Script" path="res://scripts/forge/qualite/ProfilQualiteForge.gd" id="1_profil"]
+[ext_resource type="Script" uid="uid://ks7l7lqwgicy" path="res://scripts/forge/qualite/ProfilQualiteForge.gd" id="1_profil"]
 
 [resource]
 script = ExtResource("1_profil")

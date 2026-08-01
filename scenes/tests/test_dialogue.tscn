@@ -4,14 +4,17 @@
 [ext_resource type="PackedScene" uid="uid://dxcpvlmm4vii5" path="res://scenes/pnj/pnj_base.tscn" id="2_pnj"]
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="3_archere"]
 [ext_resource type="Script" uid="uid://bqs5kntfq4b1k" path="res://scripts/monde/SolDamier.gd" id="4_sol"]
+[ext_resource type="Texture2D" uid="uid://dy31y0syq0y0g" path="res://assets/PNJ/PNJ sprite sheet.png" id="5_48adl"]
 [ext_resource type="PackedScene" path="res://scenes/ui/systeme_dialogue.tscn" id="5_systeme"]
 [ext_resource type="Resource" uid="uid://bpymmw26fbu2n" path="res://ressources/dialogues/dialogue_gardien_test.tres" id="6_dialogue"]
-[ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_gardien_test.tres" id="7_portrait"]
-[ext_resource type="Resource" path="res://ressources/dialogues/dialogue_alchimiste_test.tres" id="8_dialogue"]
-[ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_alchimiste_test.tres" id="9_portrait"]
 [ext_resource type="Texture2D" path="res://ressources/dialogues/portrait_joueur_test.tres" id="10_portrait_joueur"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_3btpa"]
+atlas = ExtResource("5_48adl")
+region = Rect2(0, 0, 47.68397, 54)
+
 [node name="TestDialogue" type="Node2D" unique_id=515213700]
+y_sort_enabled = true
 script = ExtResource("1_test")
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("3_archere")]
@@ -29,19 +32,11 @@ text = "Test du système de dialogue"
 
 [node name="PNJBase" parent="." unique_id=1307358234 instance=ExtResource("2_pnj")]
 position = Vector2(561, 364)
-nom_pnj = "Gardien du test"
+nom_pnj = "PNJ test"
 identifiant_pnj = &"gardien_test"
-portrait_dialogue = ExtResource("7_portrait")
+portrait_dialogue = SubResource("AtlasTexture_3btpa")
 donnee_dialogue = ExtResource("6_dialogue")
 texte_proximite = "Appuie sur E pour me parler."
-
-[node name="AlchimisteTest" parent="." unique_id=1657095980 instance=ExtResource("2_pnj")]
-position = Vector2(997, 339)
-nom_pnj = "Alchimiste du test"
-identifiant_pnj = &"alchimiste_test"
-portrait_dialogue = ExtResource("9_portrait")
-donnee_dialogue = ExtResource("8_dialogue")
-texte_proximite = "Approche-toi pour parler à l'alchimiste."
 
 [node name="SystemeDialogue" parent="." unique_id=611665431 instance=ExtResource("5_systeme")]
 

@@ -11,6 +11,7 @@ class_name PNJBase
 
 @onready var zone_interaction: Area2D = %ZoneInteraction
 @onready var bulle: BulleTexte = %BulleTexte
+@onready var anime : AnimatedSprite2D = $AnimatedSprite2D
 
 var joueur_proche: Player = null
 var systeme_dialogue: SystemeDialogue = null
@@ -20,6 +21,7 @@ func _ready() -> void:
 	zone_interaction.body_exited.connect(_quand_corps_sort)
 	bulle.configurer(texte_proximite, type_bulle)
 	bulle.visible = false
+	anime.play("default")
 
 func _unhandled_input(event: InputEvent) -> void:
 	if joueur_proche == null:

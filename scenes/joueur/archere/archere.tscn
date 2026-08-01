@@ -1078,6 +1078,7 @@ shader_parameter/vignette_fin = 1.05
 shader_parameter/vignette_couleur = Color(0, 0, 0, 1)
 
 [node name="Archere" type="CharacterBody2D" unique_id=783124346]
+y_sort_enabled = true
 script = ExtResource("1_qjs34")
 chemin_stats = NodePath("StatsJoueur")
 chemin_sante = NodePath("Santé")
@@ -1189,62 +1190,77 @@ metadata/_custom_type_script = "uid://ca27wv5y28koq"
 libraries/ = SubResource("AnimationLibrary_1liwq")
 
 [node name="squelette du corps" type="Node2D" parent="." unique_id=1441743443]
+y_sort_enabled = true
 texture_filter = 1
 scale = Vector2(6, 6)
 
 [node name="animation deplacement" type="Node2D" parent="squelette du corps" unique_id=1886668769]
+y_sort_enabled = true
 
 [node name="jambe gauche en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=1034661395]
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_smvi2")
 animation = &"jambe gauche en course bas"
 frame_progress = 0.8493078
 
 [node name="jambe droite en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=1375546127]
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_4obtr")
 animation = &"jambe droite en course bas"
 frame_progress = 0.4002016
 
 [node name="torse en course" type="AnimatedSprite2D" parent="squelette du corps/animation deplacement" unique_id=671816660]
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_a1wk0")
 animation = &"torse en course bas"
 frame_progress = 0.8512501
 
 [node name="inactif" type="Node2D" parent="squelette du corps" unique_id=1002468245]
+y_sort_enabled = true
 
 [node name="inactif torse" type="Sprite2D" parent="squelette du corps/inactif" unique_id=1239734821]
+y_sort_enabled = true
 texture = ExtResource("20_i13yx")
 hframes = 16
 
 [node name="inactif tete" type="Sprite2D" parent="squelette du corps/inactif" unique_id=906096592]
+y_sort_enabled = true
 texture = ExtResource("21_pkql5")
 hframes = 16
 
 [node name="inactif jambe droite" type="Sprite2D" parent="squelette du corps/inactif" unique_id=1418329470]
+y_sort_enabled = true
 texture = ExtResource("22_ctind")
 hframes = 16
 
 [node name="inactif jambe gauche" type="Sprite2D" parent="squelette du corps/inactif" unique_id=960317419]
+y_sort_enabled = true
 texture = ExtResource("23_s88oj")
 hframes = 16
 
 [node name="inactif corps entier" type="Sprite2D" parent="squelette du corps/inactif" unique_id=301836749]
 visible = false
+y_sort_enabled = true
 texture = ExtResource("24_hveao")
 
 [node name="animations dash" type="Node2D" parent="squelette du corps" unique_id=1290494744]
+y_sort_enabled = true
 
 [node name="corps entier roulade bas" type="Sprite2D" parent="squelette du corps/animations dash" unique_id=1885626348]
 visible = false
+y_sort_enabled = true
 texture = ExtResource("14_ctind")
 hframes = 7
 
 [node name="corps entier dash arriere" type="AnimatedSprite2D" parent="squelette du corps/animations dash" unique_id=2133197758]
 visible = false
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_rc4ya")
 animation = &"corps entier dash arriere gauche"
 
 [node name="corps entier dash avant" type="AnimatedSprite2D" parent="squelette du corps/animations dash" unique_id=1034844901]
 visible = false
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_3hjhr")
 animation = &"corps entier dash avant gauche"
 frame = 2
@@ -1252,6 +1268,7 @@ frame_progress = 0.8509588
 
 [node name="corps entier roulade haut" type="AnimatedSprite2D" parent="squelette du corps/animations dash" unique_id=124903025]
 visible = false
+y_sort_enabled = true
 sprite_frames = SubResource("SpriteFrames_alhaa")
 animation = &"corps entier roulade haut"
 frame_progress = 0.18246832

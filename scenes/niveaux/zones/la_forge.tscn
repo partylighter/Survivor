@@ -23,8 +23,25 @@
 [ext_resource type="Script" uid="uid://buynlufcaba1t" path="res://scripts/forge/donnees/RecetteComposant.gd" id="24_recette_composant"]
 [ext_resource type="Resource" uid="uid://cwl3dp8n7wf08" path="res://ressources/forge/recettes/branche_arc_bois.tres" id="25_recette_branche_arc"]
 [ext_resource type="Resource" uid="uid://4cpqpb7nrvxe" path="res://ressources/forge/recettes/piece_moulee_fer.tres" id="26_recette_piece_fer"]
+[ext_resource type="Script" uid="uid://dcilq6nxyvo36" path="res://scripts/chargements_auto/gameplay/UpgradeRegistry.gd" id="26_vtdlf"]
 [ext_resource type="PackedScene" uid="uid://b64ycikxk3l17" path="res://scenes/ui/interface_coffre.tscn" id="27_interface_coffre"]
+[ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="27_tsfdf"]
 [ext_resource type="PackedScene" uid="uid://cwxgoqt3xg4nj" path="res://scenes/objets/coffre_monde.tscn" id="28_coffre_monde"]
+[ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://ressources/items/upg_degats_tir_1.tres" id="28_olbor"]
+[ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://ressources/items/upg_degats_contact_1.tres" id="29_m85f3"]
+[ext_resource type="Resource" uid="uid://csuy35xqfklta" path="res://ressources/items/upg_tir_cadence.tres" id="30_fxs0p"]
+[ext_resource type="Resource" uid="uid://b7u1io6yqtqqu" path="res://ressources/items/upg_tir_multitir.tres" id="31_04xeb"]
+[ext_resource type="Resource" uid="uid://c5fw0b848gtog" path="res://ressources/items/upg_tir_perforation.tres" id="32_ca65t"]
+[ext_resource type="Resource" uid="uid://c5fq8bi1xgco1" path="res://ressources/items/upg_tir_dispersion.tres" id="33_r0l74"]
+[ext_resource type="Resource" uid="uid://bmip3mwiw0hv0" path="res://ressources/items/upg_tir_vitesse_projectile.tres" id="34_axomp"]
+[ext_resource type="Resource" uid="uid://f1hhqlfd17bn" path="res://ressources/items/upg_tir_duree_vie.tres" id="35_776v0"]
+[ext_resource type="Resource" uid="uid://dgxfyt727m1gs" path="res://ressources/items/upg_tir_zone_scan.tres" id="36_dd6nq"]
+[ext_resource type="Resource" uid="uid://b0nccksqltw5c" path="res://ressources/items/upg_tir_recul.tres" id="37_anc3l"]
+[ext_resource type="Resource" uid="uid://bmcftjh5j6m8e" path="res://ressources/items/upg_contact_cadence.tres" id="38_sow48"]
+[ext_resource type="Resource" uid="uid://dmbiyubketrh5" path="res://ressources/items/upg_contact_recul.tres" id="39_3aoqs"]
+[ext_resource type="Resource" uid="uid://c5c20dbjuovae" path="res://ressources/items/upg_contact_duree_active.tres" id="40_i0g4e"]
+[ext_resource type="Script" uid="uid://du7hwwgrox0gu" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeContact.gd" id="41_rnj6l"]
+[ext_resource type="Script" uid="uid://cv21bsmmjcq40" path="res://scripts/gestionnaires/en_jeu/GestionnaireUpgradesArmeTir.gd" id="42_awwio"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_camera_1"]
 size = Vector2(1461.3, 773.7)
@@ -579,3 +596,40 @@ chemin_gestionnaire_forge = NodePath("../zone de forge")
 [node name="InterfaceCoffre" parent="." unique_id=1159857054 instance=ExtResource("27_interface_coffre")]
 
 [node name="InterfaceCoffre2" parent="." unique_id=1782526605 instance=ExtResource("27_interface_coffre")]
+
+[node name="UpgradeRegistry" type="Node" parent="." unique_id=1693505891]
+script = ExtResource("26_vtdlf")
+upgrades = Array[ExtResource("27_tsfdf")]([ExtResource("28_olbor"), ExtResource("29_m85f3"), ExtResource("30_fxs0p"), ExtResource("31_04xeb"), ExtResource("32_ca65t"), ExtResource("33_r0l74"), ExtResource("34_axomp"), ExtResource("35_776v0"), ExtResource("36_dd6nq"), ExtResource("37_anc3l"), ExtResource("38_sow48"), ExtResource("39_3aoqs"), ExtResource("40_i0g4e")])
+metadata/_custom_type_script = "uid://dcilq6nxyvo36"
+
+[node name="GestionnaireUpgradesArmeContact" type="Node" parent="." unique_id=829026843]
+script = ExtResource("41_rnj6l")
+mod_degats = true
+degats = 15
+mod_duree_active_s = true
+cooldown_s = 0.1
+mod_recul_force = true
+recul_force = 1500.0
+metadata/_custom_type_script = "uid://du7hwwgrox0gu"
+
+[node name="GestioUpgArmeTir" type="Node" parent="." unique_id=1335367733]
+script = ExtResource("42_awwio")
+mod_degats = true
+mod_duree_active_s = true
+mod_cooldown_s = true
+mod_recul_force = true
+recul_force = 4000.0
+mod_nb_balles = true
+mod_dispersion_deg = true
+mod_duree_vie_s = true
+duree_vie_s = 0.195
+mod_vitesse_px_s = true
+vitesse_px_s = 10000.0
+mod_marge_raycast_px = true
+largeur_zone_scane = 200.0
+mod_nombre_de_rayon_dans_zone_scane = true
+nombre_de_rayon_dans_zone_scane = 3
+mod_contacts_avant_destruction = true
+ignorer_meme_cible = false
+chemin_registry = NodePath("../UpgradeRegistry")
+metadata/_custom_type_script = "uid://cv21bsmmjcq40"

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_equipement"]
 [ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_jc0q8"]
-[ext_resource type="Resource" path="res://ressources/forge/qualite/profil_arc_en_bois.tres" id="2_profil"]
+[ext_resource type="Resource" uid="uid://bmfpe0w4xw6vi" path="res://ressources/forge/qualite/profil_arc_en_bois.tres" id="2_profil"]
 [ext_resource type="PackedScene" uid="uid://b2g86s8unsmo6" path="res://scenes/armes/tir/arc_en_bois.tscn" id="3_arme"]
 [ext_resource type="Texture2D" uid="uid://cqgpub2jqdghe" path="res://assets/items/icon-arc-en-bois.png" id="4_icone"]
 [ext_resource type="Resource" path="res://ressources/forge/ameliorations/renfort_arc.tres" id="5_renfort"]
@@ -12,6 +12,7 @@ script = ExtResource("1_equipement")
 item_id = &"arc_en_bois"
 nom_affiche = "Arc en bois"
 icone = ExtResource("4_icone")
+afficher_notification_collecte = true
 profil_qualite_forge = ExtResource("2_profil")
 scene_arme_equipee = ExtResource("3_arme")
 ameliorations_compatibles = PackedStringArray("renfort_arc")

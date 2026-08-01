@@ -5,6 +5,12 @@
 [ext_resource type="Script" uid="uid://c6iq8bwwqa368" path="res://scripts/coffres/ContenuInitialCoffre.gd" id="3_vnege"]
 [ext_resource type="Resource" uid="uid://xvvt6ieyicn7" path="res://ressources/items/equipements/epee_fer.tres" id="4_uf0kj"]
 [ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="5_uf0kj"]
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="6_uofu1"]
+[ext_resource type="Resource" path="res://ressources/forge/ameliorations/renfort_arc.tres" id="7_yj1f4"]
+[ext_resource type="Texture2D" uid="uid://bgwtcjj6mfw43" path="res://assets/items/arcs/Arc traditionnel monobloc recourbe de chasseur Nelphique.png" id="8_lu034"]
+[ext_resource type="Script" uid="uid://ks7l7lqwgicy" path="res://scripts/forge/qualite/ProfilQualiteForge.gd" id="9_n5whv"]
+[ext_resource type="PackedScene" uid="uid://1ylsu7t5ysq3" path="res://scenes/armes/tir/arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique.tscn" id="10_62vd1"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="11_l1lvw"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_coffre"]
 bg_color = Color(0.05, 0.05, 0.055, 0.9)
@@ -25,6 +31,31 @@ metadata/_custom_type_script = "uid://c6iq8bwwqa368"
 script = ExtResource("3_vnege")
 objet = ExtResource("5_uf0kj")
 type_item = 2
+metadata/_custom_type_script = "uid://c6iq8bwwqa368"
+
+[sub_resource type="Resource" id="Resource_mqw0o"]
+script = ExtResource("9_n5whv")
+utilise_qualite_forge = true
+statistiques_influencees = PackedStringArray("degats", "recul force", "contacts avnt destruction")
+metadata/_custom_type_script = "uid://ks7l7lqwgicy"
+
+[sub_resource type="Resource" id="Resource_hcc1y"]
+script = ExtResource("11_l1lvw")
+item_id = &"arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique"
+nom_affiche = "arc traditionnel monobloc recourbe de chasseur nelphique"
+icone = ExtResource("8_lu034")
+afficher_notification_collecte = true
+profil_qualite_forge = SubResource("Resource_mqw0o")
+scene_arme_equipee = ExtResource("10_62vd1")
+ameliorations_compatibles = PackedStringArray("renfort_arc")
+ameliorations_forge = Array[ExtResource("6_uofu1")]([ExtResource("7_yj1f4")])
+metadata/_custom_type_script = "uid://d0pvuknpvcw5q"
+
+[sub_resource type="Resource" id="Resource_cb8sn"]
+script = ExtResource("3_vnege")
+objet = SubResource("Resource_hcc1y")
+type_item = 2
+type_loot = 2
 metadata/_custom_type_script = "uid://c6iq8bwwqa368"
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_zone"]
@@ -54,7 +85,7 @@ vertical_alignment = 1
 
 [node name="GestionnaireCoffre" type="Node" parent="." unique_id=1829550866]
 script = ExtResource("2_gestionnaire")
-contenu_initial = Array[ExtResource("3_vnege")]([SubResource("Resource_2b4rd"), SubResource("Resource_upn53")])
+contenu_initial = Array[ExtResource("3_vnege")]([SubResource("Resource_2b4rd"), SubResource("Resource_upn53"), SubResource("Resource_cb8sn")])
 
 [node name="ZoneInteraction" type="Area2D" parent="." unique_id=129302775]
 

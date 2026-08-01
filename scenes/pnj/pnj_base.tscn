@@ -1,77 +1,26 @@
 [gd_scene format=3 uid="uid://dxcpvlmm4vii5"]
 
 [ext_resource type="Script" uid="uid://e5sfh528d8vu" path="res://scripts/pnj/PNJBase.gd" id="1_pnj"]
-[ext_resource type="Texture2D" uid="uid://bo7a3qf7j2tb6" path="res://assets/archere/animation allbody.png" id="2_63uu5"]
+[ext_resource type="Texture2D" uid="uid://dy31y0syq0y0g" path="res://assets/PNJ/PNJ sprite sheet.png" id="2_63uu5"]
 [ext_resource type="PackedScene" uid="uid://bvw6llatxks8m" path="res://scenes/ui/bulle_texte.tscn" id="2_bulle"]
+[ext_resource type="Texture2D" uid="uid://cg7kx1o1jrnxp" path="res://assets/items/arcs/Arc long demontable recurve type guerre  de chasseur Nelphique.png" id="4_6baf3"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_6baf3"]
 atlas = ExtResource("2_63uu5")
-region = Rect2(0, 0, 50, 80)
+region = Rect2(0, 0, 47, 54)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_bitjx"]
 atlas = ExtResource("2_63uu5")
-region = Rect2(50, 0, 50, 80)
+region = Rect2(47, 0, 47, 54)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_4wet3"]
 atlas = ExtResource("2_63uu5")
-region = Rect2(100, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_j6wlf"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(150, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_u6lf2"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(200, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_r82b4"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(250, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_cw4s5"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(300, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_02u7d"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(350, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_qixw5"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(400, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_huumm"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(450, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_ressr"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(500, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_nyfm8"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(550, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_sa33y"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(600, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_bc24i"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(650, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_sej7f"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(700, 0, 50, 80)
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_5xohi"]
-atlas = ExtResource("2_63uu5")
-region = Rect2(750, 0, 50, 80)
+region = Rect2(94, 0, 47, 54)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_pnj"]
 animations = [{
 "frames": [{
-"duration": 1.0,
+"duration": 1.1,
 "texture": SubResource("AtlasTexture_6baf3")
 }, {
 "duration": 1.0,
@@ -79,61 +28,26 @@ animations = [{
 }, {
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_4wet3")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_j6wlf")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_u6lf2")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_r82b4")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_cw4s5")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_02u7d")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_qixw5")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_huumm")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_ressr")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_nyfm8")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_sa33y")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_bc24i")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_sej7f")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_5xohi")
 }],
 "loop": 1,
 "name": &"default",
-"speed": 15.0
+"speed": 8.0
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_interaction"]
 radius = 220.0
 
 [node name="PNJBase" type="Node2D" unique_id=767607204]
+y_sort_enabled = true
 script = ExtResource("1_pnj")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=150059313]
-scale = Vector2(4, 4)
+y_sort_enabled = true
+position = Vector2(0, 67)
+scale = Vector2(6, 6)
 sprite_frames = SubResource("SpriteFrames_pnj")
-frame_progress = 0.47025055
+frame_progress = 0.33125034
+offset = Vector2(0, -15)
 
 [node name="ZoneInteraction" type="Area2D" parent="." unique_id=1042151701]
 unique_name_in_owner = true
@@ -142,8 +56,15 @@ collision_mask = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneInteraction" unique_id=1042151702]
 shape = SubResource("CircleShape2D_interaction")
+debug_color = Color(1, 0, 1, 0)
 
 [node name="BulleTexte" parent="." unique_id=753313209 instance=ExtResource("2_bulle")]
 unique_name_in_owner = true
 visible = false
 position = Vector2(0, -70)
+
+[node name="ArcLongDemontableRecurveTypeGuerreDeChasseurNelphique" type="Sprite2D" parent="." unique_id=1463795433]
+position = Vector2(5.000004, -59.999992)
+rotation = 0.34509566
+scale = Vector2(2, 2)
+texture = ExtResource("4_6baf3")
