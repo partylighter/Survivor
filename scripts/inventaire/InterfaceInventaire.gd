@@ -6,7 +6,7 @@ class_name InterfaceInventaire
 @export var action_fermer_interface: StringName = &"fermer_interface"
 
 @onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
-@onready var joueur: Player = get_parent() as Player
+@onready var gestionnaire_effets_nourriture: GestionnaireEffetsNourriture = get_node_or_null("../GestionnaireEffetsNourriture") as GestionnaireEffetsNourriture
 @onready var gestionnaire_arme: GestionnaireArme = get_node_or_null("../GestionnaireArme") as GestionnaireArme
 @onready var interface: Control = $Interface
 @onready var grille: GridContainer = $Interface/Panneau/Marge/Colonne/Defilement/Grille
@@ -149,7 +149,7 @@ func _creer_cellule(objet: Dictionary) -> Control:
 	return panneau
 
 func _ajouter_bouton_manger(colonne: VBoxContainer, objet: Dictionary) -> void:
-	if int(objet.get("type_item", -1)) != Loot.TypeItem.CONSO:
+	if gestionnaire_effets_nourriture == null or int(objet.get("type_item", -1)) != Loot.TypeItem.CONSO:
 		return
 	var definition: LootItemEntry = _obtenir_definition_objet(objet)
 	if definition == null or definition.effet_nourriture == null:
@@ -160,23 +160,11 @@ func _ajouter_bouton_manger(colonne: VBoxContainer, objet: Dictionary) -> void:
 	colonne.add_child(bouton_manger)
 
 func _manger(identifiant: StringName) -> void:
-	if joueur == null or inventaire == null or inventaire.obtenir_quantite(identifiant) < 1:
+	if gestionnaire_effets_nourriture == null or inventaire == null or inventaire.obtenir_quantite(identifiant) < 1:
 		return
 	var objet: Dictionary = inventaire.obtenir_objet(identifiant)
 	var definition: LootItemEntry = _obtenir_definition_objet(objet)
-	if definition == null or definition.effet_nourriture == null:
-		return
-	var effet: EffetNourriture = definition.effet_nourriture
-	if effet.soin > 0 and joueur.sante == null:
-		return
-	if effet.restauration_soif > 0.0 and joueur.soif == null:
-		return
-	if inventaire.retirer_objet(identifiant, 1) != 1:
-		return
-	if effet.soin > 0:
-		joueur.sante.heal(effet.soin)
-	if effet.restauration_soif > 0.0:
-		joueur.soif.gagner_soif(effet.restauration_soif)
+	gestionnaire_effets_nourriture.consommer_nourriture(definition)
 
 func _obtenir_definition_objet(objet: Dictionary) -> LootItemEntry:
 	var donnees: Dictionary = objet.get("donnees", {})

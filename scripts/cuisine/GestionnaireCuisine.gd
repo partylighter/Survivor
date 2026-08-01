@@ -58,13 +58,9 @@ func retirer_ingredient(index_slot: int) -> bool:
 	return true
 
 func rendre_tous_les_ingredients() -> void:
-	if table_cuisine == null:
+	if table_cuisine == null or inventaire == null:
 		return
 	var objets: Array[Dictionary] = table_cuisine.extraire_tous_les_objets()
-	if inventaire == null:
-		if not objets.is_empty():
-			push_error("Impossible de rendre les ingredients : inventaire indisponible.")
-		return
 	for objet: Dictionary in objets:
 		_ajouter_objet_inventaire(objet)
 

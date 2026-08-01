@@ -25,6 +25,7 @@
 [ext_resource type="Script" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
 [ext_resource type="Script" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="24_inventaire"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
+[ext_resource type="Script" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="26_effets_nourriture"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -287,6 +288,9 @@ objets_temporaires = Array[Dictionary]([{
 "quantite": 1,
 "type_item": 5
 }])
+
+[node name="GestionnaireEffetsNourriture" type="Node" parent="."]
+script = ExtResource("26_effets_nourriture")
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1146967959]
 script = ExtResource("10_uxo23")

@@ -33,14 +33,12 @@
 [ext_resource type="Script" uid="uid://dfqiib4t51xl8" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="26_modes"]
 [ext_resource type="Script" uid="uid://dfbi1qwwfkb3c" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="27_libre"]
 [ext_resource type="Script" uid="uid://d2rb5onhlefvl" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="28_inventaire"]
+[ext_resource type="Script" uid="uid://b78lu6p30tt7n" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="29_effets_nourriture"]
 [ext_resource type="PackedScene" uid="uid://b2gkwphybhcur" path="res://scenes/ui/interface_inventaire.tscn" id="29_interface_inventaire"]
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="29_xag11"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/oeuf.tres" id="30_517s2"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/poivre.tres" id="31_t3m3n"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/sel.tres" id="32_r5uce"]
-[ext_resource type="Resource" path="res://ressources/cuisine/ingredients/carotte.tres" id="33_b514t"]
-[ext_resource type="Resource" path="res://ressources/cuisine/ingredients/champignon.tres" id="34_fab7w"]
-[ext_resource type="Resource" path="res://ressources/cuisine/ingredients/eau.tres" id="35_e3deq"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/viande.tres" id="36_3eba1"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
@@ -1300,7 +1298,6 @@ script = ExtResource("10_hveao")
 
 [node name="Santé" type="Node" parent="." unique_id=1094994740]
 script = ExtResource("11_d1jmq")
-max_pv = 999999999
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=764373083]
 script = ExtResource("12_ggrrm")
@@ -1366,7 +1363,10 @@ objets_temporaires = Array[Dictionary]([{
 "quantite": 1,
 "type_item": 5
 }])
-ressources_temporaires = Array[ExtResource("29_xag11")]([ExtResource("30_517s2"), ExtResource("31_t3m3n"), ExtResource("32_r5uce"), ExtResource("33_b514t"), ExtResource("34_fab7w"), ExtResource("35_e3deq"), ExtResource("36_3eba1")])
+ressources_temporaires = Array[ExtResource("29_xag11")]([ExtResource("31_t3m3n"), ExtResource("32_r5uce"), ExtResource("30_517s2"), ExtResource("36_3eba1")])
+
+[node name="GestionnaireEffetsNourriture" type="Node" parent="." unique_id=2023379626]
+script = ExtResource("29_effets_nourriture")
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1363142192]
 script = ExtResource("15_6qcki")

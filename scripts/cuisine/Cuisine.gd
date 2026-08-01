@@ -48,13 +48,14 @@ func _quand_corps_sort(corps: Node) -> void:
 	if corps != joueur_present:
 		return
 	gestionnaire_cuisine.rendre_tous_les_ingredients()
-	interface_cuisine.fermer()
 	invite_interaction.hide()
 	gestionnaire_cuisine.retirer_joueur()
 	joueur_present = null
+	interface_cuisine.fermer()
 
 func _quand_interface_fermee() -> void:
 	if joueur_present != null:
+		gestionnaire_cuisine.rendre_tous_les_ingredients()
 		invite_interaction.show()
 
 func _configuration_est_valide() -> bool:

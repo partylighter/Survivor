@@ -41,8 +41,6 @@ func ouvrir() -> void:
 	show()
 
 func fermer() -> void:
-	if gestionnaire_cuisine != null:
-		gestionnaire_cuisine.rendre_tous_les_ingredients()
 	_connecter_inventaire(null)
 	hide()
 	interface_fermee.emit()
