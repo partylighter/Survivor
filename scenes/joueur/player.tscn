@@ -31,6 +31,8 @@
 [ext_resource type="Resource" path="res://ressources/forge/recettes/catalogue_equipements.tres" id="29_catalogue"]
 [ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="30_item"]
 [ext_resource type="Resource" path="res://ressources/items/composants/lame_fer.tres" id="31_lame"]
+[ext_resource type="Resource" path="res://ressources/items/equipements/arc_en_bois.tres" id="32_arc"]
+[ext_resource type="Resource" path="res://ressources/items/composants/renfort_arc.tres" id="33_renfort_arc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -293,7 +295,7 @@ objets_temporaires = Array[Dictionary]([{
 "quantite": 1,
 "type_item": 5
 }])
-ressources_temporaires = Array[ExtResource("30_item")]([ExtResource("31_lame")])
+ressources_temporaires = Array[ExtResource("30_item")]([ExtResource("31_lame"), ExtResource("32_arc"), ExtResource("33_renfort_arc")])
 
 [node name="GestionnaireEffetsNourriture" type="Node" parent="."]
 script = ExtResource("26_effets_nourriture")

@@ -21,7 +21,10 @@ func _ready() -> void:
 func _ajouter_depuis_ressource(ressource: LootItemEntry) -> void:
 	if ressource == null or String(ressource.item_id).is_empty():
 		return
-	ajouter_objet(ressource.item_id, ressource.nom_affiche, 1, ressource.icone, ressource.type_item, {"chemin_definition": ressource.resource_path})
+	var donnees: Dictionary = {"chemin_definition": ressource.resource_path}
+	if ressource.type_item == Loot.TypeItem.EQUIPEMENT:
+		donnees = DonneesInstanceEquipement.creer(ressource.item_id, ressource.resource_path, &"correcte", {})
+	ajouter_objet(ressource.item_id, ressource.nom_affiche, 1, ressource.icone, ressource.type_item, donnees)
 
 func ajouter_depuis_payload(payload: Dictionary) -> bool:
 	var identifiant: StringName = payload.get("id", payload.get("item_id", payload.get("identifiant", &"")))

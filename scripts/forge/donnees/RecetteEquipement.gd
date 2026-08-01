@@ -33,6 +33,8 @@ func obtenir_erreurs() -> Array[String]:
 		erreurs.append("La recette demande %d composants, mais la table ne contient que %d emplacements." % [quantite_totale, NOMBRE_OBJETS_ASSEMBLAGE_MAXIMUM])
 	if resultat == null or String(resultat.item_id).strip_edges() == "":
 		erreurs.append("Le resultat de la recette d'equipement est invalide.")
+	elif resultat.type_item != Loot.TypeItem.EQUIPEMENT:
+		erreurs.append("Le resultat de la recette doit etre un equipement.")
 	if quantite_resultat < 1:
 		erreurs.append("La quantite du resultat est invalide.")
 	return erreurs

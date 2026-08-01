@@ -52,7 +52,8 @@ func _can_drop_data(_position: Vector2, donnees: Variant) -> bool:
 		return false
 	var dictionnaire: Dictionary = donnees
 	var objet_glisse: Dictionary = dictionnaire.get("objet", {})
-	return dictionnaire.get("origine", &"") == &"inventaire" and int(objet_glisse.get("type_item", -1)) == Loot.TypeItem.COMPOSANT
+	var type_item: int = int(objet_glisse.get("type_item", -1))
+	return dictionnaire.get("origine", &"") == &"inventaire" and type_item in [Loot.TypeItem.COMPOSANT, Loot.TypeItem.UPGRADE, Loot.TypeItem.EQUIPEMENT]
 
 func _drop_data(_position: Vector2, donnees: Variant) -> void:
 	var dictionnaire: Dictionary = donnees
@@ -68,4 +69,4 @@ func _actualiser() -> void:
 		return
 	icone.texture = objet.get("icone", null) as Texture2D
 	etiquette.text = "Vide" if objet.is_empty() else String(objet.get("nom", objet.get("identifiant", "Objet")))
-	tooltip_text = "Glissez un composant ici." if objet.is_empty() else "Cliquez pour rendre ce composant a l'inventaire."
+	tooltip_text = "Glissez un objet a combiner ici." if objet.is_empty() else "Cliquez pour rendre cet objet a l'inventaire."

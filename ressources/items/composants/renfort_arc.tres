@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_composant")
 item_id = &"renfort_arc"
+type_item = 4
 nom_affiche = "Renfort d'arc"

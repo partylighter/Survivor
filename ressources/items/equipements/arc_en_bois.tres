@@ -11,6 +11,7 @@
 [resource]
 script = ExtResource("1_equipement")
 item_id = &"arc_en_bois"
+type_item = 5
 nom_affiche = "Arc en bois"
 icone = ExtResource("4_icone")
 afficher_notification_collecte = true

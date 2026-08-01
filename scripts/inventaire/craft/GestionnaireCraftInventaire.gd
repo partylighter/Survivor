@@ -16,22 +16,35 @@ signal desassemblage_reussi(objet: Dictionary)
 
 var table: TableCraftInventaire = TableCraftInventaire.new()
 var recette_detectee: RecetteEquipement
+var amelioration_detectee: Dictionary = {}
 var cible_desassemblage: Dictionary = {}
 var derniere_erreur: String = ""
 
 func deposer_objet(index_slot: int, objet: Dictionary) -> bool:
 	derniere_erreur = ""
-	if inventaire == null or int(objet.get("type_item", -1)) != Loot.TypeItem.COMPOSANT:
-		derniere_erreur = "Seuls les composants peuvent etre assembles."
+	var type_item: int = int(objet.get("type_item", -1))
+	if inventaire == null or type_item not in [Loot.TypeItem.COMPOSANT, Loot.TypeItem.UPGRADE, Loot.TypeItem.EQUIPEMENT]:
+		derniere_erreur = "Cet objet ne peut pas etre combine."
 		return false
 	if not table.deposer(index_slot, objet):
 		derniere_erreur = "Cet emplacement n'est pas disponible."
 		return false
-	var identifiant: StringName = objet.get("identifiant", &"")
-	if inventaire.retirer_objet(identifiant, 1) != 1:
+	var objet_retire: Dictionary = {}
+	if type_item == Loot.TypeItem.EQUIPEMENT:
+		var identifiant_instance: StringName = objet.get("donnees", {}).get(DonneesInstanceEquipement.CLE_IDENTIFIANT_INSTANCE, &"")
+		objet_retire = inventaire.retirer_equipement_instance(identifiant_instance)
+	else:
+		var identifiant: StringName = objet.get("identifiant", &"")
+		if inventaire.retirer_objet(identifiant, 1) == 1:
+			objet_retire = objet.duplicate(true)
+			objet_retire["quantite"] = 1
+	if objet_retire.is_empty():
 		table.retirer(index_slot)
-		derniere_erreur = "Le composant n'est plus disponible dans l'inventaire."
+		derniere_erreur = "L'objet exact n'est plus disponible dans l'inventaire."
 		return false
+	if type_item == Loot.TypeItem.EQUIPEMENT:
+		table.retirer(index_slot)
+		table.deposer(index_slot, objet_retire)
 	_actualiser_recette()
 	return true
 
@@ -65,6 +78,8 @@ func assembler() -> Dictionary:
 		derniere_erreur = "L'inventaire est introuvable."
 		return {}
 	_actualiser_recette(false)
+	if not amelioration_detectee.is_empty():
+		return _assembler_amelioration()
 	if recette_detectee == null:
 		derniere_erreur = "Aucune recette ne correspond exactement aux trois emplacements."
 		return {}
@@ -92,9 +107,19 @@ func assembler() -> Dictionary:
 	assemblage_reussi.emit(premier_resultat)
 	return premier_resultat
 
+func obtenir_resultat_prevu() -> Dictionary:
+	if recette_detectee != null:
+		return {"nom": recette_detectee.resultat.nom_affiche, "icone": recette_detectee.resultat.icone}
+	if not amelioration_detectee.is_empty():
+		var equipement: Dictionary = amelioration_detectee.get("equipement", {})
+		var amelioration: AmeliorationForge = amelioration_detectee.get("amelioration") as AmeliorationForge
+		return {"nom": "%s + %s" % [String(equipement.get("nom", "Equipement")), amelioration.nom], "icone": equipement.get("icone", null)}
+	return {}
+
 func selectionner_pour_desassemblage(objet: Dictionary) -> bool:
 	derniere_erreur = ""
 	if not peut_desassembler(objet):
+		annuler_desassemblage()
 		return false
 	cible_desassemblage = objet.duplicate(true)
 	cible_desassemblage_changee.emit(cible_desassemblage.duplicate(true))
@@ -154,6 +179,7 @@ func _actualiser_recette(emettre_table: bool = true) -> void:
 	var nouvelle_recette: RecetteEquipement = _trouver_recette()
 	var recette_a_change: bool = nouvelle_recette != recette_detectee
 	recette_detectee = nouvelle_recette
+	amelioration_detectee = _trouver_amelioration()
 	if emettre_table:
 		table_changee.emit()
 	if recette_a_change:
@@ -173,6 +199,59 @@ func _trouver_recette() -> RecetteEquipement:
 		if quantite_totale <= TableCraftInventaire.NOMBRE_SLOTS and quantites_requises == quantites_table:
 			return recette
 	return null
+
+func _trouver_amelioration() -> Dictionary:
+	var objets: Array[Dictionary] = []
+	for index: int in TableCraftInventaire.NOMBRE_SLOTS:
+		var objet: Dictionary = table.obtenir(index)
+		if not objet.is_empty():
+			objets.append(objet)
+	if objets.size() != 2:
+		return {}
+	var equipement: Dictionary = {}
+	var objet_amelioration: Dictionary = {}
+	for objet: Dictionary in objets:
+		if int(objet.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT:
+			if not equipement.is_empty():
+				return {}
+			equipement = objet
+		else:
+			if not objet_amelioration.is_empty():
+				return {}
+			objet_amelioration = objet
+	if equipement.is_empty() or objet_amelioration.is_empty():
+		return {}
+	var identifiant_amelioration: StringName = objet_amelioration.get("identifiant", &"")
+	var donnees: Dictionary = equipement.get("donnees", {})
+	if not GestionnaireAmeliorationsEquipement.est_compatible(donnees, identifiant_amelioration):
+		return {}
+	if GestionnaireAmeliorationsEquipement.obtenir_ameliorations_installees(donnees).has(identifiant_amelioration):
+		return {}
+	var chemin_definition: String = String(donnees.get(DonneesInstanceEquipement.CLE_CHEMIN_DEFINITION, ""))
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry if not chemin_definition.is_empty() else null
+	var amelioration: AmeliorationForge = definition.obtenir_amelioration_forge(identifiant_amelioration) if definition != null else null
+	if amelioration == null:
+		return {}
+	return {"equipement": equipement, "objet_amelioration": objet_amelioration, "amelioration": amelioration}
+
+func _assembler_amelioration() -> Dictionary:
+	var equipement: Dictionary = amelioration_detectee.get("equipement", {}).duplicate(true)
+	var objet_amelioration: Dictionary = amelioration_detectee.get("objet_amelioration", {})
+	var identifiant_amelioration: StringName = objet_amelioration.get("identifiant", &"")
+	var nouvelles_donnees: Dictionary = GestionnaireAmeliorationsEquipement.creer_donnees_avec_amelioration(equipement.get("donnees", {}), identifiant_amelioration)
+	if nouvelles_donnees.is_empty():
+		derniere_erreur = "Cette amelioration ne peut pas etre installee sur cet equipement."
+		return {}
+	equipement["donnees"] = nouvelles_donnees
+	if not inventaire.ajouter_depuis_payload(equipement):
+		derniere_erreur = "Impossible d'ajouter l'equipement ameliore. Les objets ont ete conserves."
+		return {}
+	var identifiant_instance: StringName = nouvelles_donnees.get(DonneesInstanceEquipement.CLE_IDENTIFIANT_INSTANCE, &"")
+	var resultat: Dictionary = inventaire.obtenir_equipement_instance(identifiant_instance)
+	table.vider()
+	_actualiser_recette()
+	assemblage_reussi.emit(resultat)
+	return resultat
 
 func _obtenir_composants_desassemblage(objet: Dictionary) -> Array[Dictionary]:
 	var resultat: Array[Dictionary] = []

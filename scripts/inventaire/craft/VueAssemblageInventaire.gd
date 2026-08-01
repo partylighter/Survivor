@@ -16,7 +16,7 @@ func _ready() -> void:
 	titre.add_theme_font_size_override("font_size", 18)
 	add_child(titre)
 	var aide := Label.new()
-	aide.text = "Glissez jusqu'a 3 composants. L'ordre n'a pas d'importance."
+	aide.text = "Glissez jusqu'a 3 objets a combiner. L'ordre n'a pas d'importance."
 	aide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	aide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(aide)
@@ -65,18 +65,18 @@ func utiliser_objet(objet: Dictionary) -> bool:
 	if gestionnaire == null or not gestionnaire.deposer_dans_premier_slot(objet):
 		_afficher_erreur()
 		return false
-	etat.text = "Composant depose."
+	etat.text = "Objet depose."
 	return true
 
 func _deposer(index_slot: int, objet: Dictionary) -> void:
 	if gestionnaire != null and gestionnaire.deposer_objet(index_slot, objet):
-		etat.text = "Composant depose."
+		etat.text = "Objet depose."
 	else:
 		_afficher_erreur()
 
 func _retirer(index_slot: int) -> void:
 	if gestionnaire != null and gestionnaire.retirer_objet(index_slot):
-		etat.text = "Composant rendu a l'inventaire."
+		etat.text = "Objet rendu a l'inventaire."
 	else:
 		_afficher_erreur()
 
@@ -89,10 +89,10 @@ func _rafraichir() -> void:
 		return
 	for index: int in slots.size():
 		slots[index].configurer(index, gestionnaire.table.obtenir(index) if gestionnaire != null else {})
-	var recette: RecetteEquipement = gestionnaire.recette_detectee if gestionnaire != null else null
-	icone_resultat.texture = recette.resultat.icone if recette != null else null
-	nom_resultat.text = "Resultat : %s" % recette.resultat.nom_affiche if recette != null else "Aucune recette reconnue"
-	bouton_assembler.disabled = recette == null
+	var resultat_prevu: Dictionary = gestionnaire.obtenir_resultat_prevu() if gestionnaire != null else {}
+	icone_resultat.texture = resultat_prevu.get("icone", null) as Texture2D
+	nom_resultat.text = "Resultat : %s" % String(resultat_prevu.get("nom", "")) if not resultat_prevu.is_empty() else "Aucune combinaison reconnue"
+	bouton_assembler.disabled = resultat_prevu.is_empty()
 
 func _quand_recette_changee(_recette: RecetteEquipement) -> void:
 	_rafraichir()

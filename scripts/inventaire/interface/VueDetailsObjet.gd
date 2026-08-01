@@ -16,6 +16,7 @@ signal desassembler_demande(objet: Dictionary)
 @onready var bouton_desassembler: Button = $Actions/Desassembler
 
 var objet: Dictionary = {}
+var catalogue_recettes: CatalogueRecettesEquipement
 
 func _ready() -> void:
 	bouton_equiper.pressed.connect(_demander_equipement)
@@ -23,6 +24,11 @@ func _ready() -> void:
 	bouton_utiliser_craft.pressed.connect(_demander_craft)
 	bouton_desassembler.pressed.connect(_demander_desassemblage)
 	afficher_objet({})
+
+func configurer(nouveau_catalogue: CatalogueRecettesEquipement) -> void:
+	catalogue_recettes = nouveau_catalogue
+	if is_node_ready() and not objet.is_empty():
+		afficher_objet(objet)
 
 func afficher_objet(nouvel_objet: Dictionary) -> void:
 	objet = nouvel_objet.duplicate(true)
@@ -46,7 +52,7 @@ func afficher_objet(nouvel_objet: Dictionary) -> void:
 	var definition: LootItemEntry = _obtenir_definition()
 	bouton_equiper.visible = definition != null and definition.donnees_equipement != null
 	bouton_manger.visible = type_item == Loot.TypeItem.CONSO and definition != null and definition.effet_nourriture != null
-	bouton_utiliser_craft.visible = type_item == Loot.TypeItem.COMPOSANT
+	bouton_utiliser_craft.visible = type_item in [Loot.TypeItem.COMPOSANT, Loot.TypeItem.UPGRADE, Loot.TypeItem.EQUIPEMENT]
 	bouton_desassembler.visible = type_item == Loot.TypeItem.EQUIPEMENT and not DonneesInstanceEquipement.obtenir_composants_structurels(objet.get("donnees", {})).is_empty()
 
 func _construire_informations(type_item: int) -> String:
@@ -55,11 +61,16 @@ func _construire_informations(type_item: int) -> String:
 	if type_item == Loot.TypeItem.EQUIPEMENT:
 		lignes.append("Qualité : %s" % String(donnees.get("qualite", "correcte")).capitalize())
 		var composants: Dictionary = donnees.get("composants_installes", {})
-		if not composants.is_empty():
-			lignes.append("\nComposants :")
+		if not DonneesInstanceEquipement.obtenir_composants_structurels(donnees).is_empty():
+			lignes.append("\nObjets assembles :")
 			for identifiant: Variant in composants:
 				if String(identifiant) != DonneesInstanceEquipement.CLE_AMELIORATIONS:
-					lignes.append("• %s x%d" % [String(identifiant).capitalize(), int(composants[identifiant])])
+					lignes.append("- %s x%d" % [_obtenir_nom_composant(StringName(identifiant)), int(composants[identifiant])])
+		var ameliorations: PackedStringArray = GestionnaireAmeliorationsEquipement.obtenir_ameliorations_installees(donnees)
+		if not ameliorations.is_empty():
+			lignes.append("\nAmeliorations :")
+			for identifiant_amelioration: StringName in ameliorations:
+				lignes.append("- %s" % _decrire_amelioration(identifiant_amelioration))
 	var definition: LootItemEntry = _obtenir_definition()
 	if definition != null:
 		lignes.append("Poids : %.1f" % definition.poids)
@@ -75,6 +86,20 @@ func _obtenir_definition() -> LootItemEntry:
 	var donnees: Dictionary = objet.get("donnees", {})
 	var chemin: String = String(donnees.get("chemin_definition", ""))
 	return load(chemin) as LootItemEntry if not chemin.is_empty() else null
+
+func _obtenir_nom_composant(identifiant: StringName) -> String:
+	var definition: LootItemEntry = catalogue_recettes.obtenir_definition(identifiant) if catalogue_recettes != null else null
+	return definition.nom_affiche if definition != null else String(identifiant).capitalize()
+
+func _decrire_amelioration(identifiant: StringName) -> String:
+	var definition: LootItemEntry = _obtenir_definition()
+	var amelioration: AmeliorationForge = definition.obtenir_amelioration_forge(identifiant) if definition != null else null
+	if amelioration == null:
+		return String(identifiant).capitalize()
+	var bonus_cadence: float = (amelioration.multiplicateur_cadence - 1.0) * 100.0
+	if bonus_cadence > 0.0:
+		return "%s - Cadence +%.0f %%" % [amelioration.nom, bonus_cadence]
+	return amelioration.nom
 
 func _nom_type(type_item: int) -> String:
 	match type_item:

@@ -23,20 +23,27 @@ static func installer_amelioration(inventaire: GestionnaireInventaire, identifia
 	if equipement.is_empty():
 		return false
 	var donnees: Dictionary = equipement.get("donnees", {}).duplicate(true)
-	if not est_compatible(donnees, identifiant_amelioration):
-		return false
-	var ameliorations: PackedStringArray = obtenir_ameliorations_installees(donnees)
-	if ameliorations.has(identifiant_amelioration):
-		return false
 	if inventaire.obtenir_quantite(identifiant_amelioration) < 1:
 		return false
-	ameliorations.append(identifiant_amelioration)
-	var composants: Dictionary = donnees.get("composants_installes", {}).duplicate(true)
-	composants[DonneesInstanceEquipement.CLE_AMELIORATIONS] = ameliorations
-	donnees["composants_installes"] = composants
+	donnees = creer_donnees_avec_amelioration(donnees, identifiant_amelioration)
+	if donnees.is_empty():
+		return false
 	if not inventaire.mettre_a_jour_equipement_instance(identifiant_instance, donnees):
 		return false
 	return inventaire.retirer_objet(identifiant_amelioration, 1) == 1
+
+static func creer_donnees_avec_amelioration(donnees_equipement: Dictionary, identifiant_amelioration: StringName) -> Dictionary:
+	if not est_compatible(donnees_equipement, identifiant_amelioration):
+		return {}
+	var ameliorations: PackedStringArray = obtenir_ameliorations_installees(donnees_equipement)
+	if ameliorations.has(identifiant_amelioration):
+		return {}
+	ameliorations.append(identifiant_amelioration)
+	var nouvelles_donnees: Dictionary = donnees_equipement.duplicate(true)
+	var composants: Dictionary = nouvelles_donnees.get("composants_installes", {}).duplicate(true)
+	composants[DonneesInstanceEquipement.CLE_AMELIORATIONS] = ameliorations
+	nouvelles_donnees["composants_installes"] = composants
+	return nouvelles_donnees
 
 static func _obtenir_definition(donnees_equipement: Dictionary) -> LootItemEntry:
 	var chemin_definition: String = String(donnees_equipement.get("chemin_definition", ""))

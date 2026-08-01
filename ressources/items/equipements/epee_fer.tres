@@ -9,6 +9,7 @@
 [resource]
 script = ExtResource("1_equipement")
 item_id = &"epee_fer"
+type_item = 5
 nom_affiche = "Epee en fer"
 profil_qualite_forge = ExtResource("2_profil")
 scene_arme_equipee = ExtResource("3_arme")

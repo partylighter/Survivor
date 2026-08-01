@@ -43,6 +43,7 @@ func _ready() -> void:
 		gestionnaire_equipement.equipement_change.connect(_rafraichir)
 	vue_equipement.configurer(gestionnaire_equipement)
 	vue_craft.configurer(gestionnaire_craft)
+	vue_details.configurer(gestionnaire_craft.catalogue_recettes if gestionnaire_craft != null else null)
 	vue_details.manger_demande.connect(_manger)
 	vue_details.equiper_demande.connect(_equiper_depuis_details)
 	vue_details.utiliser_craft_demande.connect(_utiliser_pour_craft)
@@ -168,6 +169,7 @@ func _rafraichir() -> void:
 	var objets: Array[Dictionary] = []
 	if inventaire != null:
 		objets = inventaire.obtenir_objets()
+	_actualiser_selection_depuis_objets(objets)
 	var objets_filtres: Array[Dictionary] = []
 	for objet: Dictionary in objets:
 		if objet_correspond_aux_filtres(objet):
@@ -226,6 +228,17 @@ func _selectionner_objet(objet: Dictionary) -> void:
 func _reselectionner_cellule() -> void:
 	for cellule: CelluleInventaire in cellules:
 		cellule.definir_selectionnee(_meme_objet(cellule.objet, objet_selectionne))
+
+func _actualiser_selection_depuis_objets(objets: Array[Dictionary]) -> void:
+	if objet_selectionne.is_empty():
+		return
+	for objet: Dictionary in objets:
+		if _meme_objet(objet, objet_selectionne):
+			objet_selectionne = objet.duplicate(true)
+			vue_details.afficher_objet(objet_selectionne)
+			return
+	objet_selectionne.clear()
+	vue_details.afficher_objet({})
 
 func _meme_objet(a: Dictionary, b: Dictionary) -> bool:
 	if a.is_empty() or b.is_empty():
