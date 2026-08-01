@@ -509,7 +509,7 @@ delai_frappe_minimum_normal = 0.0
 
 [node name="moulage" type="Node" parent="zone de forge/gestionnaires de mini jeux" unique_id=1984598946]
 script = ExtResource("20_gestionnaire_moulage")
-nombre_points_normal = 16
+nombre_points_normal = 4
 rayon_point_normal = 0.03
 rayon_point_difficile = 0.02
 position_reapparition_droite = 100.0

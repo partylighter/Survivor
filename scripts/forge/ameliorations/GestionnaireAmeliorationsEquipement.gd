@@ -1,15 +1,13 @@
 extends RefCounted
 class_name GestionnaireAmeliorationsEquipement
 
-const CLE_AMELIORATIONS: StringName = &"ameliorations"
-
 static func est_compatible(donnees_equipement: Dictionary, identifiant_amelioration: StringName) -> bool:
 	var definition: LootItemEntry = _obtenir_definition(donnees_equipement)
 	return definition != null and definition.ameliorations_compatibles.has(identifiant_amelioration) and definition.obtenir_amelioration_forge(identifiant_amelioration) != null
 
 static func obtenir_ameliorations_installees(donnees_equipement: Dictionary) -> PackedStringArray:
 	var composants: Dictionary = donnees_equipement.get("composants_installes", {})
-	var ameliorations: Variant = composants.get(CLE_AMELIORATIONS, PackedStringArray())
+	var ameliorations: Variant = composants.get(DonneesInstanceEquipement.CLE_AMELIORATIONS, PackedStringArray())
 	if ameliorations is PackedStringArray:
 		return ameliorations.duplicate()
 	var resultat := PackedStringArray()
@@ -34,7 +32,7 @@ static func installer_amelioration(inventaire: GestionnaireInventaire, identifia
 		return false
 	ameliorations.append(identifiant_amelioration)
 	var composants: Dictionary = donnees.get("composants_installes", {}).duplicate(true)
-	composants[CLE_AMELIORATIONS] = ameliorations
+	composants[DonneesInstanceEquipement.CLE_AMELIORATIONS] = ameliorations
 	donnees["composants_installes"] = composants
 	if not inventaire.mettre_a_jour_equipement_instance(identifiant_instance, donnees):
 		return false

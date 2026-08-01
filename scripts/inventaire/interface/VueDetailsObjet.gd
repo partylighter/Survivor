@@ -48,7 +48,7 @@ func _construire_informations(type_item: int) -> String:
 		if not composants.is_empty():
 			lignes.append("\nComposants :")
 			for identifiant: Variant in composants:
-				if String(identifiant) != GestionnaireAmeliorationsEquipement.CLE_AMELIORATIONS:
+				if String(identifiant) != DonneesInstanceEquipement.CLE_AMELIORATIONS:
 					lignes.append("• %s x%d" % [String(identifiant).capitalize(), int(composants[identifiant])])
 	var definition: LootItemEntry = _obtenir_definition()
 	if definition != null:
