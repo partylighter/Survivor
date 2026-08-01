@@ -81,6 +81,7 @@ var zone: ZoneRamassage = null
 
 var arme_principale: ArmeBase = null
 var arme_secondaire: ArmeBase = null
+var mode_outil_inventaire_actif: bool = false
 
 var _socket_principale: Node2D = null
 var _socket_secondaire: Node2D = null
@@ -390,6 +391,8 @@ func _est_equipee(n: Node) -> bool:
 	return n.is_in_group(GROUPE_EQUIPEE) or meta_bool
 
 func _essayer_ramasser(main_droite: bool) -> void:
+	if mode_outil_inventaire_actif:
+		return
 	if _joueur != null and bool(_joueur.get_meta(&"interaction_forge_active", false)):
 		return
 	if zone == null or not is_instance_valid(zone):
@@ -464,7 +467,7 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_maj_main_vide_visu_et_process()
 
 func equiper_equipement_depuis_inventaire(identifiant_instance: StringName) -> bool:
-	if _joueur == null or _joueur.inventaire == null or arme_principale != null:
+	if mode_outil_inventaire_actif or _joueur == null or _joueur.inventaire == null or arme_principale != null:
 		return false
 	var equipement: Dictionary = _joueur.inventaire.obtenir_equipement_instance(identifiant_instance)
 	if equipement.is_empty():
@@ -531,8 +534,17 @@ func extraire_equipement_principal_sans_inventaire() -> Dictionary:
 	_maj_main_vide_visu_et_process()
 	return equipement
 
+func activer_mode_outil_inventaire() -> bool:
+	if arme_secondaire != null:
+		return false
+	mode_outil_inventaire_actif = true
+	return true
+
+func desactiver_mode_outil_inventaire() -> void:
+	mode_outil_inventaire_actif = false
+
 func ranger_arme_principale_dans_inventaire() -> bool:
-	if _joueur == null or _joueur.inventaire == null or arme_principale == null:
+	if mode_outil_inventaire_actif or _joueur == null or _joueur.inventaire == null or arme_principale == null:
 		return false
 	var arme: ArmeBase = arme_principale
 	var definition: LootItemEntry = arme.definition_equipement
@@ -552,7 +564,7 @@ func ranger_arme_principale_dans_inventaire() -> bool:
 	return not _joueur.inventaire.obtenir_equipement_instance(identifiant_instance).is_empty()
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
-	if arme_unique or a == null or a == arme_principale:
+	if mode_outil_inventaire_actif or arme_unique or a == null or a == arme_principale:
 		return
 	_stopper_drop_si_effets(a)
 	arme_secondaire = a
@@ -631,6 +643,8 @@ func _stopper_drop_si_effets(a: ArmeBase) -> void:
 			at.stop_drop()
 
 func _handle_inputs() -> void:
+	if mode_outil_inventaire_actif:
+		return
 	if Input.is_action_just_pressed("lacher_main_droite"):
 		_utiliser_touche_main(true)
 	if not arme_unique and Input.is_action_just_pressed("lacher_main_gauche"):
@@ -656,6 +670,8 @@ func _actualiser_mode_mains_auto() -> void:
 		mode_mains = ModeMains.JOINTES
 
 func _switch_mains() -> void:
+	if mode_outil_inventaire_actif:
+		return
 	if _socket_principale == null or _socket_secondaire == null:
 		return
 

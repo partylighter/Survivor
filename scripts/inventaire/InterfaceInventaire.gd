@@ -25,6 +25,10 @@ var interpolation_visibilite_hud: Tween = null
 var categorie_active: StringName = &"tous"
 var objet_selectionne: Dictionary = {}
 var cellules: Array[CelluleInventaire] = []
+var groupe_categories: ButtonGroup = ButtonGroup.new()
+var groupe_modes: ButtonGroup = ButtonGroup.new()
+var boutons_categories: Array[Button] = []
+var boutons_modes: Array[Button] = []
 
 func _ready() -> void:
 	add_to_group(&"inputs_jeu")
@@ -46,11 +50,19 @@ func _connecter_commandes() -> void:
 	$Interface/Panneau/Marge/Colonne/Entete/Fermer.pressed.connect(fermer_inventaire)
 	var barre_categories: HBoxContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories
 	for bouton: Button in barre_categories.get_children():
+		bouton.toggle_mode = true
+		bouton.button_group = groupe_categories
 		bouton.pressed.connect(_changer_categorie.bind(StringName(bouton.get_meta("categorie", "tous"))))
+		boutons_categories.append(bouton)
 	var barre_modes: HBoxContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/BarreModes
 	for index: int in barre_modes.get_child_count():
 		var bouton: Button = barre_modes.get_child(index) as Button
+		bouton.toggle_mode = true
+		bouton.button_group = groupe_modes
 		bouton.pressed.connect(_changer_mode.bind(index))
+		boutons_modes.append(bouton)
+	_changer_categorie(categorie_active)
+	_changer_mode(0)
 	recherche.text_changed.connect(_quand_recherche_change)
 	tri.item_selected.connect(_quand_tri_change)
 
@@ -98,6 +110,8 @@ func _masquer_interface_apres_transition() -> void:
 		interface.modulate.a = 1.0
 
 func _input(event: InputEvent) -> void:
+	if dialogue_actif:
+		return
 	if interface.visible and event.is_action_pressed(action_fermer_interface):
 		fermer_inventaire()
 		get_viewport().set_input_as_handled()
@@ -177,6 +191,10 @@ func _cle_type(objet: Dictionary) -> String:
 
 func _changer_categorie(nouvelle_categorie: StringName) -> void:
 	categorie_active = nouvelle_categorie
+	for bouton: Button in boutons_categories:
+		if StringName(bouton.get_meta("categorie", "tous")) == categorie_active:
+			bouton.button_pressed = true
+			break
 	_rafraichir()
 
 func _quand_recherche_change(_texte: String) -> void:
@@ -187,11 +205,13 @@ func _quand_tri_change(_index: int) -> void:
 
 func _changer_mode(index: int) -> void:
 	pile_modes.current_tab = index
+	if index >= 0 and index < boutons_modes.size():
+		boutons_modes[index].button_pressed = true
 
 func _selectionner_objet(objet: Dictionary) -> void:
 	objet_selectionne = objet.duplicate(true)
 	vue_details.afficher_objet(objet_selectionne)
-	pile_modes.current_tab = 2
+	_changer_mode(2)
 	_reselectionner_cellule()
 
 func _reselectionner_cellule() -> void:
@@ -229,6 +249,8 @@ func _equiper_depuis_details(objet: Dictionary) -> void:
 	var index: int = gestionnaire_equipement.trouver_emplacement_pour(objet)
 	if index >= 0:
 		gestionnaire_equipement.equiper_depuis_inventaire(objet, index as GestionnaireEquipementJoueur.Emplacement)
+	else:
+		_changer_mode(0)
 
 func _obtenir_definition(objet: Dictionary) -> LootItemEntry:
 	var donnees: Dictionary = objet.get("donnees", {})

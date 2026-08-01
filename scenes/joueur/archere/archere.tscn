@@ -40,7 +40,7 @@
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/poivre.tres" id="31_t3m3n"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/sel.tres" id="32_r5uce"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/viande.tres" id="36_3eba1"]
-[ext_resource type="Script" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="37_equipement"]
+[ext_resource type="Script" uid="uid://te460h8is4eh" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="37_equipement"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1302,7 +1302,6 @@ script = ExtResource("11_d1jmq")
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=764373083]
 script = ExtResource("12_ggrrm")
-pv_max_base = 999999999
 vitesse_base = 1180.0
 dash_cooldown_base = 0.35
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
@@ -1369,7 +1368,7 @@ ressources_temporaires = Array[ExtResource("29_xag11")]([ExtResource("31_t3m3n")
 [node name="GestionnaireEffetsNourriture" type="Node" parent="." unique_id=2023379626]
 script = ExtResource("29_effets_nourriture")
 
-[node name="GestionnaireEquipementJoueur" type="Node" parent="."]
+[node name="GestionnaireEquipementJoueur" type="Node" parent="." unique_id=156640872]
 script = ExtResource("37_equipement")
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1363142192]

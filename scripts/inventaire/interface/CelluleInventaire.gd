@@ -52,12 +52,14 @@ func _get_drag_data(_position: Vector2) -> Variant:
 
 func _creer_contenu() -> void:
 	var marge := MarginContainer.new()
+	marge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	marge.add_theme_constant_override("margin_left", 8)
 	marge.add_theme_constant_override("margin_top", 8)
 	marge.add_theme_constant_override("margin_right", 8)
 	marge.add_theme_constant_override("margin_bottom", 8)
 	add_child(marge)
 	var superposition := Control.new()
+	superposition.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	superposition.custom_minimum_size = Vector2(76.0, 88.0)
 	marge.add_child(superposition)
 	texture_icone = TextureRect.new()

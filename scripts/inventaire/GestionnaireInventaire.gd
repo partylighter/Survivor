@@ -28,13 +28,14 @@ func ajouter_depuis_payload(payload: Dictionary) -> bool:
 	var quantite: int = maxi(int(payload.get("quantite", 1)), 0)
 	if String(identifiant) == "" or quantite <= 0:
 		return false
+	var nom_objet: String = _obtenir_nom_payload(payload, identifiant)
 	if _est_equipement_instance(payload):
-		return _ajouter_equipement_instance(identifiant, payload)
+		return _ajouter_equipement_instance(identifiant, nom_objet, payload)
 	var entree: Dictionary = objets_par_identifiant.get(identifiant, {})
 	if entree.is_empty():
 		entree = {
 			"identifiant": identifiant,
-			"nom": String(payload.get("nom_affiche", identifiant)),
+			"nom": nom_objet,
 			"icone": payload.get("icone", null),
 			"quantite": 0,
 			"type_item": int(payload.get("type_item", -1)),
@@ -42,8 +43,8 @@ func ajouter_depuis_payload(payload: Dictionary) -> bool:
 			"scene": payload.get("scene", null),
 			"donnees": Dictionary(payload.get("donnees", {})).duplicate(true)
 		}
-	elif String(payload.get("nom_affiche", "")).strip_edges() != "":
-		entree["nom"] = String(payload.get("nom_affiche"))
+	elif _payload_contient_nom(payload):
+		entree["nom"] = nom_objet
 	if payload.get("icone", null) != null:
 		entree["icone"] = payload.get("icone")
 	entree["quantite"] = int(entree.get("quantite", 0)) + quantite
@@ -56,7 +57,7 @@ func _est_equipement_instance(payload: Dictionary) -> bool:
 	var donnees: Dictionary = Dictionary(payload.get("donnees", {}))
 	return int(payload.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT and String(donnees.get("identifiant_instance", &"")) != ""
 
-func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) -> bool:
+func _ajouter_equipement_instance(identifiant: StringName, nom_objet: String, payload: Dictionary) -> bool:
 	var donnees: Dictionary = Dictionary(payload.get("donnees", {})).duplicate(true)
 	var identifiant_instance: StringName = donnees.get("identifiant_instance", &"")
 	if equipements_par_instance.has(identifiant_instance):
@@ -64,7 +65,7 @@ func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) 
 	equipements_par_instance[identifiant_instance] = {
 		"identifiant": identifiant,
 		"identifiant_instance": identifiant_instance,
-		"nom": String(payload.get("nom_affiche", identifiant)),
+		"nom": nom_objet,
 		"icone": payload.get("icone", null),
 		"quantite": 1,
 		"type_item": Loot.TypeItem.EQUIPEMENT,
@@ -75,6 +76,13 @@ func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) 
 	objet_ajoute.emit(identifiant, 1)
 	inventaire_change.emit()
 	return true
+
+func _obtenir_nom_payload(payload: Dictionary, identifiant: StringName) -> String:
+	var nom_objet: String = String(payload.get("nom_affiche", payload.get("nom", identifiant)))
+	return String(identifiant) if nom_objet.strip_edges().is_empty() else nom_objet
+
+func _payload_contient_nom(payload: Dictionary) -> bool:
+	return not String(payload.get("nom_affiche", payload.get("nom", ""))).strip_edges().is_empty()
 
 func ajouter_objet(identifiant: StringName, nom: String, quantite: int, icone: Texture2D = null, type_item: int = -1, donnees: Dictionary = {}) -> void:
 	ajouter_depuis_payload({

@@ -26,9 +26,8 @@ func actualiser() -> void:
 	outil_actif.text = "Actif : %s" % String(actif.get("nom", "Aucun"))
 	outil_secondaire.text = "Dos : %s" % String(secondaire.get("nom", "Aucun"))
 
-func previsualiser(objet: Dictionary) -> void:
-	if portrait != null and objet.get("icone", null) is Texture2D:
-		portrait.texture = objet.get("icone") as Texture2D
+func previsualiser(_objet: Dictionary) -> void:
+	return
 
 func retablir_equipement_reel() -> void:
 	if portrait != null:
