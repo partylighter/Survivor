@@ -2,11 +2,12 @@ extends Node
 class_name GestionnaireRecettesAssemblage
 
 @export var recettes_disponibles: Array[RecetteEquipement] = []
+@export var catalogue_recettes: CatalogueRecettesEquipement
 
 func trouver_recette(table: TableForge) -> RecetteEquipement:
 	if table == null:
 		return null
-	for recette: RecetteEquipement in recettes_disponibles:
+	for recette: RecetteEquipement in obtenir_recettes_disponibles():
 		if recette == null or not recette.est_valide():
 			continue
 		if _motif_correspond(recette, table, false):
@@ -14,6 +15,9 @@ func trouver_recette(table: TableForge) -> RecetteEquipement:
 		if recette.autoriser_miroir and _motif_correspond(recette, table, true):
 			return recette
 	return null
+
+func obtenir_recettes_disponibles() -> Array[RecetteEquipement]:
+	return catalogue_recettes.recettes if catalogue_recettes != null else recettes_disponibles
 
 func _motif_correspond(recette: RecetteEquipement, table: TableForge, miroir: bool) -> bool:
 	var nombre_decalages_x: int = TableForge.LARGEUR_GRILLE - recette.largeur_motif + 1 if recette.autoriser_decalage else 1

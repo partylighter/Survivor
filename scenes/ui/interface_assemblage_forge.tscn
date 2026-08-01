@@ -4,10 +4,8 @@
 [ext_resource type="Script" path="res://scripts/forge/assemblage/TableForge.gd" id="2_table"]
 [ext_resource type="Script" path="res://scripts/forge/assemblage/GestionnaireAssemblage.gd" id="3_assemblage"]
 [ext_resource type="Script" path="res://scripts/forge/assemblage/GestionnaireRecettesAssemblage.gd" id="4_recettes"]
-[ext_resource type="Resource" path="res://ressources/forge/recettes/epee_fer.tres" id="5_epee"]
-[ext_resource type="Script" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="6_recette"]
 [ext_resource type="Script" path="res://scripts/forge/assemblage/SlotAssemblageForge.gd" id="7_slot"]
-[ext_resource type="Resource" path="res://ressources/forge/recettes/arc_en_bois.tres" id="8_arc"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/catalogue_equipements.tres" id="9_catalogue"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panneau"]
 bg_color = Color(0, 0, 0, 0.9)
@@ -73,7 +71,7 @@ script = ExtResource("3_assemblage")
 
 [node name="GestionnaireRecettesAssemblage" type="Node" parent="."]
 script = ExtResource("4_recettes")
-recettes_disponibles = Array[ExtResource("6_recette")]([ExtResource("5_epee"), ExtResource("8_arc")])
+catalogue_recettes = ExtResource("9_catalogue")
 
 [node name="Interface" type="Control" parent="."]
 layout_mode = 3

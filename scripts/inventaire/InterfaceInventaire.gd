@@ -8,6 +8,7 @@ class_name InterfaceInventaire
 @onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
 @onready var gestionnaire_effets_nourriture: GestionnaireEffetsNourriture = get_node_or_null("../GestionnaireEffetsNourriture") as GestionnaireEffetsNourriture
 @onready var gestionnaire_equipement: GestionnaireEquipementJoueur = get_node_or_null("../GestionnaireEquipementJoueur") as GestionnaireEquipementJoueur
+@onready var gestionnaire_craft: GestionnaireCraftInventaire = get_node_or_null("../GestionnaireCraftInventaire") as GestionnaireCraftInventaire
 @onready var interface: Control = $Interface
 @onready var grille: GridContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/Defilement/Grille
 @onready var etiquette_vide: Label = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/InventaireVide
@@ -16,6 +17,7 @@ class_name InterfaceInventaire
 @onready var tri: OptionButton = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreRechercheTri/Tri
 @onready var pile_modes: TabContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes
 @onready var vue_equipement: VueEquipement = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Equipement
+@onready var vue_craft: VueCraftInventaire = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Craft
 @onready var vue_details: VueDetailsObjet = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details
 @onready var apercu_personnage: ApercuPersonnageInventaire = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage
 
@@ -40,8 +42,11 @@ func _ready() -> void:
 	if gestionnaire_equipement != null:
 		gestionnaire_equipement.equipement_change.connect(_rafraichir)
 	vue_equipement.configurer(gestionnaire_equipement)
+	vue_craft.configurer(gestionnaire_craft)
 	vue_details.manger_demande.connect(_manger)
 	vue_details.equiper_demande.connect(_equiper_depuis_details)
+	vue_details.utiliser_craft_demande.connect(_utiliser_pour_craft)
+	vue_details.desassembler_demande.connect(_utiliser_pour_desassemblage)
 	apercu_personnage.configurer(get_parent() as Player, gestionnaire_equipement)
 	_rafraichir()
 	call_deferred(&"_connecter_systeme_dialogue")
@@ -86,6 +91,8 @@ func _connecter_systeme_dialogue() -> void:
 func _quand_dialogue_commence() -> void:
 	dialogue_actif = true
 	interface_etait_visible_avant_dialogue = interface.visible
+	if interface.visible and gestionnaire_craft != null:
+		gestionnaire_craft.annuler_craft()
 	_changer_visibilite_hud(false)
 
 func _quand_dialogue_termine() -> void:
@@ -129,6 +136,8 @@ func ouvrir_inventaire() -> void:
 	_rafraichir()
 
 func fermer_inventaire() -> void:
+	if gestionnaire_craft != null:
+		gestionnaire_craft.annuler_craft()
 	interface.visible = false
 
 func objet_correspond_aux_filtres(objet: Dictionary) -> bool:
@@ -251,6 +260,14 @@ func _equiper_depuis_details(objet: Dictionary) -> void:
 		gestionnaire_equipement.equiper_depuis_inventaire(objet, index as GestionnaireEquipementJoueur.Emplacement)
 	else:
 		_changer_mode(0)
+
+func _utiliser_pour_craft(objet: Dictionary) -> void:
+	_changer_mode(1)
+	vue_craft.utiliser_pour_assemblage(objet)
+
+func _utiliser_pour_desassemblage(objet: Dictionary) -> void:
+	_changer_mode(1)
+	vue_craft.utiliser_pour_desassemblage(objet)
 
 func _obtenir_definition(objet: Dictionary) -> LootItemEntry:
 	var donnees: Dictionary = objet.get("donnees", {})

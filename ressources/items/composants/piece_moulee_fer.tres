@@ -5,4 +5,5 @@
 [resource]
 script = ExtResource("1_composant")
 item_id = &"piece_moulee_fer"
+type_item = 4
 nom_affiche = "Piece moulee en fer"

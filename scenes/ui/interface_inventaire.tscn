@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://b2gkwphybhcur"]
+[gd_scene load_steps=9 format=3 uid="uid://b2gkwphybhcur"]
 
 [ext_resource type="Script" uid="uid://derj73hds8i7x" path="res://scripts/inventaire/InterfaceInventaire.gd" id="1_interface"]
 [ext_resource type="Script" path="res://scripts/inventaire/interface/VueEquipement.gd" id="2_equipement"]
 [ext_resource type="Script" path="res://scripts/inventaire/interface/VueDetailsObjet.gd" id="3_details"]
 [ext_resource type="Script" path="res://scripts/inventaire/interface/ApercuPersonnageInventaire.gd" id="4_apercu"]
+[ext_resource type="Script" path="res://scripts/inventaire/craft/VueCraftInventaire.gd" id="5_craft"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBox_panneau"]
 bg_color = Color(0.055, 0.06, 0.075, 0.98)
@@ -222,6 +223,7 @@ script = ExtResource("2_equipement")
 [node name="Craft" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes"]
 layout_mode = 2
 alignment = 1
+script = ExtResource("5_craft")
 
 [node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Craft"]
 layout_mode = 2
@@ -277,6 +279,16 @@ text = "Équiper"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Manger"
+
+[node name="UtiliserCraft" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Craft"
+
+[node name="Desassembler" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Desassembler"
 
 [node name="ZonePersonnage" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal"]
 custom_minimum_size = Vector2(210, 0)

@@ -3,6 +3,8 @@ class_name VueDetailsObjet
 
 signal manger_demande(objet: Dictionary)
 signal equiper_demande(objet: Dictionary)
+signal utiliser_craft_demande(objet: Dictionary)
+signal desassembler_demande(objet: Dictionary)
 
 @onready var nom_objet: Label = $NomObjet
 @onready var icone_objet: TextureRect = $IconeObjet
@@ -10,12 +12,16 @@ signal equiper_demande(objet: Dictionary)
 @onready var informations: RichTextLabel = $Informations
 @onready var bouton_equiper: Button = $Actions/Equiper
 @onready var bouton_manger: Button = $Actions/Manger
+@onready var bouton_utiliser_craft: Button = $Actions/UtiliserCraft
+@onready var bouton_desassembler: Button = $Actions/Desassembler
 
 var objet: Dictionary = {}
 
 func _ready() -> void:
 	bouton_equiper.pressed.connect(_demander_equipement)
 	bouton_manger.pressed.connect(_demander_consommation)
+	bouton_utiliser_craft.pressed.connect(_demander_craft)
+	bouton_desassembler.pressed.connect(_demander_desassemblage)
 	afficher_objet({})
 
 func afficher_objet(nouvel_objet: Dictionary) -> void:
@@ -29,6 +35,8 @@ func afficher_objet(nouvel_objet: Dictionary) -> void:
 		informations.text = "Cliquez sur une cellule pour consulter ses détails."
 		bouton_equiper.visible = false
 		bouton_manger.visible = false
+		bouton_utiliser_craft.visible = false
+		bouton_desassembler.visible = false
 		return
 	nom_objet.text = String(objet.get("nom", objet.get("identifiant", "Objet"))).to_upper()
 	icone_objet.texture = objet.get("icone", null) as Texture2D
@@ -38,6 +46,8 @@ func afficher_objet(nouvel_objet: Dictionary) -> void:
 	var definition: LootItemEntry = _obtenir_definition()
 	bouton_equiper.visible = definition != null and definition.donnees_equipement != null
 	bouton_manger.visible = type_item == Loot.TypeItem.CONSO and definition != null and definition.effet_nourriture != null
+	bouton_utiliser_craft.visible = type_item == Loot.TypeItem.COMPOSANT
+	bouton_desassembler.visible = type_item == Loot.TypeItem.EQUIPEMENT and not DonneesInstanceEquipement.obtenir_composants_structurels(objet.get("donnees", {})).is_empty()
 
 func _construire_informations(type_item: int) -> String:
 	var lignes: PackedStringArray = PackedStringArray(["Quantité : %d" % int(objet.get("quantite", 1))])
@@ -87,3 +97,9 @@ func _demander_equipement() -> void:
 
 func _demander_consommation() -> void:
 	manger_demande.emit(objet)
+
+func _demander_craft() -> void:
+	utiliser_craft_demande.emit(objet)
+
+func _demander_desassemblage() -> void:
+	desassembler_demande.emit(objet)

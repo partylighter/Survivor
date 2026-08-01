@@ -27,6 +27,10 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
 [ext_resource type="Script" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="26_effets_nourriture"]
 [ext_resource type="Script" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="27_equipement"]
+[ext_resource type="Script" path="res://scripts/inventaire/craft/GestionnaireCraftInventaire.gd" id="28_craft"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/catalogue_equipements.tres" id="29_catalogue"]
+[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="30_item"]
+[ext_resource type="Resource" path="res://ressources/items/composants/lame_fer.tres" id="31_lame"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -289,12 +293,17 @@ objets_temporaires = Array[Dictionary]([{
 "quantite": 1,
 "type_item": 5
 }])
+ressources_temporaires = Array[ExtResource("30_item")]([ExtResource("31_lame")])
 
 [node name="GestionnaireEffetsNourriture" type="Node" parent="."]
 script = ExtResource("26_effets_nourriture")
 
 [node name="GestionnaireEquipementJoueur" type="Node" parent="."]
 script = ExtResource("27_equipement")
+
+[node name="GestionnaireCraftInventaire" type="Node" parent="."]
+script = ExtResource("28_craft")
+catalogue_recettes = ExtResource("29_catalogue")
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1146967959]
 script = ExtResource("10_uxo23")

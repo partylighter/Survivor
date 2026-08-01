@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CatalogueRecettesEquipement" format=3]
+
+[ext_resource type="Script" path="res://scripts/forge/donnees/CatalogueRecettesEquipement.gd" id="1_catalogue"]
+[ext_resource type="Script" path="res://scripts/forge/donnees/RecetteEquipement.gd" id="2_recette"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/epee_fer.tres" id="3_epee"]
+[ext_resource type="Resource" path="res://ressources/forge/recettes/arc_en_bois.tres" id="4_arc"]
+
+[resource]
+script = ExtResource("1_catalogue")
+recettes = Array[ExtResource("2_recette")]([ExtResource("3_epee"), ExtResource("4_arc")])

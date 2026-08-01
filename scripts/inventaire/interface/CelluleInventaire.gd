@@ -12,6 +12,8 @@ var est_equipee: bool = false
 var texture_icone: TextureRect
 var etiquette_quantite: Label
 var etiquette_equipe: Label
+var glissement_en_cours: bool = false
+var double_clic_en_cours: bool = false
 
 func _ready() -> void:
 	custom_minimum_size = Vector2(92.0, 104.0)
@@ -32,16 +34,23 @@ func definir_selectionnee(est_selectionnee: bool) -> void:
 	modulate = Color(1.12, 1.12, 1.18, 1.0) if selectionnee else Color.WHITE
 
 func _gui_input(evenement: InputEvent) -> void:
-	if evenement is InputEventMouseButton and evenement.button_index == MOUSE_BUTTON_LEFT and evenement.pressed:
+	if not evenement is InputEventMouseButton or evenement.button_index != MOUSE_BUTTON_LEFT:
+		return
+	if evenement.pressed:
+		glissement_en_cours = false
+		double_clic_en_cours = evenement.double_click
 		if evenement.double_click:
 			objet_double_clique.emit(objet)
-		else:
-			objet_selectionne.emit(objet)
-		accept_event()
+	elif double_clic_en_cours:
+		double_clic_en_cours = false
+	elif not glissement_en_cours:
+		objet_selectionne.emit(objet)
+	accept_event()
 
 func _get_drag_data(_position: Vector2) -> Variant:
 	if objet.is_empty():
 		return null
+	glissement_en_cours = true
 	var apercu := TextureRect.new()
 	apercu.custom_minimum_size = Vector2(64.0, 64.0)
 	apercu.texture = objet.get("icone", null) as Texture2D
