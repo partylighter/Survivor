@@ -1,9 +1,11 @@
-[gd_resource type="Resource" script_class="LootItemEntry" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://d3vm77vwa5md7"]
 
-[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="1_composant"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_composant"]
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_ssea0"]
 
 [resource]
 script = ExtResource("1_composant")
 item_id = &"renfort_arc"
 type_item = 4
 nom_affiche = "Renfort d'arc"
+ameliorations_compatibles = null

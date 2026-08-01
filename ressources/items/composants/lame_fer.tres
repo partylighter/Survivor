@@ -1,9 +1,11 @@
 [gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://bxht2c2cc7tsf"]
 
 [ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_composant"]
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_rgou2"]
 
 [resource]
 script = ExtResource("1_composant")
 item_id = &"lame_fer"
 type_item = 4
 nom_affiche = "Lame en fer"
+ameliorations_compatibles = null

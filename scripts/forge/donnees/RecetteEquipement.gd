@@ -35,8 +35,8 @@ func obtenir_erreurs() -> Array[String]:
 		erreurs.append("Le resultat de la recette d'equipement est invalide.")
 	elif resultat.type_item != Loot.TypeItem.EQUIPEMENT:
 		erreurs.append("Le resultat de la recette doit etre un equipement.")
-	if quantite_resultat < 1:
-		erreurs.append("La quantite du resultat est invalide.")
+	if quantite_resultat != 1:
+		erreurs.append("Une recette d'equipement doit produire exactement une instance.")
 	return erreurs
 
 func est_valide() -> bool:

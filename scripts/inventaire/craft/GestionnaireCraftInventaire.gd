@@ -57,7 +57,7 @@ func retirer_objet(index_slot: int) -> bool:
 	if objet.is_empty():
 		return false
 	if inventaire == null or not inventaire.ajouter_depuis_payload(objet):
-		derniere_erreur = "Impossible de rendre le composant a l'inventaire."
+		derniere_erreur = "Impossible de rendre l'objet a l'inventaire."
 		return false
 	table.retirer(index_slot)
 	_actualiser_recette()
@@ -127,7 +127,7 @@ func selectionner_pour_desassemblage(objet: Dictionary) -> bool:
 
 func peut_desassembler(objet: Dictionary) -> bool:
 	if int(objet.get("type_item", -1)) != Loot.TypeItem.EQUIPEMENT:
-		derniere_erreur = "Seul un equipement forge peut etre desassemble."
+		derniere_erreur = "Seul un equipement assemble peut etre desassemble."
 		return false
 	var donnees: Dictionary = objet.get("donnees", {})
 	var identifiant_instance: StringName = donnees.get(DonneesInstanceEquipement.CLE_IDENTIFIANT_INSTANCE, &"")
@@ -215,14 +215,17 @@ func _trouver_amelioration() -> Dictionary:
 	var equipement: Dictionary = {}
 	var objet_amelioration: Dictionary = {}
 	for objet: Dictionary in objets:
-		if int(objet.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT:
+		var type_item: int = int(objet.get("type_item", -1))
+		if type_item == Loot.TypeItem.EQUIPEMENT:
 			if not equipement.is_empty():
 				return {}
 			equipement = objet
-		else:
+		elif type_item in [Loot.TypeItem.COMPOSANT, Loot.TypeItem.UPGRADE]:
 			if not objet_amelioration.is_empty():
 				return {}
 			objet_amelioration = objet
+		else:
+			return {}
 	if equipement.is_empty() or objet_amelioration.is_empty():
 		return {}
 	var identifiant_amelioration: StringName = objet_amelioration.get("identifiant", &"")

@@ -22,15 +22,18 @@ static func installer_amelioration(inventaire: GestionnaireInventaire, identifia
 	var equipement: Dictionary = inventaire.obtenir_equipement_instance(identifiant_instance)
 	if equipement.is_empty():
 		return false
-	var donnees: Dictionary = equipement.get("donnees", {}).duplicate(true)
+	var anciennes_donnees: Dictionary = equipement.get("donnees", {}).duplicate(true)
 	if inventaire.obtenir_quantite(identifiant_amelioration) < 1:
 		return false
-	donnees = creer_donnees_avec_amelioration(donnees, identifiant_amelioration)
+	var donnees: Dictionary = creer_donnees_avec_amelioration(anciennes_donnees, identifiant_amelioration)
 	if donnees.is_empty():
 		return false
 	if not inventaire.mettre_a_jour_equipement_instance(identifiant_instance, donnees):
 		return false
-	return inventaire.retirer_objet(identifiant_amelioration, 1) == 1
+	if inventaire.retirer_objet(identifiant_amelioration, 1) != 1:
+		inventaire.mettre_a_jour_equipement_instance(identifiant_instance, anciennes_donnees)
+		return false
+	return true
 
 static func creer_donnees_avec_amelioration(donnees_equipement: Dictionary, identifiant_amelioration: StringName) -> Dictionary:
 	if not est_compatible(donnees_equipement, identifiant_amelioration):
