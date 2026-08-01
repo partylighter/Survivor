@@ -7,27 +7,58 @@ class_name InterfaceInventaire
 
 @onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
 @onready var gestionnaire_effets_nourriture: GestionnaireEffetsNourriture = get_node_or_null("../GestionnaireEffetsNourriture") as GestionnaireEffetsNourriture
-@onready var gestionnaire_arme: GestionnaireArme = get_node_or_null("../GestionnaireArme") as GestionnaireArme
+@onready var gestionnaire_equipement: GestionnaireEquipementJoueur = get_node_or_null("../GestionnaireEquipementJoueur") as GestionnaireEquipementJoueur
 @onready var interface: Control = $Interface
-@onready var grille: GridContainer = $Interface/Panneau/Marge/Colonne/Defilement/Grille
-@onready var etiquette_vide: Label = $Interface/Panneau/Marge/Colonne/InventaireVide
-@onready var etiquette_equipement: Label = $Interface/Panneau/Marge/Colonne/EquipementMainDroite
-@onready var bouton_ranger_arme: Button = $Interface/Panneau/Marge/Colonne/RangerArme
-@onready var bouton_fermer: Button = $Interface/Panneau/Marge/Colonne/Fermer
+@onready var grille: GridContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/Defilement/Grille
+@onready var etiquette_vide: Label = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/InventaireVide
+@onready var etiquette_nombre: Label = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/InfosInventaire
+@onready var recherche: LineEdit = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreRechercheTri/Recherche
+@onready var tri: OptionButton = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreRechercheTri/Tri
+@onready var pile_modes: TabContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes
+@onready var vue_equipement: VueEquipement = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Equipement
+@onready var vue_details: VueDetailsObjet = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details
+@onready var apercu_personnage: ApercuPersonnageInventaire = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage
 
 var dialogue_actif: bool = false
 var interface_etait_visible_avant_dialogue: bool = false
 var interpolation_visibilite_hud: Tween = null
+var categorie_active: StringName = &"tous"
+var objet_selectionne: Dictionary = {}
+var cellules: Array[CelluleInventaire] = []
 
 func _ready() -> void:
 	add_to_group(&"inputs_jeu")
 	interface.visible = false
-	bouton_fermer.pressed.connect(fermer_inventaire)
-	bouton_ranger_arme.pressed.connect(_ranger_arme)
+	_connecter_commandes()
+	configurer_tri()
 	if inventaire != null:
 		inventaire.inventaire_change.connect(_rafraichir)
+	if gestionnaire_equipement != null:
+		gestionnaire_equipement.equipement_change.connect(_rafraichir)
+	vue_equipement.configurer(gestionnaire_equipement)
+	vue_details.manger_demande.connect(_manger)
+	vue_details.equiper_demande.connect(_equiper_depuis_details)
+	apercu_personnage.configurer(get_parent() as Player, gestionnaire_equipement)
 	_rafraichir()
 	call_deferred(&"_connecter_systeme_dialogue")
+
+func _connecter_commandes() -> void:
+	$Interface/Panneau/Marge/Colonne/Entete/Fermer.pressed.connect(fermer_inventaire)
+	var barre_categories: HBoxContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories
+	for bouton: Button in barre_categories.get_children():
+		bouton.pressed.connect(_changer_categorie.bind(StringName(bouton.get_meta("categorie", "tous"))))
+	var barre_modes: HBoxContainer = $Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/BarreModes
+	for index: int in barre_modes.get_child_count():
+		var bouton: Button = barre_modes.get_child(index) as Button
+		bouton.pressed.connect(_changer_mode.bind(index))
+	recherche.text_changed.connect(_quand_recherche_change)
+	tri.item_selected.connect(_quand_tri_change)
+
+func configurer_tri() -> void:
+	tri.clear()
+	tri.add_item("Type")
+	tri.add_item("Nom")
+	tri.add_item("Quantité")
 
 func _connecter_systeme_dialogue() -> void:
 	var systeme_dialogue: SystemeDialogue = get_tree().get_first_node_in_group(&"systeme_dialogue") as SystemeDialogue
@@ -80,175 +111,142 @@ func _input(event: InputEvent) -> void:
 
 func ouvrir_inventaire() -> void:
 	interface.visible = true
+	interface.modulate.a = 1.0
 	_rafraichir()
 
 func fermer_inventaire() -> void:
 	interface.visible = false
 
+func objet_correspond_aux_filtres(objet: Dictionary) -> bool:
+	var nom: String = String(objet.get("nom", objet.get("identifiant", ""))).to_lower()
+	if not recherche.text.strip_edges().is_empty() and not nom.contains(recherche.text.strip_edges().to_lower()):
+		return false
+	var type_item: int = int(objet.get("type_item", -1))
+	match categorie_active:
+		&"equipement":
+			return type_item == Loot.TypeItem.EQUIPEMENT and not _est_outil(objet)
+		&"armes":
+			return type_item == Loot.TypeItem.ARME or _est_outil(objet)
+		&"consommables":
+			return type_item == Loot.TypeItem.CONSO
+		&"materiaux":
+			return type_item == Loot.TypeItem.MATERIAU or type_item == Loot.TypeItem.UPGRADE
+		&"composants":
+			return type_item == Loot.TypeItem.COMPOSANT
+	return true
+
 func _rafraichir() -> void:
 	if grille == null:
 		return
-	_actualiser_equipement_main_droite()
-	for enfant: Node in grille.get_children():
-		grille.remove_child(enfant)
-		enfant.queue_free()
-	var objets: Array[Dictionary] = inventaire.obtenir_objets() if inventaire != null else []
-	etiquette_vide.visible = objets.is_empty()
+	for cellule: CelluleInventaire in cellules:
+		grille.remove_child(cellule)
+		cellule.queue_free()
+	cellules.clear()
+	var objets: Array[Dictionary] = []
+	if inventaire != null:
+		objets = inventaire.obtenir_objets()
+	var objets_filtres: Array[Dictionary] = []
 	for objet: Dictionary in objets:
-		grille.add_child(_creer_cellule(objet))
+		if objet_correspond_aux_filtres(objet):
+			objets_filtres.append(objet)
+	_trier_objets(objets_filtres)
+	for objet: Dictionary in objets_filtres:
+		var cellule := CelluleInventaire.new()
+		cellule.configurer(objet, _est_objet_equipe(objet))
+		cellule.objet_selectionne.connect(_selectionner_objet)
+		cellule.objet_double_clique.connect(_utiliser_objet_double_clic)
+		cellule.survol_objet.connect(apercu_personnage.previsualiser)
+		cellule.fin_survol_objet.connect(apercu_personnage.retablir_equipement_reel)
+		grille.add_child(cellule)
+		cellules.append(cellule)
+	etiquette_vide.visible = objets_filtres.is_empty()
+	etiquette_nombre.text = "%d objet(s) affiché(s) · %d au total" % [objets_filtres.size(), objets.size()]
+	_reselectionner_cellule()
 
-func _creer_cellule(objet: Dictionary) -> Control:
-	var panneau := PanelContainer.new()
-	panneau.custom_minimum_size = Vector2(160.0, 190.0)
-	var marge := MarginContainer.new()
-	marge.add_theme_constant_override("margin_left", 8)
-	marge.add_theme_constant_override("margin_top", 8)
-	marge.add_theme_constant_override("margin_right", 8)
-	marge.add_theme_constant_override("margin_bottom", 8)
-	panneau.add_child(marge)
-	var colonne := VBoxContainer.new()
-	colonne.alignment = BoxContainer.ALIGNMENT_CENTER
-	marge.add_child(colonne)
-	var texture := TextureRect.new()
-	texture.custom_minimum_size = Vector2(64.0, 64.0)
-	texture.texture = objet.get("icone", null) as Texture2D
-	texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-	texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	colonne.add_child(texture)
-	var nom := Label.new()
-	nom.text = String(objet.get("nom", objet.get("identifiant", "")))
-	nom.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	nom.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	colonne.add_child(nom)
-	var quantite := Label.new()
-	quantite.text = "x%d" % int(objet.get("quantite", 0))
-	quantite.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	colonne.add_child(quantite)
-	var type := Label.new()
-	type.text = _nom_type(int(objet.get("type_item", -1)))
-	type.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	type.modulate = Color(0.75, 0.75, 0.8, 1.0)
-	colonne.add_child(type)
+func _trier_objets(objets: Array[Dictionary]) -> void:
+	match tri.selected:
+		0:
+			objets.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return _cle_type(a) < _cle_type(b))
+		1:
+			objets.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return String(a.get("nom", "")).naturalnocasecmp_to(String(b.get("nom", ""))) < 0)
+		2:
+			objets.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return int(a.get("quantite", 0)) > int(b.get("quantite", 0)))
+
+func _cle_type(objet: Dictionary) -> String:
+	return "%02d_%s" % [int(objet.get("type_item", -1)), String(objet.get("nom", "")).to_lower()]
+
+func _changer_categorie(nouvelle_categorie: StringName) -> void:
+	categorie_active = nouvelle_categorie
+	_rafraichir()
+
+func _quand_recherche_change(_texte: String) -> void:
+	_rafraichir()
+
+func _quand_tri_change(_index: int) -> void:
+	_rafraichir()
+
+func _changer_mode(index: int) -> void:
+	pile_modes.current_tab = index
+
+func _selectionner_objet(objet: Dictionary) -> void:
+	objet_selectionne = objet.duplicate(true)
+	vue_details.afficher_objet(objet_selectionne)
+	pile_modes.current_tab = 2
+	_reselectionner_cellule()
+
+func _reselectionner_cellule() -> void:
+	for cellule: CelluleInventaire in cellules:
+		cellule.definir_selectionnee(_meme_objet(cellule.objet, objet_selectionne))
+
+func _meme_objet(a: Dictionary, b: Dictionary) -> bool:
+	if a.is_empty() or b.is_empty():
+		return false
+	var donnees_a: Dictionary = a.get("donnees", {})
+	var donnees_b: Dictionary = b.get("donnees", {})
+	var instance_a: StringName = donnees_a.get("identifiant_instance", &"")
+	var instance_b: StringName = donnees_b.get("identifiant_instance", &"")
+	if String(instance_a) != "" or String(instance_b) != "":
+		return instance_a == instance_b
+	return a.get("identifiant", &"") == b.get("identifiant", &"")
+
+func _utiliser_objet_double_clic(objet: Dictionary) -> void:
+	if int(objet.get("type_item", -1)) == Loot.TypeItem.CONSO:
+		_manger(objet)
+	elif _obtenir_donnees_equipement(objet) != null:
+		_equiper_depuis_details(objet)
+
+func _manger(objet: Dictionary) -> void:
+	if gestionnaire_effets_nourriture == null:
+		return
+	var definition: LootItemEntry = _obtenir_definition(objet)
+	if gestionnaire_effets_nourriture.consommer_nourriture(definition):
+		objet_selectionne = {}
+		vue_details.afficher_objet({})
+
+func _equiper_depuis_details(objet: Dictionary) -> void:
+	if gestionnaire_equipement == null:
+		return
+	var index: int = gestionnaire_equipement.trouver_emplacement_pour(objet)
+	if index >= 0:
+		gestionnaire_equipement.equiper_depuis_inventaire(objet, index as GestionnaireEquipementJoueur.Emplacement)
+
+func _obtenir_definition(objet: Dictionary) -> LootItemEntry:
 	var donnees: Dictionary = objet.get("donnees", {})
-	if int(objet.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT and not donnees.is_empty():
-		var qualite := Label.new()
-		qualite.text = "Qualite : %s" % String(donnees.get("qualite", "correcte")).capitalize()
-		qualite.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		colonne.add_child(qualite)
-		var identifiant_instance: StringName = donnees.get("identifiant_instance", &"")
-		if String(identifiant_instance) != "":
-			_ajouter_liste_ameliorations(colonne, donnees)
-			_ajouter_boutons_ameliorations(colonne, donnees, identifiant_instance)
-			var bouton_equiper := Button.new()
-			bouton_equiper.text = "Equiper"
-			bouton_equiper.disabled = gestionnaire_arme == null or gestionnaire_arme.arme_principale != null
-			bouton_equiper.tooltip_text = "Main principale occupee." if gestionnaire_arme != null and gestionnaire_arme.arme_principale != null else "Equipe cette arme dans la main principale."
-			bouton_equiper.pressed.connect(_equiper_equipement.bind(identifiant_instance))
-			colonne.add_child(bouton_equiper)
-	_ajouter_bouton_manger(colonne, objet)
-	return panneau
+	var chemin: String = String(donnees.get("chemin_definition", ""))
+	return load(chemin) as LootItemEntry if not chemin.is_empty() else null
 
-func _ajouter_bouton_manger(colonne: VBoxContainer, objet: Dictionary) -> void:
-	if gestionnaire_effets_nourriture == null or int(objet.get("type_item", -1)) != Loot.TypeItem.CONSO:
-		return
-	var definition: LootItemEntry = _obtenir_definition_objet(objet)
-	if definition == null or definition.effet_nourriture == null:
-		return
-	var bouton_manger := Button.new()
-	bouton_manger.text = "Manger"
-	bouton_manger.pressed.connect(_manger.bind(definition.item_id))
-	colonne.add_child(bouton_manger)
+func _obtenir_donnees_equipement(objet: Dictionary) -> DonneesEquipement:
+	var definition: LootItemEntry = _obtenir_definition(objet)
+	return definition.donnees_equipement if definition != null else null
 
-func _manger(identifiant: StringName) -> void:
-	if gestionnaire_effets_nourriture == null or inventaire == null or inventaire.obtenir_quantite(identifiant) < 1:
-		return
-	var objet: Dictionary = inventaire.obtenir_objet(identifiant)
-	var definition: LootItemEntry = _obtenir_definition_objet(objet)
-	gestionnaire_effets_nourriture.consommer_nourriture(definition)
+func _est_outil(objet: Dictionary) -> bool:
+	var donnees_equipement: DonneesEquipement = _obtenir_donnees_equipement(objet)
+	return donnees_equipement != null and donnees_equipement.type_emplacement == TypeEmplacementEquipement.Type.OUTIL
 
-func _obtenir_definition_objet(objet: Dictionary) -> LootItemEntry:
-	var donnees: Dictionary = objet.get("donnees", {})
-	var chemin_definition: String = String(donnees.get("chemin_definition", ""))
-	if chemin_definition.is_empty():
-		return null
-	return load(chemin_definition) as LootItemEntry
-
-func _equiper_equipement(identifiant_instance: StringName) -> void:
-	if gestionnaire_arme == null:
-		return
-	gestionnaire_arme.equiper_equipement_depuis_inventaire(identifiant_instance)
-	_rafraichir()
-
-func _ranger_arme() -> void:
-	if gestionnaire_arme == null:
-		return
-	gestionnaire_arme.ranger_arme_principale_dans_inventaire()
-	_rafraichir()
-
-func _actualiser_equipement_main_droite() -> void:
-	var arme: ArmeBase = gestionnaire_arme.arme_principale if gestionnaire_arme != null else null
-	var arme_forge: bool = arme != null and is_instance_valid(arme) and arme.definition_equipement != null and not arme.donnees_instance_forge.is_empty()
-	etiquette_equipement.visible = arme_forge
-	bouton_ranger_arme.visible = arme_forge
-	if not arme_forge:
-		return
-	var qualite: String = String(arme.donnees_instance_forge.get("qualite", "correcte")).capitalize()
-	etiquette_equipement.text = "Main droite : %s | Qualite : %s" % [arme.definition_equipement.nom_affiche, qualite]
-
-func _ajouter_boutons_ameliorations(colonne: VBoxContainer, donnees: Dictionary, identifiant_instance: StringName) -> void:
-	if inventaire == null:
-		return
-	var chemin_definition: String = String(donnees.get("chemin_definition", ""))
-	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry if not chemin_definition.is_empty() else null
-	if definition == null:
-		return
-	var installees: PackedStringArray = GestionnaireAmeliorationsEquipement.obtenir_ameliorations_installees(donnees)
-	for amelioration: AmeliorationForge in definition.ameliorations_forge:
-		if amelioration == null or installees.has(amelioration.identifiant):
-			continue
-		var bouton_installer := Button.new()
-		bouton_installer.text = "Installer : %s" % amelioration.nom
-		bouton_installer.disabled = inventaire.obtenir_quantite(amelioration.identifiant) < 1
-		bouton_installer.pressed.connect(_installer_amelioration.bind(identifiant_instance, amelioration.identifiant))
-		colonne.add_child(bouton_installer)
-
-func _ajouter_liste_ameliorations(colonne: VBoxContainer, donnees: Dictionary) -> void:
-	var chemin_definition: String = String(donnees.get("chemin_definition", ""))
-	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry if not chemin_definition.is_empty() else null
-	if definition == null:
-		return
-	var installees: PackedStringArray = GestionnaireAmeliorationsEquipement.obtenir_ameliorations_installees(donnees)
-	if installees.is_empty():
-		return
-	var noms: PackedStringArray = []
-	for identifiant: StringName in installees:
-		var amelioration: AmeliorationForge = definition.obtenir_amelioration_forge(identifiant)
-		noms.append("%s (+%d%% cadence)" % [amelioration.nom, roundi((amelioration.multiplicateur_cadence - 1.0) * 100.0)] if amelioration != null else String(identifiant))
-	var liste := Label.new()
-	liste.text = "Améliorations : %s" % ", ".join(noms)
-	liste.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	liste.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	colonne.add_child(liste)
-
-func _installer_amelioration(identifiant_instance: StringName, identifiant_amelioration: StringName) -> void:
-	if inventaire == null:
-		return
-	GestionnaireAmeliorationsEquipement.installer_amelioration(inventaire, identifiant_instance, identifiant_amelioration)
-	_rafraichir()
-
-func _nom_type(type_item: int) -> String:
-	match type_item:
-		Loot.TypeItem.CONSO:
-			return "Consommable"
-		Loot.TypeItem.UPGRADE:
-			return "Amelioration"
-		Loot.TypeItem.ARME:
-			return "Arme"
-		Loot.TypeItem.MATERIAU:
-			return "Materiau"
-		Loot.TypeItem.COMPOSANT:
-			return "Composant"
-		Loot.TypeItem.EQUIPEMENT:
-			return "Equipement"
-		_:
-			return "Objet"
+func _est_objet_equipe(objet: Dictionary) -> bool:
+	if gestionnaire_equipement == null:
+		return false
+	for index: int in GestionnaireEquipementJoueur.Emplacement.size():
+		if _meme_objet(objet, gestionnaire_equipement.obtenir_objet_equipe(index as GestionnaireEquipementJoueur.Emplacement)):
+			return true
+	return false

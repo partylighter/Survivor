@@ -40,6 +40,7 @@
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/poivre.tres" id="31_t3m3n"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/sel.tres" id="32_r5uce"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/viande.tres" id="36_3eba1"]
+[ext_resource type="Script" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="37_equipement"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1367,6 +1368,9 @@ ressources_temporaires = Array[ExtResource("29_xag11")]([ExtResource("31_t3m3n")
 
 [node name="GestionnaireEffetsNourriture" type="Node" parent="." unique_id=2023379626]
 script = ExtResource("29_effets_nourriture")
+
+[node name="GestionnaireEquipementJoueur" type="Node" parent="."]
+script = ExtResource("37_equipement")
 
 [node name="GestionnaireLoot" type="Node" parent="." unique_id=1363142192]
 script = ExtResource("15_6qcki")

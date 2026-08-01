@@ -23,14 +23,13 @@ func _ajouter_depuis_ressource(ressource: LootItemEntry) -> void:
 		return
 	ajouter_objet(ressource.item_id, ressource.nom_affiche, 1, ressource.icone, ressource.type_item, {"chemin_definition": ressource.resource_path})
 
-func ajouter_depuis_payload(payload: Dictionary) -> void:
-	var identifiant: StringName = payload.get("id", payload.get("item_id", &""))
+func ajouter_depuis_payload(payload: Dictionary) -> bool:
+	var identifiant: StringName = payload.get("id", payload.get("item_id", payload.get("identifiant", &"")))
 	var quantite: int = maxi(int(payload.get("quantite", 1)), 0)
 	if String(identifiant) == "" or quantite <= 0:
-		return
+		return false
 	if _est_equipement_instance(payload):
-		_ajouter_equipement_instance(identifiant, payload)
-		return
+		return _ajouter_equipement_instance(identifiant, payload)
 	var entree: Dictionary = objets_par_identifiant.get(identifiant, {})
 	if entree.is_empty():
 		entree = {
@@ -51,16 +50,17 @@ func ajouter_depuis_payload(payload: Dictionary) -> void:
 	objets_par_identifiant[identifiant] = entree
 	objet_ajoute.emit(identifiant, quantite)
 	inventaire_change.emit()
+	return true
 
 func _est_equipement_instance(payload: Dictionary) -> bool:
 	var donnees: Dictionary = Dictionary(payload.get("donnees", {}))
 	return int(payload.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT and String(donnees.get("identifiant_instance", &"")) != ""
 
-func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) -> void:
+func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) -> bool:
 	var donnees: Dictionary = Dictionary(payload.get("donnees", {})).duplicate(true)
 	var identifiant_instance: StringName = donnees.get("identifiant_instance", &"")
 	if equipements_par_instance.has(identifiant_instance):
-		return
+		return false
 	equipements_par_instance[identifiant_instance] = {
 		"identifiant": identifiant,
 		"identifiant_instance": identifiant_instance,
@@ -74,6 +74,7 @@ func _ajouter_equipement_instance(identifiant: StringName, payload: Dictionary) 
 	}
 	objet_ajoute.emit(identifiant, 1)
 	inventaire_change.emit()
+	return true
 
 func ajouter_objet(identifiant: StringName, nom: String, quantite: int, icone: Texture2D = null, type_item: int = -1, donnees: Dictionary = {}) -> void:
 	ajouter_depuis_payload({

@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="DonneesEquipement" format=3]
+
+[ext_resource type="Script" path="res://scripts/inventaire/equipement/DonneesEquipement.gd" id="1_donnees"]
+
+[resource]
+script = ExtResource("1_donnees")
+type_emplacement = 8

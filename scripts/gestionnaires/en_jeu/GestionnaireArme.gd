@@ -486,6 +486,51 @@ func equiper_equipement_depuis_inventaire(identifiant_instance: StringName) -> b
 	equiper_arme_principale(arme)
 	return true
 
+func equiper_equipement_stocke(equipement: Dictionary) -> bool:
+	if arme_principale != null:
+		return false
+	var donnees_instance: Dictionary = equipement.get("donnees", {})
+	var chemin_definition: String = String(donnees_instance.get("chemin_definition", ""))
+	if chemin_definition.is_empty():
+		return false
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
+	if definition == null or definition.scene_arme_equipee == null:
+		return false
+	var arme: ArmeBase = definition.scene_arme_equipee.instantiate() as ArmeBase
+	if arme == null:
+		return false
+	arme.appliquer_instance_forge(definition, donnees_instance)
+	equiper_arme_principale(arme)
+	return true
+
+func extraire_equipement_principal_sans_inventaire() -> Dictionary:
+	if arme_principale == null:
+		return {}
+	var arme: ArmeBase = arme_principale
+	var definition: LootItemEntry = arme.definition_equipement
+	var donnees_instance: Dictionary = arme.donnees_instance_forge.duplicate(true)
+	if definition == null or donnees_instance.is_empty():
+		return {}
+	var equipement: Dictionary = {
+		"identifiant": definition.item_id,
+		"nom": definition.nom_affiche,
+		"icone": definition.icone,
+		"quantite": 1,
+		"type_item": Loot.TypeItem.EQUIPEMENT,
+		"type_loot": -1,
+		"scene": null,
+		"donnees": donnees_instance
+	}
+	var parent: Node = arme.get_parent()
+	if parent != null:
+		parent.remove_child(arme)
+	arme_principale = null
+	_marquer_equipee(arme, false)
+	arme.queue_free()
+	_actualiser_mode_mains_auto()
+	_maj_main_vide_visu_et_process()
+	return equipement
+
 func ranger_arme_principale_dans_inventaire() -> bool:
 	if _joueur == null or _joueur.inventaire == null or arme_principale == null:
 		return false

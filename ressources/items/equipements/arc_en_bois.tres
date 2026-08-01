@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://b2g86s8unsmo6" path="res://scenes/armes/tir/arc_en_bois.tscn" id="3_arme"]
 [ext_resource type="Texture2D" uid="uid://cqgpub2jqdghe" path="res://assets/items/icon-arc-en-bois.png" id="4_icone"]
 [ext_resource type="Resource" path="res://ressources/forge/ameliorations/renfort_arc.tres" id="5_renfort"]
+[ext_resource type="Resource" path="res://ressources/equipement/donnees_outil.tres" id="6_equipement"]
 
 [resource]
 script = ExtResource("1_equipement")
@@ -17,3 +18,4 @@ profil_qualite_forge = ExtResource("2_profil")
 scene_arme_equipee = ExtResource("3_arme")
 ameliorations_compatibles = PackedStringArray("renfort_arc")
 ameliorations_forge = Array[ExtResource("1_jc0q8")]([ExtResource("5_renfort")])
+donnees_equipement = ExtResource("6_equipement")

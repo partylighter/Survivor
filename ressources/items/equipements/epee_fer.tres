@@ -4,6 +4,7 @@
 [ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="1_nk78l"]
 [ext_resource type="Resource" uid="uid://d2gcfpu4v5o5f" path="res://ressources/forge/qualite/profil_epee_fer.tres" id="2_profil"]
 [ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/armes/contact/arme_contact_1.tscn" id="3_arme"]
+[ext_resource type="Resource" path="res://ressources/equipement/donnees_outil.tres" id="4_equipement"]
 
 [resource]
 script = ExtResource("1_equipement")
@@ -12,3 +13,4 @@ nom_affiche = "Epee en fer"
 profil_qualite_forge = ExtResource("2_profil")
 scene_arme_equipee = ExtResource("3_arme")
 ameliorations_compatibles = PackedStringArray()
+donnees_equipement = ExtResource("4_equipement")

@@ -1,13 +1,42 @@
-[gd_scene format=3 uid="uid://b2gkwphybhcur"]
+[gd_scene load_steps=8 format=3 uid="uid://b2gkwphybhcur"]
 
 [ext_resource type="Script" uid="uid://derj73hds8i7x" path="res://scripts/inventaire/InterfaceInventaire.gd" id="1_interface"]
+[ext_resource type="Script" path="res://scripts/inventaire/interface/VueEquipement.gd" id="2_equipement"]
+[ext_resource type="Script" path="res://scripts/inventaire/interface/VueDetailsObjet.gd" id="3_details"]
+[ext_resource type="Script" path="res://scripts/inventaire/interface/ApercuPersonnageInventaire.gd" id="4_apercu"]
 
-[node name="InterfaceInventaire" type="CanvasLayer" unique_id=878911250]
+[sub_resource type="StyleBoxFlat" id="StyleBox_panneau"]
+bg_color = Color(0.055, 0.06, 0.075, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.18, 0.19, 0.23, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_zone"]
+bg_color = Color(0.075, 0.08, 0.1, 0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 16.0
+content_margin_top = 16.0
+content_margin_right = 16.0
+content_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_fond"]
+bg_color = Color(0.012, 0.014, 0.02, 0.94)
+
+[node name="InterfaceInventaire" type="CanvasLayer"]
 layer = 220
-visible = false
 script = ExtResource("1_interface")
 
-[node name="Interface" type="Control" parent="." unique_id=2009786060]
+[node name="Interface" type="Control" parent="."]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,79 +44,277 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Fond" type="ColorRect" parent="Interface" unique_id=461135920]
+[node name="Fond" type="Panel" parent="Interface"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.015, 0.015, 0.02, 0.9)
+theme_override_styles/panel = SubResource("StyleBox_fond")
 
-[node name="Panneau" type="PanelContainer" parent="Interface" unique_id=229481504]
+[node name="Panneau" type="PanelContainer" parent="Interface"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -596.0
-offset_top = -345.0
-offset_right = 551.0
-offset_bottom = 314.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBox_panneau")
 
-[node name="Marge" type="MarginContainer" parent="Interface/Panneau" unique_id=942372809]
+[node name="Marge" type="MarginContainer" parent="Interface/Panneau"]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
 
-[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge" unique_id=393678448]
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge"]
 layout_mode = 2
-offset_transform_enabled = true
+theme_override_constants/separation = 16
+
+[node name="Entete" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne/Entete"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "INVENTAIRE"
+
+[node name="Aide" type="Label" parent="Interface/Panneau/Marge/Colonne/Entete"]
+layout_mode = 2
+text = "I pour fermer"
+vertical_alignment = 1
+
+[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne/Entete"]
+custom_minimum_size = Vector2(44, 38)
+layout_mode = 2
+text = "×"
+
+[node name="HBoxPrincipal" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="ZoneInventaire" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal"]
+custom_minimum_size = Vector2(500, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBox_zone")
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BarreCategories" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Tous" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Tous"
+metadata/categorie = "tous"
+
+[node name="Equipement" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Équip."
+metadata/categorie = "equipement"
+
+[node name="Armes" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Armes"
+metadata/categorie = "armes"
+
+[node name="Consommables" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Conso."
+metadata/categorie = "consommables"
+
+[node name="Materiaux" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Matériaux"
+metadata/categorie = "materiaux"
+
+[node name="Composants" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreCategories"]
+layout_mode = 2
+text = "Compos."
+metadata/categorie = "composants"
+
+[node name="BarreRechercheTri" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne"]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1453143710]
+[node name="Recherche" type="LineEdit" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreRechercheTri"]
+custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "INVENTAIRE"
+size_flags_horizontal = 3
+placeholder_text = "Rechercher un objet…"
+clear_button_enabled = true
+
+[node name="Tri" type="OptionButton" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/BarreRechercheTri"]
+custom_minimum_size = Vector2(112, 38)
+layout_mode = 2
+
+[node name="InfosInventaire" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne"]
+layout_mode = 2
+modulate = Color(0.66, 0.69, 0.77, 1)
+
+[node name="InventaireVide" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne"]
+layout_mode = 2
+text = "Aucun objet ne correspond."
 horizontal_alignment = 1
 
-[node name="Aide" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=2005144173]
+[node name="Defilement" type="ScrollContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne"]
 layout_mode = 2
-text = "I pour ouvrir ou fermer"
-horizontal_alignment = 1
-
-[node name="EquipementMainDroite" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=1988782918]
-layout_mode = 2
-horizontal_alignment = 1
-
-[node name="RangerArme" type="Button" parent="Interface/Panneau/Marge/Colonne" unique_id=264676303]
-custom_minimum_size = Vector2(220, 38)
-layout_mode = 2
-text = "Ranger dans l'inventaire"
-
-[node name="InventaireVide" type="Label" parent="Interface/Panneau/Marge/Colonne" unique_id=918877063]
-layout_mode = 2
-text = "L'inventaire est vide."
-horizontal_alignment = 1
-
-[node name="Defilement" type="ScrollContainer" parent="Interface/Panneau/Marge/Colonne" unique_id=652561910]
-custom_minimum_size = Vector2(0, 430)
-layout_mode = 2
+size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="Grille" type="GridContainer" parent="Interface/Panneau/Marge/Colonne/Defilement" unique_id=126611387]
+[node name="Grille" type="GridContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneInventaire/Colonne/Defilement"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/h_separation = 10
 theme_override_constants/v_separation = 10
 columns = 4
 
-[node name="Fermer" type="Button" parent="Interface/Panneau/Marge/Colonne" unique_id=1289517801]
-custom_minimum_size = Vector2(180, 42)
+[node name="ZoneActions" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal"]
+custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
-text = "Fermer"
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBox_zone")
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BarreModes" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Equipement" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/BarreModes"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Équipement"
+
+[node name="Craft" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/BarreModes"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Craft"
+
+[node name="Details" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/BarreModes"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Détails"
+
+[node name="PileModes" type="TabContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne"]
+layout_mode = 2
+size_flags_vertical = 3
+tabs_visible = false
+
+[node name="Equipement" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes"]
+layout_mode = 2
+script = ExtResource("2_equipement")
+
+[node name="Craft" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes"]
+layout_mode = 2
+alignment = 1
+
+[node name="Titre" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Craft"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "CRAFT"
+horizontal_alignment = 1
+
+[node name="Information" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Craft"]
+layout_mode = 2
+text = "Assemblage et désassemblage seront ajoutés en V2.\nLa forge existante reste disponible."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Details" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes"]
+layout_mode = 2
+theme_override_constants/separation = 12
+script = ExtResource("3_details")
+
+[node name="NomObjet" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 21
+text = "Sélectionnez un objet"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="IconeObjet" type="TextureRect" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TypeObjet" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details"]
+layout_mode = 2
+modulate = Color(0.62, 0.75, 0.92, 1)
+horizontal_alignment = 1
+
+[node name="Informations" type="RichTextLabel" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details"]
+layout_mode = 2
+size_flags_vertical = 3
+fit_content = true
+scroll_active = false
+
+[node name="Actions" type="HBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Equiper" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Équiper"
+
+[node name="Manger" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Manger"
+
+[node name="ZonePersonnage" type="PanelContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal"]
+custom_minimum_size = Vector2(210, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBox_zone")
+
+[node name="Colonne" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitrePersonnage" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "PERSONNAGE"
+horizontal_alignment = 1
+
+[node name="ApercuPersonnage" type="VBoxContainer" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+script = ExtResource("4_apercu")
+
+[node name="Portrait" type="TextureRect" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage"]
+custom_minimum_size = Vector2(0, 350)
+layout_mode = 2
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Separateur" type="HSeparator" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage"]
+layout_mode = 2
+
+[node name="OutilActif" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage"]
+layout_mode = 2
+text = "Actif : Aucun"
+autowrap_mode = 2
+
+[node name="OutilSecondaire" type="Label" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZonePersonnage/Colonne/ApercuPersonnage"]
+layout_mode = 2
+text = "Dos : Aucun"
+autowrap_mode = 2

@@ -24,6 +24,9 @@ class_name LootItemEntry
 @export var ameliorations_compatibles: PackedStringArray = PackedStringArray()
 @export var ameliorations_forge: Array[AmeliorationForge] = []
 
+@export_group("Equipement")
+@export var donnees_equipement: DonneesEquipement
+
 @export_group("Cuisine")
 @export var effet_nourriture: EffetNourriture
 
