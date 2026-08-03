@@ -6,6 +6,8 @@ class_name EquipementAuSol
 
 var donnees_instance: Dictionary = {}
 var _collecte_en_cours: bool = false
+var _ramassage_verrouille: bool = false
+var _duree_verrouillage_restante: float = 0.0
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var pickup: Area2D = $Pickup
@@ -28,6 +30,28 @@ func configurer_depuis_instance(definition_objet: LootItemEntry, donnees: Dictio
 	type_loot = nouveau_type_loot
 	_appliquer_visuel()
 
+func verrouiller_ramassage(duree_secondes: float) -> void:
+	_ramassage_verrouille = true
+	_duree_verrouillage_restante = maxf(duree_secondes, 0.0)
+	if is_inside_tree():
+		_demarrer_deverrouillage()
+	elif not tree_entered.is_connected(_demarrer_deverrouillage):
+		tree_entered.connect(_demarrer_deverrouillage, CONNECT_ONE_SHOT)
+
+func _demarrer_deverrouillage() -> void:
+	if _duree_verrouillage_restante <= 0.0:
+		_deverrouiller_ramassage()
+		return
+	get_tree().create_timer(_duree_verrouillage_restante).timeout.connect(_deverrouiller_ramassage)
+
+func _deverrouiller_ramassage() -> void:
+	_ramassage_verrouille = false
+	_duree_verrouillage_restante = 0.0
+	for zone_entree: Area2D in pickup.get_overlapping_areas():
+		if zone_entree is ZoneRamassage:
+			_quand_zone_entree(zone_entree)
+			break
+
 func obtenir_payload_ramassage() -> Dictionary:
 	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null:
 		return {}
@@ -36,7 +60,7 @@ func obtenir_payload_ramassage() -> Dictionary:
 	var identifiant_instance: StringName = donnees_instance.get("identifiant_instance", &"")
 	if String(identifiant_instance).is_empty():
 		donnees_instance = DonneesInstanceEquipement.creer(definition.item_id, definition.resource_path, &"correcte", {})
-	elif String(donnees_instance.get("chemin_definition", "")).is_empty():
+	elif not DonneesInstanceEquipement.est_valide_pour(donnees_instance, definition):
 		return {}
 	return {
 		"id": definition.item_id,
@@ -52,7 +76,7 @@ func obtenir_payload_ramassage() -> Dictionary:
 	}
 
 func est_ramassable() -> bool:
-	return not _collecte_en_cours and definition != null and definition.type_item == Loot.TypeItem.EQUIPEMENT
+	return not _collecte_en_cours and not _ramassage_verrouille and definition != null and definition.type_item == Loot.TypeItem.EQUIPEMENT
 
 func collecter_par(joueur: Node) -> bool:
 	if not est_ramassable() or joueur == null or not joueur.has_method("on_loot_collected"):

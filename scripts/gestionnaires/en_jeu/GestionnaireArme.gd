@@ -477,7 +477,7 @@ func equiper_equipement_stocke(equipement: Dictionary) -> bool:
 	if chemin_definition.is_empty():
 		return false
 	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
-	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null or definition.scene_arme_equipee == null:
+	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null or definition.scene_arme_equipee == null or not DonneesInstanceEquipement.est_valide_pour(donnees_instance, definition):
 		return false
 	var arme: ArmeBase = definition.scene_arme_equipee.instantiate() as ArmeBase
 	if arme == null:

@@ -22,6 +22,14 @@ static func creer(identifiant_definition: StringName, chemin_definition: String,
 		CLE_COMPOSANTS_INSTALLES: composants
 	}
 
+static func est_valide_pour(donnees: Dictionary, definition: LootItemEntry) -> bool:
+	if definition == null or String(definition.item_id).is_empty() or definition.resource_path.is_empty():
+		return false
+	var identifiant_instance: StringName = donnees.get(CLE_IDENTIFIANT_INSTANCE, &"")
+	var identifiant_definition: StringName = donnees.get(CLE_IDENTIFIANT_DEFINITION, &"")
+	var chemin_definition: String = String(donnees.get(CLE_CHEMIN_DEFINITION, ""))
+	return not String(identifiant_instance).is_empty() and identifiant_definition == definition.item_id and chemin_definition == definition.resource_path
+
 static func obtenir_composants_structurels(donnees: Dictionary) -> Dictionary:
 	var composants: Dictionary = Dictionary(donnees.get(CLE_COMPOSANTS_INSTALLES, {})).duplicate(true)
 	composants.erase(CLE_AMELIORATIONS)

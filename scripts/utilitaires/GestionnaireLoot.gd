@@ -265,7 +265,7 @@ func _collecter_equipement(payload: Dictionary) -> bool:
 	var identifiant_instance: StringName = donnees_instance.get("identifiant_instance", &"")
 	if String(identifiant_instance).is_empty():
 		donnees_instance = DonneesInstanceEquipement.creer(definition.item_id, definition.resource_path, &"correcte", {})
-	elif String(donnees_instance.get("chemin_definition", "")).is_empty():
+	elif not DonneesInstanceEquipement.est_valide_pour(donnees_instance, definition):
 		return false
 	var payload_equipement: Dictionary = {
 		"id": definition.item_id,

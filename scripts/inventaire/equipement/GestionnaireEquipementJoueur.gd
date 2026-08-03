@@ -20,6 +20,7 @@ enum Emplacement {
 
 @export_node_path("GestionnaireInventaire") var chemin_inventaire: NodePath = NodePath("../GestionnaireInventaire")
 @export_node_path("GestionnaireArme") var chemin_gestionnaire_arme: NodePath = NodePath("../GestionnaireArme")
+@export var action_permuter_outil: StringName = &"switch_mains"
 
 @onready var inventaire: GestionnaireInventaire = get_node_or_null(chemin_inventaire) as GestionnaireInventaire
 @onready var gestionnaire_arme: GestionnaireArme = get_node_or_null(chemin_gestionnaire_arme) as GestionnaireArme
@@ -28,8 +29,11 @@ var equipements: Dictionary = {}
 var outils: Array[Dictionary] = [{}, {}]
 var index_outil_actif: int = -1
 
+func _ready() -> void:
+	add_to_group(&"inputs_jeu")
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(&"switch_mains"):
+	if not event.is_action_pressed(action_permuter_outil):
 		return
 	if event is InputEventKey and event.echo:
 		return
@@ -129,25 +133,30 @@ func desequiper(emplacement: Emplacement) -> bool:
 	equipement_change.emit()
 	return true
 
-func permuter_outil_actif() -> void:
+func permuter_outil_actif() -> bool:
 	if index_outil_actif < 0:
-		return
+		return false
 	var nouvel_index: int = 1 - index_outil_actif
 	if outils[nouvel_index].is_empty() or gestionnaire_arme == null:
-		return
+		return false
 	var ancien_index: int = index_outil_actif
 	var ancienne_arme: Dictionary = gestionnaire_arme.extraire_equipement_principal_sans_inventaire()
 	if not outils[ancien_index].is_empty() and ancienne_arme.is_empty():
-		return
+		return false
 	if not ancienne_arme.is_empty():
 		outils[ancien_index] = ancienne_arme.duplicate(true)
 	if not gestionnaire_arme.equiper_equipement_stocke(outils[nouvel_index]):
-		if not ancienne_arme.is_empty():
-			gestionnaire_arme.equiper_equipement_stocke(outils[ancien_index])
-		return
+		var rollback_reussi: bool = ancienne_arme.is_empty() or gestionnaire_arme.equiper_equipement_stocke(outils[ancien_index])
+		if not rollback_reussi:
+			index_outil_actif = -1
+			gestionnaire_arme.desactiver_mode_outil_inventaire()
+			outil_actif_change.emit(index_outil_actif)
+			equipement_change.emit()
+		return false
 	index_outil_actif = nouvel_index
 	outil_actif_change.emit(index_outil_actif)
 	equipement_change.emit()
+	return true
 
 func _equiper_corps(objet: Dictionary, emplacement: Emplacement) -> bool:
 	var ancien: Dictionary = Dictionary(equipements.get(emplacement, {}))

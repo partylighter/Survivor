@@ -2,6 +2,7 @@ extends Node
 class_name GestionnaireInventaire
 
 const SCENE_EQUIPEMENT_AU_SOL: PackedScene = preload("res://scenes/objets/equipement_au_sol.tscn")
+const DUREE_VERROUILLAGE_JET: float = 0.4
 
 signal inventaire_change
 signal objet_ajoute(identifiant: StringName, quantite: int)
@@ -67,6 +68,10 @@ func _est_equipement_instance(payload: Dictionary) -> bool:
 func _ajouter_equipement_instance(identifiant: StringName, nom_objet: String, payload: Dictionary) -> bool:
 	var donnees: Dictionary = Dictionary(payload.get("donnees", {})).duplicate(true)
 	var identifiant_instance: StringName = donnees.get("identifiant_instance", &"")
+	var chemin_definition: String = String(donnees.get("chemin_definition", ""))
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry if not chemin_definition.is_empty() else null
+	if definition == null or definition.item_id != identifiant or not DonneesInstanceEquipement.est_valide_pour(donnees, definition):
+		return false
 	if equipements_par_instance.has(identifiant_instance):
 		return false
 	equipements_par_instance[identifiant_instance] = {
@@ -153,6 +158,11 @@ func mettre_a_jour_equipement_instance(identifiant_instance: StringName, nouvell
 	if not equipements_par_instance.has(identifiant_instance):
 		return false
 	var equipement: Dictionary = equipements_par_instance[identifiant_instance]
+	var donnees_actuelles: Dictionary = Dictionary(equipement.get("donnees", {}))
+	var chemin_definition: String = String(donnees_actuelles.get("chemin_definition", ""))
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry if not chemin_definition.is_empty() else null
+	if nouvelles_donnees.get("identifiant_instance", &"") != identifiant_instance or not DonneesInstanceEquipement.est_valide_pour(nouvelles_donnees, definition):
+		return false
 	equipement["donnees"] = nouvelles_donnees.duplicate(true)
 	equipements_par_instance[identifiant_instance] = equipement
 	inventaire_change.emit()
@@ -167,12 +177,13 @@ func jeter_equipement(identifiant_instance: StringName, position_monde: Vector2)
 	if chemin_definition.is_empty() or not ResourceLoader.exists(chemin_definition):
 		return false
 	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
-	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null:
+	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null or not DonneesInstanceEquipement.est_valide_pour(donnees, definition):
 		return false
 	var equipement_au_sol: EquipementAuSol = SCENE_EQUIPEMENT_AU_SOL.instantiate() as EquipementAuSol
 	if equipement_au_sol == null:
 		return false
 	equipement_au_sol.configurer_depuis_instance(definition, donnees, int(equipement.get("type_loot", Loot.TypeLoot.C)))
+	equipement_au_sol.verrouiller_ramassage(DUREE_VERROUILLAGE_JET)
 	get_tree().current_scene.add_child(equipement_au_sol)
 	equipement_au_sol.global_position = position_monde
 	var equipement_retire: Dictionary = retirer_equipement_instance(identifiant_instance)
