@@ -90,6 +90,12 @@ func obtenir_outil_secondaire() -> Dictionary:
 		return {}
 	return outils[1 - index_outil_actif].duplicate(true)
 
+func a_outil_actif() -> bool:
+	return index_outil_actif >= 0 and index_outil_actif < outils.size() and not outils[index_outil_actif].is_empty()
+
+func a_des_outils_equipes() -> bool:
+	return not outils[0].is_empty() or not outils[1].is_empty()
+
 func peut_equiper(objet: Dictionary, emplacement: Emplacement) -> bool:
 	var donnees_equipement: DonneesEquipement = _obtenir_donnees_equipement(objet)
 	return donnees_equipement != null and donnees_equipement.type_emplacement == obtenir_type_emplacement(emplacement)
@@ -146,12 +152,9 @@ func permuter_outil_actif() -> bool:
 	if not ancienne_arme.is_empty():
 		outils[ancien_index] = ancienne_arme.duplicate(true)
 	if not gestionnaire_arme.equiper_equipement_stocke(outils[nouvel_index]):
-		var rollback_reussi: bool = ancienne_arme.is_empty() or gestionnaire_arme.equiper_equipement_stocke(outils[ancien_index])
+		var rollback_reussi: bool = _restaurer_runtime_outil(ancienne_arme)
 		if not rollback_reussi:
-			index_outil_actif = -1
-			gestionnaire_arme.desactiver_mode_outil_inventaire()
-			outil_actif_change.emit(index_outil_actif)
-			equipement_change.emit()
+			_signaler_runtime_outil_indisponible()
 		return false
 	index_outil_actif = nouvel_index
 	outil_actif_change.emit(index_outil_actif)
@@ -173,7 +176,7 @@ func _equiper_outil(objet: Dictionary, emplacement: Emplacement) -> bool:
 	var ancien: Dictionary = outils[index].duplicate(true)
 	var doit_activer: bool = index_outil_actif == index or index_outil_actif < 0
 	var ancienne_arme: Dictionary = {}
-	var activation_mode_requise: bool = index_outil_actif < 0
+	var activation_mode_requise: bool = not gestionnaire_arme.mode_outil_inventaire_actif
 	if activation_mode_requise and not gestionnaire_arme.activer_mode_outil_inventaire():
 		return false
 	if doit_activer and index_outil_actif == index:
@@ -183,17 +186,17 @@ func _equiper_outil(objet: Dictionary, emplacement: Emplacement) -> bool:
 		if not ancienne_arme.is_empty():
 			ancien = ancienne_arme.duplicate(true)
 	if doit_activer and not gestionnaire_arme.equiper_equipement_stocke(objet):
-		if not ancienne_arme.is_empty():
-			gestionnaire_arme.equiper_equipement_stocke(ancienne_arme)
-		if activation_mode_requise:
+		if not _restaurer_runtime_outil(ancienne_arme):
+			_signaler_runtime_outil_indisponible()
+		if activation_mode_requise and not a_des_outils_equipes():
 			gestionnaire_arme.desactiver_mode_outil_inventaire()
 		return false
 	if not ancien.is_empty() and not inventaire.ajouter_depuis_payload(ancien):
 		if doit_activer:
 			gestionnaire_arme.extraire_equipement_principal_sans_inventaire()
-			if not ancienne_arme.is_empty():
-				gestionnaire_arme.equiper_equipement_stocke(ancienne_arme)
-		if activation_mode_requise:
+			if not _restaurer_runtime_outil(ancienne_arme):
+				_signaler_runtime_outil_indisponible()
+		if activation_mode_requise and not a_des_outils_equipes():
 			gestionnaire_arme.desactiver_mode_outil_inventaire()
 		return false
 	outils[index] = objet
@@ -222,12 +225,19 @@ func _desequiper_outil(index: int) -> bool:
 	var autre_index: int = 1 - index
 	var autre_outil_present: bool = not outils[autre_index].is_empty()
 	if autre_outil_present and not gestionnaire_arme.equiper_equipement_stocke(outils[autre_index]):
-		gestionnaire_arme.equiper_equipement_stocke(arme_extraite)
+		if not _restaurer_runtime_outil(arme_extraite):
+			_signaler_runtime_outil_indisponible()
 		return false
 	if not inventaire.ajouter_depuis_payload(objet):
 		if autre_outil_present:
-			gestionnaire_arme.extraire_equipement_principal_sans_inventaire()
-		gestionnaire_arme.equiper_equipement_stocke(arme_extraite)
+			var autre_outil_extrait: Dictionary = gestionnaire_arme.extraire_equipement_principal_sans_inventaire()
+			if autre_outil_extrait.is_empty():
+				index_outil_actif = autre_index
+				outil_actif_change.emit(index_outil_actif)
+				equipement_change.emit()
+				return false
+		if not _restaurer_runtime_outil(arme_extraite):
+			_signaler_runtime_outil_indisponible()
 		return false
 	outils[index] = {}
 	index_outil_actif = autre_index if autre_outil_present else -1
@@ -236,6 +246,16 @@ func _desequiper_outil(index: int) -> bool:
 	outil_actif_change.emit(index_outil_actif)
 	equipement_change.emit()
 	return true
+
+func _restaurer_runtime_outil(objet: Dictionary) -> bool:
+	if objet.is_empty():
+		return true
+	return gestionnaire_arme != null and gestionnaire_arme.equiper_equipement_stocke(objet)
+
+func _signaler_runtime_outil_indisponible() -> void:
+	index_outil_actif = -1
+	outil_actif_change.emit(index_outil_actif)
+	equipement_change.emit()
 
 func _retirer_exactement(objet: Dictionary) -> Dictionary:
 	var donnees: Dictionary = objet.get("donnees", {})
