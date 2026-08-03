@@ -1,6 +1,8 @@
 extends Node
 class_name GestionnaireInventaire
 
+const SCENE_EQUIPEMENT_AU_SOL: PackedScene = preload("res://scenes/objets/equipement_au_sol.tscn")
+
 signal inventaire_change
 signal objet_ajoute(identifiant: StringName, quantite: int)
 signal objet_retire(identifiant: StringName, quantite: int)
@@ -34,6 +36,8 @@ func ajouter_depuis_payload(payload: Dictionary) -> bool:
 	var nom_objet: String = _obtenir_nom_payload(payload, identifiant)
 	if _est_equipement_instance(payload):
 		return _ajouter_equipement_instance(identifiant, nom_objet, payload)
+	if int(payload.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT:
+		return false
 	var entree: Dictionary = objets_par_identifiant.get(identifiant, {})
 	if entree.is_empty():
 		entree = {
@@ -68,6 +72,7 @@ func _ajouter_equipement_instance(identifiant: StringName, nom_objet: String, pa
 	equipements_par_instance[identifiant_instance] = {
 		"identifiant": identifiant,
 		"identifiant_instance": identifiant_instance,
+		"chemin_definition": String(donnees.get("chemin_definition", "")),
 		"nom": nom_objet,
 		"icone": payload.get("icone", null),
 		"quantite": 1,
@@ -87,8 +92,8 @@ func _obtenir_nom_payload(payload: Dictionary, identifiant: StringName) -> Strin
 func _payload_contient_nom(payload: Dictionary) -> bool:
 	return not String(payload.get("nom_affiche", payload.get("nom", ""))).strip_edges().is_empty()
 
-func ajouter_objet(identifiant: StringName, nom: String, quantite: int, icone: Texture2D = null, type_item: int = -1, donnees: Dictionary = {}) -> void:
-	ajouter_depuis_payload({
+func ajouter_objet(identifiant: StringName, nom: String, quantite: int, icone: Texture2D = null, type_item: int = -1, donnees: Dictionary = {}) -> bool:
+	return ajouter_depuis_payload({
 		"id": identifiant,
 		"nom_affiche": nom,
 		"quantite": quantite,
@@ -101,12 +106,13 @@ func retirer_objet(identifiant: StringName, quantite: int) -> int:
 	var quantite_demandee: int = maxi(quantite, 0)
 	if quantite_demandee <= 0:
 		return 0
-	var quantite_retiree: int = _retirer_equipements(identifiant, quantite_demandee)
-	var quantite_restante: int = quantite_demandee - quantite_retiree
-	if quantite_restante > 0 and objets_par_identifiant.has(identifiant):
+	var quantite_retiree: int = 0
+	if objets_par_identifiant.has(identifiant):
 		var entree: Dictionary = objets_par_identifiant[identifiant]
+		if int(entree.get("type_item", -1)) == Loot.TypeItem.EQUIPEMENT:
+			return 0
 		var quantite_disponible: int = int(entree.get("quantite", 0))
-		var quantite_empilable: int = mini(quantite_disponible, quantite_restante)
+		var quantite_empilable: int = mini(quantite_disponible, quantite_demandee)
 		if quantite_disponible - quantite_empilable <= 0:
 			objets_par_identifiant.erase(identifiant)
 		else:
@@ -116,21 +122,6 @@ func retirer_objet(identifiant: StringName, quantite: int) -> int:
 	if quantite_retiree > 0:
 		objet_retire.emit(identifiant, quantite_retiree)
 		inventaire_change.emit()
-	return quantite_retiree
-
-func _retirer_equipements(identifiant: StringName, quantite: int) -> int:
-	var quantite_retiree: int = 0
-	var instances: Array[StringName] = []
-	for identifiant_instance: Variant in equipements_par_instance:
-		var equipement: Dictionary = equipements_par_instance[identifiant_instance]
-		if equipement.get("identifiant", &"") == identifiant:
-			instances.append(identifiant_instance)
-	instances.sort()
-	for identifiant_instance: StringName in instances:
-		if quantite_retiree >= quantite:
-			break
-		equipements_par_instance.erase(identifiant_instance)
-		quantite_retiree += 1
 	return quantite_retiree
 
 func obtenir_quantite(identifiant: StringName) -> int:
@@ -165,6 +156,29 @@ func mettre_a_jour_equipement_instance(identifiant_instance: StringName, nouvell
 	equipement["donnees"] = nouvelles_donnees.duplicate(true)
 	equipements_par_instance[identifiant_instance] = equipement
 	inventaire_change.emit()
+	return true
+
+func jeter_equipement(identifiant_instance: StringName, position_monde: Vector2) -> bool:
+	var equipement: Dictionary = obtenir_equipement_instance(identifiant_instance)
+	if equipement.is_empty() or get_tree().current_scene == null:
+		return false
+	var donnees: Dictionary = Dictionary(equipement.get("donnees", {})).duplicate(true)
+	var chemin_definition: String = String(donnees.get("chemin_definition", ""))
+	if chemin_definition.is_empty() or not ResourceLoader.exists(chemin_definition):
+		return false
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
+	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null:
+		return false
+	var equipement_au_sol: EquipementAuSol = SCENE_EQUIPEMENT_AU_SOL.instantiate() as EquipementAuSol
+	if equipement_au_sol == null:
+		return false
+	equipement_au_sol.configurer_depuis_instance(definition, donnees, int(equipement.get("type_loot", Loot.TypeLoot.C)))
+	get_tree().current_scene.add_child(equipement_au_sol)
+	equipement_au_sol.global_position = position_monde
+	var equipement_retire: Dictionary = retirer_equipement_instance(identifiant_instance)
+	if equipement_retire.is_empty():
+		equipement_au_sol.queue_free()
+		return false
 	return true
 
 func obtenir_objets() -> Array[Dictionary]:

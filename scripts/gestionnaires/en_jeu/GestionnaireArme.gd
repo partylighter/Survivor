@@ -407,7 +407,7 @@ func _essayer_ramasser(main_droite: bool) -> void:
 
 	var cible: Node2D = null
 	if zone.has_method("get_pickable_le_plus_proche"):
-		cible = zone.get_pickable_le_plus_proche(ref_pos)
+		cible = zone.get_pickable_le_plus_proche(ref_pos, Callable(self, "_est_pickable_legacy_valide"))
 	elif zone.has_method("get_loot_le_plus_proche"):
 		cible = zone.get_loot_le_plus_proche(ref_pos)
 
@@ -449,6 +449,9 @@ func _essayer_ramasser(main_droite: bool) -> void:
 			equiper_arme_secondaire(arme_sol)
 		_set_pickup_enabled(arme_sol, false)
 
+func _est_pickable_legacy_valide(cible: Node2D) -> bool:
+	return cible is ArmeBase or cible.has_method("prendre_scene")
+
 func equiper_arme_principale(a: ArmeBase) -> void:
 	if a == null or a == arme_secondaire:
 		return
@@ -466,29 +469,6 @@ func equiper_arme_principale(a: ArmeBase) -> void:
 	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
 
-func equiper_equipement_depuis_inventaire(identifiant_instance: StringName) -> bool:
-	if mode_outil_inventaire_actif or _joueur == null or _joueur.inventaire == null or arme_principale != null:
-		return false
-	var equipement: Dictionary = _joueur.inventaire.obtenir_equipement_instance(identifiant_instance)
-	if equipement.is_empty():
-		return false
-	var donnees_instance: Dictionary = equipement.get("donnees", {})
-	var chemin_definition: String = String(donnees_instance.get("chemin_definition", ""))
-	if chemin_definition.is_empty():
-		return false
-	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
-	if definition == null or definition.scene_arme_equipee == null:
-		return false
-	var arme: ArmeBase = definition.scene_arme_equipee.instantiate() as ArmeBase
-	if arme == null:
-		return false
-	if _joueur.inventaire.retirer_equipement_instance(identifiant_instance).is_empty():
-		arme.queue_free()
-		return false
-	arme.appliquer_instance_forge(definition, donnees_instance)
-	equiper_arme_principale(arme)
-	return true
-
 func equiper_equipement_stocke(equipement: Dictionary) -> bool:
 	if arme_principale != null:
 		return false
@@ -497,7 +477,7 @@ func equiper_equipement_stocke(equipement: Dictionary) -> bool:
 	if chemin_definition.is_empty():
 		return false
 	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
-	if definition == null or definition.scene_arme_equipee == null:
+	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null or definition.scene_arme_equipee == null:
 		return false
 	var arme: ArmeBase = definition.scene_arme_equipee.instantiate() as ArmeBase
 	if arme == null:
@@ -516,6 +496,8 @@ func extraire_equipement_principal_sans_inventaire() -> Dictionary:
 		return {}
 	var equipement: Dictionary = {
 		"identifiant": definition.item_id,
+		"identifiant_instance": donnees_instance.get("identifiant_instance", &""),
+		"chemin_definition": definition.resource_path,
 		"nom": definition.nom_affiche,
 		"icone": definition.icone,
 		"quantite": 1,
@@ -552,16 +534,28 @@ func ranger_arme_principale_dans_inventaire() -> bool:
 	var identifiant_instance: StringName = donnees_instance.get("identifiant_instance", &"")
 	if definition == null or String(identifiant_instance) == "" or not _joueur.inventaire.obtenir_equipement_instance(identifiant_instance).is_empty():
 		return false
+	var payload: Dictionary = {
+		"id": definition.item_id,
+		"identifiant": definition.item_id,
+		"identifiant_instance": identifiant_instance,
+		"chemin_definition": definition.resource_path,
+		"nom_affiche": definition.nom_affiche,
+		"icone": definition.icone,
+		"quantite": 1,
+		"type_item": Loot.TypeItem.EQUIPEMENT,
+		"donnees": donnees_instance
+	}
+	if not _joueur.inventaire.ajouter_depuis_payload(payload):
+		return false
 	var parent: Node = arme.get_parent()
 	if parent != null:
 		parent.remove_child(arme)
 	arme_principale = null
 	_marquer_equipee(arme, false)
 	arme.queue_free()
-	_joueur.inventaire.ajouter_objet(definition.item_id, definition.nom_affiche, 1, definition.icone, Loot.TypeItem.EQUIPEMENT, donnees_instance)
 	_actualiser_mode_mains_auto()
 	_maj_main_vide_visu_et_process()
-	return not _joueur.inventaire.obtenir_equipement_instance(identifiant_instance).is_empty()
+	return true
 
 func equiper_arme_secondaire(a: ArmeBase) -> void:
 	if mode_outil_inventaire_actif or arme_unique or a == null or a == arme_principale:
@@ -582,6 +576,7 @@ func equiper_arme_secondaire(a: ArmeBase) -> void:
 	_maj_main_vide_visu_et_process()
 
 func _liberer_interne(main_droite: bool, lockout_ms: int) -> void:
+	# Flux legacy conservé pour les anciennes armes physiques au sol.
 	var a: ArmeBase = arme_principale if main_droite else arme_secondaire
 	var s: Node2D = _socket_principale if main_droite else _socket_secondaire
 	if a == null or s == null:

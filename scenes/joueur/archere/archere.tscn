@@ -1100,6 +1100,7 @@ chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
 chemin_sprite = NodePath("squelette du corps")
 collision_ennemis_actif = false
+visuel_deplacement_actif = false
 limite_haut = -1200.0
 limite_bas = 1200.0
 
@@ -1335,6 +1336,7 @@ metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
 [node name="GestionnaireModesDeplacement" type="Node" parent="." unique_id=70369585]
 script = ExtResource("26_modes")
+mode_par_defaut = 1
 
 [node name="GestionDeplacementLibreJoueur" type="Node" parent="." unique_id=1315611554]
 script = ExtResource("27_libre")

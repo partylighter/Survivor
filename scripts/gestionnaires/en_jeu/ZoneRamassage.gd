@@ -28,6 +28,10 @@ func _root_candidate(a: Area2D) -> Node2D:
 		return p as Node2D
 	if root is ArmeBase:
 		return root as Node2D
+	if p is EquipementAuSol:
+		return p as Node2D
+	if root is EquipementAuSol:
+		return root as Node2D
 
 	return null
 
@@ -46,14 +50,35 @@ func _on_area_exited(a: Area2D) -> void:
 		pickables.erase(c)
 		_d("EXIT %s count=%d" % [c.name, pickables.size()])
 
-func get_pickable_le_plus_proche(ref_pos: Vector2) -> Node2D:
+func get_pickable_le_plus_proche(ref_pos: Vector2, filtre: Callable = Callable()) -> Node2D:
 	var best: Node2D = null
-	var dmin := INF
-	for n in pickables:
-		if not is_instance_valid(n):
+	var dmin: float = INF
+	for index: int in range(pickables.size() - 1, -1, -1):
+		var objet: Node2D = pickables[index]
+		if not is_instance_valid(objet):
+			pickables.remove_at(index)
 			continue
-		var d := ref_pos.distance_squared_to(n.global_position)
+		if not _est_pickable_valide(objet):
+			continue
+		if filtre.is_valid() and not bool(filtre.call(objet)):
+			continue
+		var d: float = ref_pos.distance_squared_to(objet.global_position)
 		if d < dmin:
 			dmin = d
-			best = n
+			best = objet
 	return best
+
+func _est_pickable_valide(objet: Node2D) -> bool:
+	if objet.has_meta("pickup_locked") and bool(objet.get_meta("pickup_locked")):
+		return false
+	if objet.has_meta("equipped") and bool(objet.get_meta("equipped")):
+		return false
+	if objet.is_in_group("__arme_equipee__"):
+		return false
+	if objet is ArmeBase and not (objet as ArmeBase).est_au_sol:
+		return false
+	if objet.has_method("est_ramassable"):
+		return bool(objet.call("est_ramassable"))
+	if objet is Loot:
+		return (objet as Loot).est_actif_pour_manager()
+	return objet is ArmeBase

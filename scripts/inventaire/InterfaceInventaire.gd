@@ -46,6 +46,7 @@ func _ready() -> void:
 	vue_details.configurer(gestionnaire_craft.catalogue_recettes if gestionnaire_craft != null else null)
 	vue_details.manger_demande.connect(_manger)
 	vue_details.equiper_demande.connect(_equiper_depuis_details)
+	vue_details.jeter_demande.connect(_jeter_depuis_details)
 	vue_details.utiliser_craft_demande.connect(_utiliser_pour_craft)
 	vue_details.desassembler_demande.connect(_utiliser_pour_desassemblage)
 	apercu_personnage.configurer(get_parent() as Player, gestionnaire_equipement)
@@ -273,6 +274,22 @@ func _equiper_depuis_details(objet: Dictionary) -> void:
 		gestionnaire_equipement.equiper_depuis_inventaire(objet, index as GestionnaireEquipementJoueur.Emplacement)
 	else:
 		_changer_mode(0)
+
+func _jeter_depuis_details(objet: Dictionary) -> void:
+	if inventaire == null or int(objet.get("type_item", -1)) != Loot.TypeItem.EQUIPEMENT:
+		return
+	var donnees: Dictionary = objet.get("donnees", {})
+	var identifiant_instance: StringName = donnees.get("identifiant_instance", &"")
+	var joueur: Node2D = get_parent() as Node2D
+	if String(identifiant_instance).is_empty() or joueur == null:
+		return
+	var direction_jet: Vector2 = joueur.get_global_mouse_position() - joueur.global_position
+	if direction_jet.length_squared() <= 0.0001:
+		direction_jet = Vector2.RIGHT
+	var position_jet: Vector2 = joueur.global_position + direction_jet.normalized() * 600.0
+	if inventaire.jeter_equipement(identifiant_instance, position_jet):
+		objet_selectionne.clear()
+		vue_details.afficher_objet({})
 
 func _utiliser_pour_craft(objet: Dictionary) -> void:
 	_changer_mode(1)

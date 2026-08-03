@@ -28,6 +28,13 @@ var equipements: Dictionary = {}
 var outils: Array[Dictionary] = [{}, {}]
 var index_outil_actif: int = -1
 
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed(&"switch_mains"):
+		return
+	if event is InputEventKey and event.echo:
+		return
+	permuter_outil_actif()
+
 func obtenir_type_emplacement(emplacement: Emplacement) -> TypeEmplacementEquipement.Type:
 	match emplacement:
 		Emplacement.TETE:

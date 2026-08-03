@@ -275,6 +275,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Équiper"
 
+[node name="Jeter" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Jeter"
+
 [node name="Manger" type="Button" parent="Interface/Panneau/Marge/Colonne/HBoxPrincipal/ZoneActions/Colonne/PileModes/Details/Actions"]
 layout_mode = 2
 size_flags_horizontal = 3

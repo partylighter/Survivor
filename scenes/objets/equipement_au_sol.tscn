@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/inventaire/equipement/EquipementAuSol.gd" id="1_equipement"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pickup"]
+radius = 36.0
+
+[node name="EquipementAuSol" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1_equipement")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture_filter = 1
+
+[node name="Pickup" type="Area2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pickup"]
+shape = SubResource("CircleShape2D_pickup")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -100.0
+offset_top = 42.0
+offset_right = 100.0
+offset_bottom = 68.0
+text = "Equipement"
+horizontal_alignment = 1

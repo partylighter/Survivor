@@ -28,6 +28,12 @@ class_name LootTableEnemy
 @export var arme_A: Array[LootItemEntry] = []
 @export var arme_S: Array[LootItemEntry] = []
 
+@export_group("Equipements par rareté")
+@export var equipement_C: Array[LootItemEntry] = []
+@export var equipement_B: Array[LootItemEntry] = []
+@export var equipement_A: Array[LootItemEntry] = []
+@export var equipement_S: Array[LootItemEntry] = []
+
 func tirer_item_id(type_item: int, rarete: int, rng: RandomNumberGenerator) -> StringName:
 	var pool: Array[LootItemEntry] = []
 
@@ -49,6 +55,12 @@ func tirer_item_id(type_item: int, rarete: int, rng: RandomNumberGenerator) -> S
 			Loot.TypeLoot.B: pool = arme_B
 			Loot.TypeLoot.A: pool = arme_A
 			Loot.TypeLoot.S: pool = arme_S
+	elif type_item == Loot.TypeItem.EQUIPEMENT:
+		match rarete:
+			Loot.TypeLoot.C: pool = equipement_C
+			Loot.TypeLoot.B: pool = equipement_B
+			Loot.TypeLoot.A: pool = equipement_A
+			Loot.TypeLoot.S: pool = equipement_S
 
 	if pool.is_empty():
 		return &""
@@ -93,43 +105,46 @@ func tirer_loot(
 	rng: RandomNumberGenerator,
 	mult_conso: float = 1.0,
 	mult_upgrade: float = 1.0,
-	mult_arme: float = 1.0
+	mult_arme: float = 1.0,
+	mult_equipement: float = 1.0
 ) -> Dictionary:
-	var pool_conso := _get_pool(Loot.TypeItem.CONSO, rarete)
-	var pool_upgrade := _get_pool(Loot.TypeItem.UPGRADE, rarete)
-	var pool_arme := _get_pool(Loot.TypeItem.ARME, rarete)
-
-	var w_conso := _poids_pool(pool_conso) * maxf(mult_conso, 0.0)
-	var w_upgrade := _poids_pool(pool_upgrade) * maxf(mult_upgrade, 0.0)
-	var w_arme := _poids_pool(pool_arme) * maxf(mult_arme, 0.0)
-
-	var sum := w_conso + w_upgrade + w_arme
-	if sum <= 0.0:
+	var pool_conso: Array[LootItemEntry] = _get_pool(Loot.TypeItem.CONSO, rarete)
+	var pool_upgrade: Array[LootItemEntry] = _get_pool(Loot.TypeItem.UPGRADE, rarete)
+	var pool_arme: Array[LootItemEntry] = _get_pool(Loot.TypeItem.ARME, rarete)
+	var pool_equipement: Array[LootItemEntry] = _get_pool(Loot.TypeItem.EQUIPEMENT, rarete)
+	var poids_conso: float = _poids_pool(pool_conso) * maxf(mult_conso, 0.0)
+	var poids_upgrade: float = _poids_pool(pool_upgrade) * maxf(mult_upgrade, 0.0)
+	var poids_arme: float = _poids_pool(pool_arme) * maxf(mult_arme, 0.0)
+	var poids_equipement: float = _poids_pool(pool_equipement) * maxf(mult_equipement, 0.0)
+	var somme: float = poids_conso + poids_upgrade + poids_arme + poids_equipement
+	if somme <= 0.0:
 		return {"type_item": Loot.TypeItem.CONSO, "item_id": &""}
-
-	var x := rng.randf() * sum
-
-	var type_item: int
+	var tirage: float = rng.randf() * somme
 	var pool: Array[LootItemEntry]
-
-	if x < w_conso:
-		type_item = Loot.TypeItem.CONSO
+	if tirage < poids_conso:
 		pool = pool_conso
-	elif x < w_conso + w_upgrade:
-		type_item = Loot.TypeItem.UPGRADE
+	elif tirage < poids_conso + poids_upgrade:
 		pool = pool_upgrade
-	else:
-		type_item = Loot.TypeItem.ARME
+	elif tirage < poids_conso + poids_upgrade + poids_arme:
 		pool = pool_arme
-
-	var item_id: StringName = _tirer_dans_pool(pool, rng)
-	return {"type_item": type_item, "item_id": item_id}
+	else:
+		pool = pool_equipement
+	var entree: LootItemEntry = _tirer_entree_dans_pool(pool, rng)
+	if entree == null:
+		return {"type_item": Loot.TypeItem.CONSO, "item_id": &""}
+	return {"type_item": entree.type_item, "item_id": entree.item_id, "entry": entree}
 
 func get_entry(type_item: int, rarete: int, item_id: StringName) -> LootItemEntry:
 	var pool: Array[LootItemEntry] = _get_pool(type_item, rarete)
 	for e: LootItemEntry in pool:
 		if e != null and e.item_id == item_id:
 			return e
+	for type_recherche: int in [Loot.TypeItem.CONSO, Loot.TypeItem.UPGRADE, Loot.TypeItem.ARME, Loot.TypeItem.EQUIPEMENT]:
+		if type_recherche == type_item:
+			continue
+		for e: LootItemEntry in _get_pool(type_recherche, rarete):
+			if e != null and e.item_id == item_id and e.type_item == type_item:
+				return e
 	return null
 
 func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
@@ -151,7 +166,22 @@ func _get_pool(type_item: int, rarete: int) -> Array[LootItemEntry]:
 			Loot.TypeLoot.B: return arme_B
 			Loot.TypeLoot.A: return arme_A
 			Loot.TypeLoot.S: return arme_S
+	elif type_item == Loot.TypeItem.EQUIPEMENT:
+		match rarete:
+			Loot.TypeLoot.C: return equipement_C
+			Loot.TypeLoot.B: return equipement_B
+			Loot.TypeLoot.A: return equipement_A
+			Loot.TypeLoot.S: return equipement_S
 	return []
+
+func _tirer_entree_dans_pool(pool: Array[LootItemEntry], rng: RandomNumberGenerator) -> LootItemEntry:
+	if pool.is_empty():
+		return null
+	var identifiant: StringName = _tirer_dans_pool(pool, rng)
+	for entree: LootItemEntry in pool:
+		if entree != null and entree.item_id == identifiant:
+			return entree
+	return null
 
 func _poids_pool(pool: Array[LootItemEntry]) -> float:
 	if pool.is_empty():

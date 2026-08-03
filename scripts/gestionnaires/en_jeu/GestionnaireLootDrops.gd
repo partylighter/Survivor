@@ -35,6 +35,7 @@ class_name GestionnaireLootDrops
 @export var multiplicateur_type_conso: float = 1.0
 @export var multiplicateur_type_upgrade: float = 1.0
 @export var multiplicateur_type_arme: float = 1.0
+@export var multiplicateur_type_equipement: float = 1.0
 
 @export_group("Loot: Tables de rareté par type d'ennemi")
 @export var table_C: LootTableEnemy
@@ -186,10 +187,11 @@ func demander_drops(
 			_generateur_aleatoire,
 			multiplicateur_type_conso,
 			multiplicateur_type_upgrade,
-			multiplicateur_type_arme
+			multiplicateur_type_arme,
+			multiplicateur_type_equipement
 		)
-
-		var type_item: int = int(pick.get("type_item", Loot.TypeItem.CONSO))
+		var entry: LootItemEntry = pick.get("entry", null) as LootItemEntry
+		var type_item: int = entry.type_item if entry != null else int(pick.get("type_item", Loot.TypeItem.CONSO))
 		var item_id: StringName = pick.get("item_id", &"")
 
 		if String(item_id) == "":
@@ -197,8 +199,7 @@ func demander_drops(
 		if debug_loot:
 			print("[LootDrops] demande_id=", _debug_compteur_demandes, " drop rarete=", rarete, " type_item=", type_item, " item=", item_id)
 
-		var entry: LootItemEntry = null
-		if table.has_method("get_entry"):
+		if entry == null and table.has_method("get_entry"):
 			entry = table.get_entry(type_item, rarete, item_id)
 
 		var nom_aff: String = ""
@@ -208,7 +209,10 @@ func demander_drops(
 		var skin: StringName = &""
 		var afficher_sprite: bool = true
 		var afficher_notification: bool = false
+		var chemin_definition: String = ""
+		var scene_contenu: PackedScene = null
 		if entry != null:
+			type_item = entry.type_item
 			nom_aff = entry.nom_affiche
 			ic = entry.icone
 			couleur = entry.couleur
@@ -216,6 +220,10 @@ func demander_drops(
 			skin = entry.skin_id
 			afficher_sprite = entry.afficher_sprite_loot
 			afficher_notification = entry.afficher_notification_collecte
+			if type_item == Loot.TypeItem.EQUIPEMENT:
+				chemin_definition = entry.resource_path
+			elif type_item == Loot.TypeItem.ARME:
+				scene_contenu = entry.scene_arme_equipee
 
 		var ox: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
 		var oy: float = _generateur_aleatoire.randf_range(-offset_spawn_px, offset_spawn_px)
@@ -226,6 +234,10 @@ func demander_drops(
 			"type_item": type_item,
 			"item_id": item_id,
 			"quantite": 1,
+			"scene": scene_contenu,
+			"definition_objet": entry,
+			"chemin_definition": chemin_definition,
+			"donnees": {},
 			"joueur": joueur,
 			"nom_affiche": nom_aff,
 			"icone": ic,

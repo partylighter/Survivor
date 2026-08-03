@@ -105,9 +105,10 @@ func _ready() -> void:
 	_configurer_arbre_animation()
 func _physics_process(delta: float) -> void:
 	super(delta)
-	_mettre_a_jour_animation_dash(delta)
-	_mettre_a_jour_arbre_animation()
-	_mettre_a_jour_animation_course_bas()
+	if arbre_animation != null:
+		arbre_animation.active = velocity == Vector2.ZERO
+	if velocity == Vector2.ZERO:
+		_mettre_a_jour_arbre_animation()
 func get_identifiant_personnage() -> StringName:
 	return identifiant_personnage
 func _appliquer_visibilite_mains() -> void:

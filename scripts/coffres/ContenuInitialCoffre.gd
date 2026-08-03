@@ -12,7 +12,7 @@ func obtenir_objet() -> Dictionary:
 	var type_effectif: int = Loot.TypeItem.EQUIPEMENT if est_equipement() else type_item
 	var donnees: Dictionary = {}
 	if est_equipement():
-		donnees = InstanceEquipementForge.creer(objet.item_id, objet.resource_path, &"correcte", {})
+		donnees = DonneesInstanceEquipement.creer(objet.item_id, objet.resource_path, &"correcte", {})
 	return {
 		"identifiant": objet.item_id,
 		"nom": objet.nom_affiche,
@@ -24,4 +24,4 @@ func obtenir_objet() -> Dictionary:
 	}
 
 func est_equipement() -> bool:
-	return objet != null and objet.scene_arme_equipee != null
+	return objet != null and objet.type_item == Loot.TypeItem.EQUIPEMENT and objet.donnees_equipement != null

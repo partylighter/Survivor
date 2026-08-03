@@ -9,11 +9,12 @@ enum TypeLoot { C, B, A, S }
 enum TypeItem { CONSO, UPGRADE, ARME, MATERIAU, COMPOSANT, EQUIPEMENT }
 
 @export_enum("C","B","A","S") var type_loot: int = TypeLoot.C
-@export_enum("CONSO","UPGRADE","ARME") var type_item: int = TypeItem.CONSO
+@export_enum("CONSO","UPGRADE","ARME","MATERIAU","COMPOSANT","EQUIPEMENT") var type_item: int = TypeItem.CONSO
 
 @export var item_id: StringName = &""
 @export var quantite: int = 1
 @export var scene_contenu: PackedScene
+@export var definition_objet: LootItemEntry
 
 @export_group("Visuel")
 @export var nom_affiche: String = ""
@@ -50,6 +51,9 @@ var _r2_pickup: float = 0.0
 
 var _pool_owner: GestionnaireLootDrops = null
 var _actif: bool = true
+var chemin_definition: String = ""
+var donnees_instance: Dictionary = {}
+var _position_avant_collecte: Vector2 = Vector2.ZERO
 
 var _lm: LootManager = null
 @warning_ignore("unused_private_class_variable")
@@ -69,6 +73,7 @@ var _label_texte_defaut: String = ""
 
 func _ready() -> void:
 	set_physics_process(false)
+	_appliquer_definition_objet()
 
 	_seed      = randf() * TAU
 	_r2_aimant = magnet_radius * magnet_radius
@@ -111,6 +116,9 @@ func activer_depuis_pool(req: Dictionary, parent_loots: Node) -> void:
 	item_id       = req.get("item_id", &"")
 	quantite      = int(req.get("quantite", 1))
 	scene_contenu = req.get("scene", scene_contenu)
+	definition_objet = req.get("definition_objet", null) as LootItemEntry
+	chemin_definition = String(req.get("chemin_definition", ""))
+	donnees_instance = Dictionary(req.get("donnees", {})).duplicate(true)
 
 	nom_affiche = String(req.get("nom_affiche", nom_affiche))
 	icone       = req.get("icone", icone) as Texture2D
@@ -157,7 +165,7 @@ func _desactiver_pour_pool() -> void:
 	vider()
 
 func _essayer_s_inscrire_manager() -> void:
-	if not _actif:
+	if not _actif or not is_inside_tree():
 		return
 	if _lm != null:
 		return
@@ -248,6 +256,7 @@ func _demarrer_collecte(pos_fin: Vector2) -> void:
 	if _collecte:
 		return
 	_collecte = true
+	_position_avant_collecte = global_position
 
 	var j: Node2D        = joueur_cible
 	var payload: Dictionary = prendre_payload()
@@ -258,9 +267,19 @@ func _demarrer_collecte(pos_fin: Vector2) -> void:
 		_finir_collecte(j, payload)
 
 func _finir_collecte(j: Node2D, payload: Dictionary) -> void:
+	var reussi: bool = false
 	if j != null and is_instance_valid(j) and j.has_method("on_loot_collected"):
-		j.on_loot_collected(payload)
-	_retour_pool()
+		reussi = bool(j.call("on_loot_collected", payload))
+	if reussi:
+		_retour_pool()
+		return
+	_collecte = false
+	_t_aimant = 0.0
+	_vel = Vector2.ZERO
+	global_position = _position_avant_collecte
+	if anim != null and anim.has_method("reset_etat"):
+		anim.reset_etat()
+	call_deferred("_essayer_s_inscrire_manager")
 
 func _retour_pool() -> void:
 	if _lm != null and is_instance_valid(_lm):
@@ -286,14 +305,21 @@ func prendre_payload() -> Dictionary:
 		"echelle":    echelle,
 		"skin_id":    skin_id,
 		"afficher_sprite_loot": afficher_sprite_loot,
-		"afficher_notification_collecte": afficher_notification_collecte
+		"afficher_notification_collecte": afficher_notification_collecte,
+		"chemin_definition": chemin_definition,
+		"donnees": donnees_instance.duplicate(true)
 	}
 
 func vider() -> void:
 	quantite      = 0
 	type_loot     = TypeLoot.C
+	type_item     = TypeItem.CONSO
 	item_id       = &""
 	scene_contenu = null
+	definition_objet = null
+	chemin_definition = ""
+	donnees_instance.clear()
+	_position_avant_collecte = Vector2.ZERO
 	nom_affiche   = ""
 	icone         = null
 	couleur       = Color.WHITE
@@ -323,3 +349,17 @@ func _appliquer_visuel() -> void:
 		_label_cache.text = nom_affiche if afficher_sprite_loot and nom_affiche != "" else _label_texte_defaut
 	if anim != null and anim.has_method("_sync_base_visuel"):
 		anim.call("_sync_base_visuel")
+
+func _appliquer_definition_objet() -> void:
+	if definition_objet == null:
+		return
+	type_item = definition_objet.type_item
+	item_id = definition_objet.item_id
+	nom_affiche = definition_objet.nom_affiche
+	icone = definition_objet.icone
+	couleur = definition_objet.couleur
+	echelle = definition_objet.echelle
+	skin_id = definition_objet.skin_id
+	afficher_sprite_loot = definition_objet.afficher_sprite_loot
+	afficher_notification_collecte = definition_objet.afficher_notification_collecte
+	chemin_definition = definition_objet.resource_path

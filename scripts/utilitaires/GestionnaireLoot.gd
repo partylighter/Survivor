@@ -189,17 +189,17 @@ func _d_loot(msg: String) -> void:
 	if debug_loot:
 		print(msg)
 
-func _enregistrer_loot(identifiant: StringName, quantite: int, payload: Dictionary = {}) -> void:
+func _enregistrer_loot(identifiant: StringName, quantite: int, payload: Dictionary = {}) -> bool:
 	if String(identifiant) == "":
-		return
+		return false
 	if inventaire != null:
 		var donnees: Dictionary = payload.duplicate(true)
 		donnees["id"] = identifiant
 		donnees["quantite"] = quantite
-		inventaire.ajouter_depuis_payload(donnees)
-		return
+		return inventaire.ajouter_depuis_payload(donnees)
 	stats_loot[identifiant] = int(stats_loot.get(identifiant, 0)) + quantite
 	emit_signal("loot_change")
+	return true
 
 func get_stats_loot() -> Dictionary:
 	if inventaire != null:
@@ -212,11 +212,11 @@ func _on_inventaire_change() -> void:
 func get_carburant_stocke() -> float:
 	return carburant_stocke
 
-func on_loot_collecte(payload: Dictionary) -> void:
+func on_loot_collecte(payload: Dictionary) -> bool:
 	if not _refs_ok:
 		_ensure_refs()
 	if joueur == null:
-		return
+		return false
 
 	var type_item: int       = payload.get("type_item", Loot.TypeItem.CONSO)
 	var rarete: int          = payload.get("type_loot", Loot.TypeLoot.C)
@@ -228,32 +228,69 @@ func on_loot_collecte(payload: Dictionary) -> void:
 	if nom != "":
 		_nom_par_id[identifiant] = nom
 
-	emit_signal("loot_collecte", payload)
-
+	var reussi: bool = false
 	match type_item:
 		Loot.TypeItem.CONSO:
-			_enregistrer_loot(identifiant, quantite, payload)
-			_appliquer_consommable(identifiant, quantite)
+			reussi = _enregistrer_loot(identifiant, quantite, payload)
+			if reussi:
+				_appliquer_consommable(identifiant, quantite)
 		Loot.TypeItem.UPGRADE:
-			if not _appliquer_amelioration(identifiant, quantite):
-				_enregistrer_loot(identifiant, quantite, payload)
+			reussi = _appliquer_amelioration(identifiant, quantite)
+			if not reussi:
+				reussi = _enregistrer_loot(identifiant, quantite, payload)
 		Loot.TypeItem.ARME:
 			if scene_contenu:
-				_generer_arme_au_sol(scene_contenu)
+				reussi = _generer_arme_au_sol(scene_contenu)
 			else:
 				_debloquer_arme_par_id(identifiant, rarete, quantite)
-		Loot.TypeItem.MATERIAU, Loot.TypeItem.COMPOSANT, Loot.TypeItem.EQUIPEMENT:
-			_enregistrer_loot(identifiant, quantite, payload)
+				reussi = true
+		Loot.TypeItem.EQUIPEMENT:
+			reussi = _collecter_equipement(payload)
+		Loot.TypeItem.MATERIAU, Loot.TypeItem.COMPOSANT:
+			reussi = _enregistrer_loot(identifiant, quantite, payload)
+	if reussi:
+		emit_signal("loot_collecte", payload)
+	return reussi
 
-func _generer_arme_au_sol(scene_src: PackedScene) -> void:
+func _collecter_equipement(payload: Dictionary) -> bool:
+	if inventaire == null:
+		return false
+	var donnees_instance: Dictionary = Dictionary(payload.get("donnees", {})).duplicate(true)
+	var chemin_definition: String = String(payload.get("chemin_definition", donnees_instance.get("chemin_definition", "")))
+	if chemin_definition.is_empty() or not ResourceLoader.exists(chemin_definition):
+		return false
+	var definition: LootItemEntry = load(chemin_definition) as LootItemEntry
+	if definition == null or definition.type_item != Loot.TypeItem.EQUIPEMENT or definition.donnees_equipement == null:
+		return false
+	var identifiant_instance: StringName = donnees_instance.get("identifiant_instance", &"")
+	if String(identifiant_instance).is_empty():
+		donnees_instance = DonneesInstanceEquipement.creer(definition.item_id, definition.resource_path, &"correcte", {})
+	elif String(donnees_instance.get("chemin_definition", "")).is_empty():
+		return false
+	var payload_equipement: Dictionary = {
+		"id": definition.item_id,
+		"item_id": definition.item_id,
+		"identifiant": definition.item_id,
+		"nom_affiche": definition.nom_affiche,
+		"icone": definition.icone,
+		"quantite": 1,
+		"type_item": Loot.TypeItem.EQUIPEMENT,
+		"type_loot": int(payload.get("type_loot", Loot.TypeLoot.C)),
+		"chemin_definition": definition.resource_path,
+		"donnees": donnees_instance
+	}
+	return inventaire.ajouter_depuis_payload(payload_equipement)
+
+func _generer_arme_au_sol(scene_src: PackedScene) -> bool:
 	var arme := scene_src.instantiate() as ArmeBase
 	if arme == null or joueur == null:
-		return
+		return false
 	arme.global_position = joueur.global_position + Vector2(24, 0)
 	get_tree().current_scene.add_child(arme)
 	var zone: ZoneRamassage = joueur.get_node_or_null("ZoneRamassage") as ZoneRamassage
 	if zone != null:
 		zone.enregistrer_pickable(arme)
+	return true
 
 func _appliquer_consommable(identifiant: StringName, quantite: int) -> void:
 	var id := String(identifiant)

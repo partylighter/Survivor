@@ -203,9 +203,10 @@ func get_invulnerabilite_restant_s() -> float:
 		restant = maxf(restant, float(gestionnaire_loot.call("get_invulnerabilite_restant_s")))
 	return restant
 
-func on_loot_collected(payload: Dictionary) -> void:
+func on_loot_collected(payload: Dictionary) -> bool:
 	if gestionnaire_loot:
-		gestionnaire_loot.on_loot_collecte(payload)
+		return gestionnaire_loot.on_loot_collecte(payload)
+	return false
 
 func soigner(amount: int) -> void:
 	if sante:

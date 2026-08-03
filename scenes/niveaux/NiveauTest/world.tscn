@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://0182ilsqlcwo"]
 
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaires/en_jeu/gestionnaire_enemies.tscn" id="2_4wyf3"]
-[ext_resource type="PackedScene" uid="uid://1ylsu7t5ysq3" path="res://scenes/armes/tir/arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique.tscn" id="4_cb8sn"]
+[ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="4_cb8sn"]
+[ext_resource type="Resource" uid="uid://dttbka6tcbxqp" path="res://ressources/items/equipements/arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique.tres" id="4_hcc1y"]
 [ext_resource type="PackedScene" uid="uid://bqmjjk1km3rra" path="res://scenes/gestionnaires/en_jeu/stats_vagues.tscn" id="5_71j4m"]
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="5_f8f2q"]
 [ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/joueur/base/CamPlayer.gd" id="6_b3mfv"]
@@ -9,7 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://nh3cinsmoq47" path="res://scenes/joueur/base/base.tscn" id="6_rsdp2"]
 [ext_resource type="PackedScene" uid="uid://f781o1e023pe" path="res://scenes/performances/perf_displayer.tscn" id="7_i7xtm"]
 [ext_resource type="PackedScene" uid="uid://bdfrei2hwkch7" path="res://scenes/ennemis/enemy_c_test_heritage_de_script.tscn" id="8_5r2b3"]
-[ext_resource type="PackedScene" uid="uid://dyqfiex1vttnc" path="res://scenes/armes/contact/arme_contact_1.tscn" id="9_30tab"]
+[ext_resource type="Resource" uid="uid://xvvt6ieyicn7" path="res://ressources/items/equipements/epee_fer.tres" id="9_30tab"]
 [ext_resource type="PackedScene" uid="uid://b32j02pclbim1" path="res://scenes/armes/contact/loot.tscn" id="9_075h3"]
 [ext_resource type="Script" uid="uid://cvuge010wptp1" path="res://scripts/gestionnaires/en_jeu/GestionnaireLootDrops.gd" id="10_s05yr"]
 [ext_resource type="Script" uid="uid://1j4gtocrueg1" path="res://scripts/monde/GestionnaireZones.gd" id="11_2g3hm"]
@@ -94,6 +95,7 @@ proba_C = 0.39
 proba_B = 0.56
 conso_C = Array[ExtResource("11_op4qr")]([ExtResource("22_5o3x5")])
 upgrade_B = Array[ExtResource("11_op4qr")]([ExtResource("22_7isto"), ExtResource("24_oc1kx")])
+equipement_C = Array[ExtResource("11_op4qr")]([ExtResource("4_cb8sn")])
 metadata/_custom_type_script = "uid://dvfjkpj8kikh3"
 
 [sub_resource type="Resource" id="Resource_bjm5b"]
@@ -123,15 +125,15 @@ script = ExtResource("33_monde")
 script = ExtResource("51_sol_damier")
 
 [node name="Loot" parent="." unique_id=2091000665 instance=ExtResource("9_075h3")]
-position = Vector2(783, 349)
+position = Vector2(652, 537)
 type_loot = 2
-type_item = 2
-scene_contenu = ExtResource("4_cb8sn")
+type_item = 5
+definition_objet = ExtResource("4_hcc1y")
 
 [node name="Loot2" parent="." unique_id=700604809 instance=ExtResource("9_075h3")]
 position = Vector2(-860, 1001)
-type_item = 2
-scene_contenu = ExtResource("9_30tab")
+type_item = 5
+definition_objet = ExtResource("9_30tab")
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("5_f8f2q")]
 

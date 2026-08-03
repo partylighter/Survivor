@@ -3,6 +3,7 @@ class_name VueDetailsObjet
 
 signal manger_demande(objet: Dictionary)
 signal equiper_demande(objet: Dictionary)
+signal jeter_demande(objet: Dictionary)
 signal utiliser_craft_demande(objet: Dictionary)
 signal desassembler_demande(objet: Dictionary)
 
@@ -11,6 +12,7 @@ signal desassembler_demande(objet: Dictionary)
 @onready var type_objet: Label = $TypeObjet
 @onready var informations: RichTextLabel = $Informations
 @onready var bouton_equiper: Button = $Actions/Equiper
+@onready var bouton_jeter: Button = $Actions/Jeter
 @onready var bouton_manger: Button = $Actions/Manger
 @onready var bouton_utiliser_craft: Button = $Actions/UtiliserCraft
 @onready var bouton_desassembler: Button = $Actions/Desassembler
@@ -20,6 +22,7 @@ var catalogue_recettes: CatalogueRecettesEquipement
 
 func _ready() -> void:
 	bouton_equiper.pressed.connect(_demander_equipement)
+	bouton_jeter.pressed.connect(_demander_jet)
 	bouton_manger.pressed.connect(_demander_consommation)
 	bouton_utiliser_craft.pressed.connect(_demander_craft)
 	bouton_desassembler.pressed.connect(_demander_desassemblage)
@@ -40,6 +43,7 @@ func afficher_objet(nouvel_objet: Dictionary) -> void:
 		type_objet.text = ""
 		informations.text = "Cliquez sur une cellule pour consulter ses détails."
 		bouton_equiper.visible = false
+		bouton_jeter.visible = false
 		bouton_manger.visible = false
 		bouton_utiliser_craft.visible = false
 		bouton_desassembler.visible = false
@@ -51,6 +55,7 @@ func afficher_objet(nouvel_objet: Dictionary) -> void:
 	informations.text = _construire_informations(type_item)
 	var definition: LootItemEntry = _obtenir_definition()
 	bouton_equiper.visible = definition != null and definition.donnees_equipement != null
+	bouton_jeter.visible = type_item == Loot.TypeItem.EQUIPEMENT
 	bouton_manger.visible = type_item == Loot.TypeItem.CONSO and definition != null and definition.effet_nourriture != null
 	bouton_utiliser_craft.visible = type_item in [Loot.TypeItem.COMPOSANT, Loot.TypeItem.UPGRADE, Loot.TypeItem.EQUIPEMENT]
 	bouton_desassembler.visible = type_item == Loot.TypeItem.EQUIPEMENT and not DonneesInstanceEquipement.obtenir_composants_structurels(objet.get("donnees", {})).is_empty()
@@ -122,6 +127,9 @@ func _demander_equipement() -> void:
 
 func _demander_consommation() -> void:
 	manger_demande.emit(objet)
+
+func _demander_jet() -> void:
+	jeter_demande.emit(objet)
 
 func _demander_craft() -> void:
 	utiliser_craft_demande.emit(objet)

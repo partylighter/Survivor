@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://dv2q4mhv2lccn" path="res://scripts/forge/donnees/IngredientRecette.gd" id="2_ingredient"]
 [ext_resource type="Script" uid="uid://dldw7mx7ssgh4" path="res://scripts/forge/donnees/EtapeFabrication.gd" id="3_etape"]
 [ext_resource type="Resource" path="res://ressources/items/materiaux/minerai_fer.tres" id="4_minerai"]
-[ext_resource type="Resource" path="res://ressources/items/composants/renfort_arc.tres" id="5_renfort"]
+[ext_resource type="Resource" uid="uid://d3vm77vwa5md7" path="res://ressources/items/composants/renfort_arc.tres" id="5_renfort"]
 
 [sub_resource type="Resource" id="Etape_fonte"]
 script = ExtResource("3_etape")

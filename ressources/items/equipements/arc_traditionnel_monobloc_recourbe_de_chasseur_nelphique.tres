@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="LootItemEntry" format=3 uid="uid://dttbka6tcbxqp"]
+
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="1_equipement"]
+[ext_resource type="Script" uid="uid://c07qtaepjgte1" path="res://scripts/forge/ameliorations/AmeliorationForge.gd" id="2_amelioration"]
+[ext_resource type="Resource" uid="uid://bmfpe0w4xw6vi" path="res://ressources/forge/qualite/profil_arc_en_bois.tres" id="3_profil"]
+[ext_resource type="PackedScene" uid="uid://1ylsu7t5ysq3" path="res://scenes/armes/tir/arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique.tscn" id="4_arme"]
+[ext_resource type="Texture2D" uid="uid://bgwtcjj6mfw43" path="res://assets/items/arcs/Arc traditionnel monobloc recourbe de chasseur Nelphique.png" id="5_icone"]
+[ext_resource type="Resource" path="res://ressources/equipement/donnees_outil.tres" id="7_equipement"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icone"]
+atlas = ExtResource("5_icone")
+region = Rect2(0, 0, 193, 193)
+
+[resource]
+script = ExtResource("1_equipement")
+item_id = &"arc_traditionnel_monobloc_recourbe_de_chasseur_nelphique"
+type_item = 5
+nom_affiche = "Arc traditionnel monobloc recourbe de chasseur Nelphique"
+icone = SubResource("AtlasTexture_icone")
+afficher_sprite_loot = false
+afficher_notification_collecte = true
+profil_qualite_forge = ExtResource("3_profil")
+scene_arme_equipee = ExtResource("4_arme")
+ameliorations_compatibles = PackedStringArray()
+donnees_equipement = ExtResource("7_equipement")

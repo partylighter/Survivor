@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://dv2q4mhv2lccn" path="res://scripts/forge/donnees/IngredientRecette.gd" id="2_ingredient"]
 [ext_resource type="Script" uid="uid://dldw7mx7ssgh4" path="res://scripts/forge/donnees/EtapeFabrication.gd" id="3_etape"]
 [ext_resource type="Resource" path="res://ressources/items/materiaux/bois_brut.tres" id="4_bois"]
-[ext_resource type="Resource" path="res://ressources/items/composants/branche_arc_bois.tres" id="5_branche"]
+[ext_resource type="Resource" uid="uid://tt66ypainjm4" path="res://ressources/items/composants/branche_arc_bois.tres" id="5_branche"]
 
 [sub_resource type="Resource" id="Etape_chauffe"]
 script = ExtResource("3_etape")

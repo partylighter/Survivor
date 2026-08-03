@@ -8,18 +8,49 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_o6n6s"]
 radius = 214.8
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_x1qc6"]
+atlas = ExtResource("2_x1qc6")
+region = Rect2(579, 0, 193, 193)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gxyka"]
+atlas = ExtResource("2_x1qc6")
+region = Rect2(0, 0, 193, 193)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o6n6s"]
+atlas = ExtResource("2_x1qc6")
+region = Rect2(193, 0, 193, 193)
+
 [sub_resource type="AtlasTexture" id="AtlasTexture_s8o3r"]
 atlas = ExtResource("2_x1qc6")
-region = Rect2(0, 0, 73, 193)
+region = Rect2(386, 0, 193, 193)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_eiucn"]
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_x1qc6")
+}],
+"loop": 0,
+"name": &"decochage",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gxyka")
+}],
+"loop": 0,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o6n6s")
+}, {
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_s8o3r")
 }],
-"loop": 1,
-"name": &"default",
+"loop": 0,
+"name": &"encochage",
 "speed": 5.0
 }]
 
@@ -44,8 +75,8 @@ chemin_particles_tir = NodePath("animatedsprite2d/CPUParticles2D")
 tir_manuel_maintenu = true
 chemin_animation_arme = NodePath("animatedsprite2d")
 animation_repos = &"default"
-animation_encochage = &"default"
-animation_decochage = &"default"
+animation_encochage = &"encochage"
+animation_decochage = &"decochage"
 chemin_icone_au_sol = NodePath("IconeAuSol")
 nom_arme = &"Arc traditionnel monobloc recourbe de chasseur Nelphique"
 degats = 50
@@ -60,18 +91,17 @@ shape = SubResource("CircleShape2D_o6n6s")
 debug_color = Color(1, 1, 1, 0)
 
 [node name="animatedsprite2d" type="AnimatedSprite2D" parent="." unique_id=72630589]
-visible = false
 y_sort_enabled = true
-position = Vector2(-20, 0)
-scale = Vector2(3, 3)
+position = Vector2(9, -14)
+scale = Vector2(2, 2)
 sprite_frames = SubResource("SpriteFrames_eiucn")
 
 [node name="Socket" type="Node2D" parent="animatedsprite2d" unique_id=194597588]
-position = Vector2(14.6, 2.3841858e-07)
+position = Vector2(61, 2.3841858e-07)
 scale = Vector2(0.7604562, 0.7604562)
 
 [node name="CPUParticles2D" type="CPUParticles2D" parent="animatedsprite2d" unique_id=367378078]
-position = Vector2(42.000004, 0)
+position = Vector2(60, -0.5)
 scale = Vector2(0.3708478, 0.51419777)
 emitting = false
 amount = 4
@@ -93,8 +123,10 @@ color_initial_ramp = SubResource("Gradient_thx55")
 
 [node name="IconeAuSol" type="Sprite2D" parent="." unique_id=562169604]
 position = Vector2(-20, 0)
-scale = Vector2(5, 5)
+scale = Vector2(2, 2)
 texture = ExtResource("2_x1qc6")
+region_enabled = true
+region_rect = Rect2(88, 0, 119, 193)
 
 [node name="ArmeEffets2D" type="Node" parent="." unique_id=1045244475]
 script = ExtResource("3_gxyka")
