@@ -236,6 +236,7 @@ func _desequiper_outil(index: int) -> bool:
 				outil_actif_change.emit(index_outil_actif)
 				equipement_change.emit()
 				return false
+			outils[autre_index] = autre_outil_extrait.duplicate(true)
 		if not _restaurer_runtime_outil(arme_extraite):
 			_signaler_runtime_outil_indisponible()
 		return false
@@ -253,6 +254,7 @@ func _restaurer_runtime_outil(objet: Dictionary) -> bool:
 	return gestionnaire_arme != null and gestionnaire_arme.equiper_equipement_stocke(objet)
 
 func _signaler_runtime_outil_indisponible() -> void:
+	push_error("Impossible de restaurer l'outil runtime. Les outils restent équipés mais aucun n'est actif.")
 	index_outil_actif = -1
 	outil_actif_change.emit(index_outil_actif)
 	equipement_change.emit()
