@@ -31,13 +31,16 @@ func _process(delta: float) -> void:
 	if selection_active and donnees_selection != null:
 		donnees_selection.ajouter_temps_selection(delta)
 
-func demarrer_selection() -> void:
+func demarrer_selection() -> bool:
+	if selection_active:
+		return false
 	donnees_selection = DonneesSelection.new()
 	etape_actuelle = Etape.PRESENTATION
 	selection_active = true
 	selection_demarre.emit()
 	etape_changee.emit(etape_actuelle)
 	print("[Selection] Etape -> ", Etape.keys()[etape_actuelle])
+	return true
 
 func passer_etape(nouvelle_etape: Etape) -> bool:
 	if not selection_active or nouvelle_etape == etape_actuelle:
