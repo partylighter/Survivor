@@ -94,6 +94,8 @@ func _ready() -> void:
 			sante.died.connect(_on_mort)
 		if not sante.damaged.is_connected(_on_damaged):
 			sante.damaged.connect(_on_damaged)
+	if contact_damage != null:
+		contact_damage.set_physics_process(true)
 	_layer_orig = collision_layer
 	_mask_orig = collision_mask
 	_initialiser_comportement()
