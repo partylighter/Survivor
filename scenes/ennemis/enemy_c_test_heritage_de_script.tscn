@@ -49,4 +49,8 @@ debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 
 [node name="DeplacementGrilleEnnemi" type="Node" parent="." unique_id=1305357376]
 script = ExtResource("6_grille_ennemi")
+distance_arret_joueur_cellules = 3
 charge_activee = true
+duree_charge_par_cellule_s = 0.2
+delai_entre_charges_s = 0.2
+recul_joueur_cellules = 3

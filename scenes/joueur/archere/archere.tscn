@@ -1315,8 +1315,7 @@ max_pv = 999999
 script = ExtResource("12_ggrrm")
 pv_max_base = 999999
 vitesse_base = 1180.0
-dash_max_base = 3
-dash_cooldown_base = 0.1
+dash_cooldown_base = 0.15
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=2005448771]
@@ -1338,7 +1337,7 @@ elan_depart_plafond_mult = 500.0
 elan_depart_vitesse_max_declenche_px_s = 5000.0
 elan_depart_blocage_s = 1.0
 dash_impulsion_depart_mult = 0.33
-dash_knockback_force = 10000.0
+dash_knockback_actif = false
 dash_knockback_rayon_px = 500.0
 dash_recharge_pendant_dash = true
 dash_afficher_infos = true
@@ -1354,7 +1353,7 @@ marche_multiplicateur_vitesse = 0.35
 
 [node name="GestionnaireGrilleCombat" type="Node" parent="." unique_id=1026007890]
 script = ExtResource("52_grille_combat")
-taille_cellule_px = 250.0
+taille_cellule_px = 325.0
 offsets_slots = Array[Vector2]([])
 
 [node name="ChampDirectionGrille" type="Node" parent="GestionnaireGrilleCombat" unique_id=1109363908]
