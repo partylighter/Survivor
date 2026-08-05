@@ -21,7 +21,6 @@
 [ext_resource type="Script" uid="uid://ctjko77ppqoqd" path="res://scripts/chargements_auto/performances/ProjectileHub.gd" id="12_30tab"]
 [ext_resource type="Script" uid="uid://bbdqfc4nq4t3s" path="res://scripts/monde/ZoneDefinition.gd" id="12_yovrb"]
 [ext_resource type="Script" uid="uid://3drknm51cgh8" path="res://ressources/donnees/UpgradeData.gd" id="13_ixded"]
-[ext_resource type="PackedScene" uid="uid://cqihndgca0bto" path="res://scenes/ennemis/enemy_b_test_heritage.tscn" id="13_yovrb"]
 [ext_resource type="Resource" uid="uid://cgsfmb8rfci2x" path="res://ressources/items/upg_degats_tir_1.tres" id="14_ixded"]
 [ext_resource type="Script" uid="uid://do0yqbnnckvc0" path="res://scripts/gestionnaires/en_jeu/LootManager.gd" id="15_05p27"]
 [ext_resource type="Resource" uid="uid://ccrho425bef1n" path="res://ressources/items/upg_degats_contact_1.tres" id="15_lougb"]
@@ -58,7 +57,7 @@ script = ExtResource("12_yovrb")
 nom = &"zone1"
 x_fin_px = 30000.0
 max_ennemis_zone = 1
-scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
+scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3")])
 poids = PackedFloat32Array()
 metadata/_custom_type_script = "uid://bbdqfc4nq4t3s"
 
@@ -161,7 +160,7 @@ position = Vector2(63788, 45778)
 
 [node name="Gestionnaire Enemies" parent="." unique_id=31883718 node_paths=PackedStringArray("loot_manager", "gestionnaire_zones") instance=ExtResource("2_4wyf3")]
 chemin_joueur = NodePath("../Archere")
-scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3"), ExtResource("13_yovrb")])
+scenes_ennemis = Array[PackedScene]([ExtResource("8_5r2b3")])
 apparitions_par_sec = 8.0
 rayon_spawn_min = 3500.0
 rayon_spawn_max = 4000.0
