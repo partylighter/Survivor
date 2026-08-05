@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_bkncl"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_nkvc5"]
 [ext_resource type="Script" uid="uid://dpi5p5c57vicx" path="res://scripts/utilitaires/bar_pv.gd" id="5_exp4v"]
+[ext_resource type="Script" uid="uid://bhyu51o3c77bt" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="6_grille"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_20ep0"]
 radius = 82.54
@@ -29,7 +30,6 @@ collision_layer = 64
 collision_mask = 97
 script = ExtResource("1_1s2vv")
 chemin_sante = NodePath("Sante")
-speed = 60.0
 recul_max = 50000.0
 metadata/_custom_type_script = "uid://dxdnx6txn5wnd"
 
@@ -76,3 +76,7 @@ theme_override_styles/scroll_focus = SubResource("StyleBoxFlat_mp8sf")
 theme_override_styles/grabber = SubResource("StyleBoxFlat_bk07k")
 theme_override_styles/grabber_highlight = SubResource("StyleBoxFlat_stqyn")
 theme_override_styles/grabber_pressed = SubResource("StyleBoxFlat_3rc1j")
+
+[node name="DeplacementGrilleEnnemi" type="Node" parent="."]
+script = ExtResource("6_grille")
+vitesse_deplacement_px_s = 60.0

@@ -1,11 +1,6 @@
 extends Node2D
 class_name GestionnaireEnnemis
 
-enum TypeDeplacementEnnemis {
-	LIBRE,
-	GRILLE
-}
-
 signal ennemi_cree(e)
 signal ennemi_tue(e)
 signal ennemi_retire(e)
@@ -13,9 +8,6 @@ signal limite_atteinte()
 
 @export var chemin_joueur: NodePath
 @onready var joueur: Node2D = get_node_or_null(chemin_joueur) as Node2D
-
-@export_group("Deplacement ennemis")
-@export var type_deplacement_ennemis: TypeDeplacementEnnemis = TypeDeplacementEnnemis.LIBRE
 
 @export var scenes_ennemis: Array[PackedScene] = []
 @export var poids_types: PackedFloat32Array = []
@@ -39,29 +31,9 @@ signal limite_atteinte()
 @export var max_full_actifs: int = 30
 @export var max_buffer_actifs: int = 60
 
-@export var vitesse_lointain: float = 40.0
-@export var freq_lointain_frames: int = 6
-
 @export_group("LOD écran")
 @export var marge_visible_ecran_px: float = 120.0
 @export var marge_buffer_ecran_px: float = 350.0
-
-@export_group("Foule math")
-@export var collisions_foule_actives: bool = false
-@export var budget_foule_par_frame: int = 96
-@export_range(1, 8, 1) var intervalle_foule_frames: int = 1
-@export var taille_cellule_foule_px: float = 128.0
-@export var voisins_foule_max_par_ennemi: int = 4
-@export_range(0.0, 1.0, 0.05) var correction_foule: float = 0.75
-@export var penetration_max_corrigee_px: float = 28.0
-@export_group("Foule math auto")
-@export var auto_budget_foule: bool = true
-@export var auto_foule_ennemis_min: int = 120
-@export var auto_foule_ennemis_max: int = 500
-@export var auto_foule_budget_min: int = 32
-@export var auto_foule_budget_max: int = 128
-@export_range(1, 12, 1) var auto_foule_intervalle_max_frames: int = 6
-@export_range(1, 8, 1) var auto_foule_voisins_min: int = 2
 
 @export_group("Vagues")
 @export var mode_vagues: bool = true
@@ -93,9 +65,6 @@ var _ennemis_set: Dictionary = {}
 var pools: Array = []
 
 var _lod_modes: Dictionary = {}
-var _grille_foule: Dictionary = {}
-var _curseur_foule: int = 0
-var _frame_foule: int = 0
 var _prechauffage_type_idx: int = 0
 var _prechauffage_restant_type: int = 0
 var _prechauffage_termine: bool = true
@@ -210,7 +179,6 @@ func _process(dt: float) -> void:
 	_lod_frame = (_lod_frame + 1) % max(lod_update_interval_frames, 1)
 
 	_maj_budget()
-	_resoudre_collisions_foule(dt)
 
 # ===========================================================================
 # Joueur mort
@@ -223,15 +191,6 @@ func set_player_dead(v: bool) -> void:
 			var e := n as Enemy
 			if e != null and is_instance_valid(e):
 				e.set_combat_state(false, false)
-
-func definir_type_deplacement_ennemis(nouveau_type: TypeDeplacementEnnemis) -> void:
-	type_deplacement_ennemis = nouveau_type
-	for noeud in ennemis:
-		if is_instance_valid(noeud) and noeud.has_method("actualiser_mode_deplacement_grille"):
-			noeud.call("actualiser_mode_deplacement_grille")
-
-func ennemi_utilise_grille(ennemi: Enemy) -> bool:
-	return type_deplacement_ennemis == TypeDeplacementEnnemis.GRILLE and ennemi is EnemyC
 
 # ===========================================================================
 # Vagues
@@ -346,6 +305,8 @@ func _processer_prechauffage_pool() -> void:
 			e.set_meta("type_idx", _prechauffage_type_idx)
 			add_child(e)
 			_configurer_ennemi_nouveau(e)
+			if e is Enemy:
+				(e as Enemy).set_combat_state(false, false)
 			_activer_ennemi(e, false)
 			if e.is_in_group("enemy"):
 				e.remove_from_group("enemy")
@@ -681,8 +642,6 @@ func _sur_pret_pour_pool(e: Node2D) -> void:
 func _activer_ennemi(e: Node2D, actif: bool) -> void:
 	e.set_physics_process(actif)
 	e.set_process(actif)
-	if e.has_method("actualiser_activation_deplacement_grille"):
-		e.call("actualiser_activation_deplacement_grille", actif)
 
 	if e is CollisionObject2D:
 		var co: CollisionObject2D = e as CollisionObject2D
@@ -736,16 +695,6 @@ func _est_dans_rect(rect: Rect2, p: Vector2) -> bool:
 # ===========================================================================
 # LOD
 # ===========================================================================
-
-func _tick_lointain(e: Node2D) -> void:
-	if not is_instance_valid(joueur):
-		return
-	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
-	# Ne repositionne que si vraiment trop loin, pas juste hors buffer
-	if d2 < _r2_disp:
-		return
-	var dir: Vector2 = (joueur.global_position - e.global_position).normalized()
-	e.global_position = e.global_position + dir * vitesse_lointain * 0.1
 
 func _set_lod_mode_si_change(e: Node2D, mode: int) -> void:
 	if _lod_modes.get(e, -1) == mode:
@@ -841,166 +790,6 @@ func _appliquer_lod() -> void:
 				count_full += 1
 			else:
 				_set_lod_mode_si_change(e, 2)
-# ===========================================================================
-# Foule math
-# ===========================================================================
-
-func _resoudre_collisions_foule(dt: float) -> void:
-	if not collisions_foule_actives or ennemis.size() <= 1:
-		return
-
-	var reglages: Dictionary = _get_reglages_foule()
-	var intervalle: int = int(reglages.get("intervalle", 1))
-	_frame_foule = (_frame_foule + 1) % intervalle
-	if _frame_foule != 0:
-		return
-
-	var cellule: float = max(taille_cellule_foule_px, 8.0)
-	_reconstruire_grille_foule(cellule)
-
-	var quota: int = min(int(reglages.get("budget", budget_foule_par_frame)), ennemis.size())
-	if quota <= 0:
-		return
-
-	var start: int = _curseur_foule % max(ennemis.size(), 1)
-	for i: int in range(quota):
-		var idx: int = (start + i) % ennemis.size()
-		var e: Node2D = ennemis[idx]
-		if not _ennemi_foule_valide(e):
-			continue
-		_resoudre_ennemi_foule(e, cellule, dt, int(reglages.get("voisins_max", voisins_foule_max_par_ennemi)))
-
-	_curseur_foule = (start + quota) % max(ennemis.size(), 1)
-
-func _get_reglages_foule() -> Dictionary:
-	var budget: int = max(budget_foule_par_frame, 0)
-	var intervalle: int = max(intervalle_foule_frames, 1)
-	var voisins: int = max(voisins_foule_max_par_ennemi, 1)
-	if not auto_budget_foule:
-		return {"budget": budget, "intervalle": intervalle, "voisins_max": voisins}
-	var nb: int = ennemis.size()
-	var min_nb: int = max(auto_foule_ennemis_min, 1)
-	var max_nb: int = max(auto_foule_ennemis_max, min_nb + 1)
-	var t: float = clamp(float(nb - min_nb) / float(max_nb - min_nb), 0.0, 1.0)
-	var budget_min: int = clamp(auto_foule_budget_min, 0, budget)
-	var budget_max: int = max(auto_foule_budget_max, budget_min)
-	var budget_auto: int = int(round(lerp(float(budget_max), float(budget_min), t)))
-	var intervalle_auto: int = int(round(lerp(float(intervalle), float(max(auto_foule_intervalle_max_frames, intervalle)), t)))
-	var voisins_min: int = clamp(auto_foule_voisins_min, 1, voisins)
-	var voisins_auto: int = int(round(lerp(float(voisins), float(voisins_min), t)))
-	return {
-		"budget": max(budget_auto, 0),
-		"intervalle": max(intervalle_auto, 1),
-		"voisins_max": max(voisins_auto, 1)
-	}
-
-func _reconstruire_grille_foule(cellule: float) -> void:
-	_grille_foule.clear()
-	for e: Node2D in ennemis:
-		if not _ennemi_foule_valide(e):
-			continue
-		var cle: Vector2i = _cle_foule(e.global_position, cellule)
-		var liste: Array = _grille_foule.get(cle, [])
-		liste.append(e)
-		_grille_foule[cle] = liste
-
-func _resoudre_ennemi_foule(e: Node2D, cellule: float, dt: float, voisins_max_effectif: int) -> void:
-	var pos: Vector2 = e.global_position
-	var cle: Vector2i = _cle_foule(e.global_position, cellule)
-	var rayon_e: float = _rayon_foule(e)
-	var id_e: int = e.get_instance_id()
-	var voisins_corriges: int = 0
-	var voisins_max: int = max(voisins_max_effectif, 1)
-
-	var local_x: float = pos.x - float(cle.x) * cellule
-	var local_y: float = pos.y - float(cle.y) * cellule
-	var ox_min: int = -1 if local_x < rayon_e else 0
-	var ox_max: int = 1 if local_x > cellule - rayon_e else 0
-	var oy_min: int = -1 if local_y < rayon_e else 0
-	var oy_max: int = 1 if local_y > cellule - rayon_e else 0
-
-	for ox: int in range(ox_min, ox_max + 1):
-		for oy: int in range(oy_min, oy_max + 1):
-			var cle_voisine: Vector2i = cle + Vector2i(ox, oy)
-			var voisins: Array = _grille_foule.get(cle_voisine, [])
-			for autre_node in voisins:
-				var autre: Node2D = autre_node as Node2D
-				if autre == e or autre == null or not is_instance_valid(autre):
-					continue
-				if autre.get_instance_id() <= id_e:
-					continue
-				if _separer_paire_foule(e, autre, rayon_e, _rayon_foule(autre), dt):
-					voisins_corriges += 1
-					if voisins_corriges >= voisins_max:
-						return
-
-func _separer_paire_foule(a: Node2D, b: Node2D, rayon_a: float, rayon_b: float, dt: float) -> bool:
-	var rayon_total: float = rayon_a + rayon_b
-	if rayon_total <= 0.0:
-		return false
-
-	var delta: Vector2 = a.global_position - b.global_position
-	var d2: float = delta.length_squared()
-	var rayon_total2: float = rayon_total * rayon_total
-	if d2 >= rayon_total2:
-		return false
-
-	var dist: float = sqrt(max(d2, 0.0001))
-	var direction: Vector2 = delta / dist
-	if d2 <= 0.0001:
-		var angle: float = float(a.get_instance_id() % 628) * 0.01
-		direction = Vector2.RIGHT.rotated(angle)
-
-	var penetration: float = rayon_total - dist
-	var correction: float = min(penetration, max(penetration_max_corrigee_px, 0.0)) * correction_foule
-	if correction <= 0.0:
-		return false
-
-	var poids_a: float = _poids_foule(a)
-	var poids_b: float = _poids_foule(b)
-	var inv_a: float = 1.0 / poids_a
-	var inv_b: float = 1.0 / poids_b
-	var inv_total: float = inv_a + inv_b
-	if inv_total <= 0.0:
-		return false
-
-	var pousse_a: Vector2 = direction * (correction * (inv_a / inv_total) / max(dt, 0.016))
-	var pousse_b: Vector2 = -direction * (correction * (inv_b / inv_total) / max(dt, 0.016))
-	_appliquer_pousse_foule(a, pousse_a)
-	_appliquer_pousse_foule(b, pousse_b)
-	return true
-
-func _appliquer_pousse_foule(e: Node2D, v: Vector2) -> void:
-	var en: Enemy = e as Enemy
-	if en != null:
-		en.appliquer_pousse(v, 0.04)
-	else:
-		e.global_position += v * 0.016
-
-func _cle_foule(pos: Vector2, cellule: float) -> Vector2i:
-	return Vector2i(floori(pos.x / cellule), floori(pos.y / cellule))
-
-func _ennemi_foule_valide(e: Node2D) -> bool:
-	if e == null or not is_instance_valid(e):
-		return false
-	var en: Enemy = e as Enemy
-	if en == null or not en.is_alive():
-		return false
-	if ennemi_utilise_grille(en):
-		return false
-	return int(_lod_modes.get(e, 0)) != 2
-
-func _rayon_foule(e: Node2D) -> float:
-	var en: Enemy = e as Enemy
-	if en != null:
-		return max(en.hit_radius(), 1.0)
-	return 1.0
-
-func _poids_foule(e: Node2D) -> float:
-	var en: Enemy = e as Enemy
-	if en != null:
-		return max(en.poids_collision, 0.001)
-	return 1.0
 
 # ===========================================================================
 # Budget / suppression hors portée
@@ -1053,10 +842,6 @@ func _eval_ou_supprime(i: int) -> bool:
 	var d2: float = joueur.global_position.distance_squared_to(e.global_position)
 
 	if d2 <= _r2_disp:
-		var mode_actuel: int = _lod_modes.get(e, -1)
-		if mode_actuel != 0:
-			if freq_lointain_frames > 0 and (tour_budget % freq_lointain_frames) == 0:
-				_tick_lointain(e)
 		return false
 
 	var doit_decrementer: bool = false

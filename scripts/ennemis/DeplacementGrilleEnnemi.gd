@@ -7,22 +7,27 @@ signal cellule_ennemi_atteinte(ennemi: Enemy, cellule: Vector2i)
 const DIRECTIONS_CARDINALES: Array[Vector2i] = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]
 
+@export_group("Déplacement grille")
 @export var diagonales_autorisees: bool = false
+@export_range(1.0, 2000.0, 1.0) var vitesse_deplacement_px_s: float = 315.0
 @export_range(0.01, 1.0, 0.01) var duree_pas_min_s: float = 0.12
 @export_range(0.01, 2.0, 0.01) var duree_pas_max_s: float = 0.60
-@export_range(0.05, 2.0, 0.05) var multiplicateur_vitesse_grille: float = 0.35
 @export_range(0.0, 0.5, 0.01) var decalage_initial_max_s: float = 0.10
 @export_range(0.01, 0.5, 0.01) var intervalle_decision_s: float = 0.05
+
+@export_group("Retour après recul")
 @export_range(0.0, 20.0, 0.5) var distance_snap_resynchronisation_px: float = 5.0
 @export_range(0.01, 0.3, 0.01) var duree_retour_grille_min_s: float = 0.05
 @export_range(1.0, 2000.0, 1.0) var vitesse_retour_grille_px_s: float = 500.0
 @export_range(0.01, 0.5, 0.01) var duree_retour_grille_max_s: float = 0.35
 
 @export_group("Charge grille")
-@export_range(1, 8, 1) var portee_charge_cellules: int = 3
+@export var charge_activee: bool = false
+@export_range(1, 12, 1) var portee_charge_cellules: int = 3
 @export_range(0.01, 0.5, 0.01) var duree_charge_par_cellule_s: float = 0.08
 @export_range(0.0, 3.0, 0.05) var delai_entre_charges_s: float = 0.45
 @export_range(0, 999999, 1) var degats_charge: int = 10
+@export_range(0.0, 300.0, 1.0) var rayon_impact_charge_px: float = 95.0
 @export_range(0, 8, 1) var recul_joueur_cellules: int = 1
 
 var cellule_actuelle: Vector2i = Vector2i.ZERO
@@ -37,8 +42,9 @@ var duree_deplacement_s: float = 0.0
 var en_recul: bool = false
 var retour_grille_actif: bool = false
 
+static var _reservations_couloir_charge: Dictionary = {}
+
 var _gestionnaire_grille: GestionnaireGrilleCombat
-var _gestionnaire_ennemis: GestionnaireEnnemis
 var _deplacement_joueur: GestionDeplacementGrilleJoueur
 var _ennemi: Enemy
 var _temps_deplacement_s: float = 0.0
@@ -49,18 +55,18 @@ var _charge_active: bool = false
 var _temps_charge_s: float = 0.0
 var _duree_charge_s: float = 0.0
 var _attente_charge_s: float = 0.0
-var _cellule_charge_verrouillee: Vector2i = Vector2i.ZERO
 var _direction_charge: Vector2i = Vector2i.ZERO
+var _cles_couloir_charge: Array[Vector3i] = []
 
 func _ready() -> void:
 	add_to_group("deplacement_grille_ennemi")
 	_resoudre_gestionnaires()
 
 func est_actif_pour(ennemi: Enemy) -> bool:
-	if not is_inside_tree():
+	if not is_inside_tree() or ennemi == null:
 		return false
 	_resoudre_gestionnaires()
-	return _gestionnaire_grille != null and _gestionnaire_ennemis != null and _gestionnaire_ennemis.ennemi_utilise_grille(ennemi)
+	return _gestionnaire_grille != null
 
 func activer(ennemi: Enemy) -> void:
 	_ennemi = ennemi
@@ -68,6 +74,7 @@ func activer(ennemi: Enemy) -> void:
 	if not est_actif_pour(ennemi):
 		return
 	_desinscrire()
+	_ennemi = ennemi
 	var cellule_spawn: Vector2i = _gestionnaire_grille.monde_vers_cellule(ennemi.global_position)
 	var choix: Dictionary = _trouver_slot_initial(cellule_spawn, ennemi.global_position)
 	if choix.is_empty():
@@ -93,7 +100,7 @@ func desactiver(ennemi: Enemy) -> void:
 	if ennemi != null and ennemi.is_in_group("ennemi_grille"):
 		ennemi.remove_from_group("ennemi_grille")
 
-func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_decision: bool) -> bool:
+func traiter(ennemi: Enemy, cible: Player, position_cible_monde: Vector2, dt: float, autoriser_decision: bool, cible_est_joueur: bool) -> bool:
 	if not est_actif_pour(ennemi):
 		return false
 	if not _initialise:
@@ -101,8 +108,7 @@ func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_
 	if not _initialise:
 		ennemi.velocity = Vector2.ZERO
 		return true
-	var forces_recul_actives: bool = _forces_recul_actives(ennemi)
-	if forces_recul_actives:
+	if _forces_recul_actives(ennemi):
 		if not en_recul or retour_grille_actif:
 			interrompre_pas_pour_recul(ennemi)
 		en_recul = true
@@ -132,17 +138,20 @@ func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_
 	ennemi.velocity = Vector2.ZERO
 	_attente_decision_s = maxf(0.0, _attente_decision_s - dt)
 	_attente_charge_s = maxf(0.0, _attente_charge_s - dt)
-	if not autoriser_decision or _attente_decision_s > 0.0 or cible == null or not is_instance_valid(cible):
+	if not autoriser_decision or _attente_decision_s > 0.0:
 		return true
-	var cellule_joueur: Vector2i = _gestionnaire_grille.obtenir_cellule_joueur()
-	var distance_joueur: int = _distance_cellules(cellule_actuelle, cellule_joueur)
-	if distance_joueur == 0:
-		_choisir_et_demarrer_pas(ennemi, cellule_joueur, vitesse, 1)
+	if cible_est_joueur and (cible == null or not is_instance_valid(cible)):
+		return true
+	var cellule_destination: Vector2i = _gestionnaire_grille.monde_vers_cellule(position_cible_monde)
+	var distance_destination: int = _distance_cellules(cellule_actuelle, cellule_destination)
+	if distance_destination == 0:
+		if cible_est_joueur:
+			_choisir_et_demarrer_pas(ennemi, cellule_destination, 1, true)
 		_attente_decision_s = intervalle_decision_s
 		return true
-	if _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_joueur):
+	if charge_activee and cible_est_joueur and _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_destination):
 		return true
-	_choisir_et_demarrer_pas(ennemi, cellule_joueur, vitesse)
+	_choisir_et_demarrer_pas(ennemi, cellule_destination, -1, cible_est_joueur)
 	_attente_decision_s = intervalle_decision_s
 	return true
 
@@ -161,6 +170,42 @@ func est_en_deplacement() -> bool:
 func est_en_recul() -> bool:
 	return en_recul
 
+func preparer_deplacement_force(ennemi: Enemy) -> void:
+	_ennemi = ennemi
+	_resoudre_gestionnaires()
+	if _gestionnaire_grille == null or ennemi == null:
+		return
+	_gestionnaire_grille.liberer_toutes_reservations_ennemi(ennemi)
+	en_deplacement = false
+	en_recul = false
+	retour_grille_actif = false
+	progression_deplacement = 0.0
+	_temps_deplacement_s = 0.0
+	_attente_resynchronisation_s = 0.0
+	cellule_actuelle = _gestionnaire_grille.monde_vers_cellule(ennemi.global_position)
+	cellule_cible = cellule_actuelle
+	slot_actuel = -1
+	slot_cible = -1
+	position_depart = ennemi.global_position
+	position_cible = ennemi.global_position
+	_initialise = true
+	_annuler_charge()
+
+func demander_resynchronisation(ennemi: Enemy) -> void:
+	preparer_deplacement_force(ennemi)
+	if _gestionnaire_grille == null or ennemi == null:
+		return
+	en_recul = true
+	_attente_resynchronisation_s = 0.0
+
+func deplacer_force_avec_collisions(ennemi: Enemy, mouvement: Vector2) -> KinematicCollision2D:
+	_resoudre_gestionnaires()
+	if ennemi == null or mouvement.length_squared() <= 0.000001:
+		return null
+	if _gestionnaire_grille == null:
+		return ennemi.move_and_collide(mouvement)
+	return _deplacer_avec_collisions(ennemi, mouvement)
+
 func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
 	if (en_deplacement or retour_grille_actif or _charge_active) and slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
 		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
@@ -175,17 +220,18 @@ func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
 	ennemi.velocity = Vector2.ZERO
 	_annuler_charge()
 
-func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: float, distance_minimale_joueur: int = -1) -> void:
+func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_destination: Vector2i, distance_minimale_destination: int = -1, eviter_cellule_destination: bool = true) -> void:
 	var candidats: Array[Dictionary] = []
 	var directions: Array[Vector2i] = DIRECTIONS_CARDINALES.duplicate()
 	if diagonales_autorisees:
 		directions.append_array(DIRECTIONS_DIAGONALES)
-	var dans_champ: bool = _gestionnaire_grille.champ_contient(cellule_actuelle)
+	var champ_a_jour: bool = eviter_cellule_destination and _gestionnaire_grille.obtenir_cellule_joueur() == cellule_destination
+	var dans_champ: bool = champ_a_jour and _gestionnaire_grille.champ_contient(cellule_actuelle)
 	for direction in directions:
 		var cellule: Vector2i = cellule_actuelle + direction
-		if cellule == cellule_joueur:
+		if eviter_cellule_destination and cellule == cellule_destination:
 			continue
-		if distance_minimale_joueur >= 0 and _distance_cellules(cellule, cellule_joueur) < distance_minimale_joueur:
+		if distance_minimale_destination >= 0 and _distance_cellules(cellule, cellule_destination) < distance_minimale_destination:
 			continue
 		if _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule):
 			continue
@@ -193,14 +239,17 @@ func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: 
 			continue
 		var slots: Array[int] = []
 		for index_slot in _gestionnaire_grille.obtenir_slots_libres(cellule):
-			if _slot_respecte_lane(direction, index_slot):
+			if _slot_respecte_lane(direction, index_slot) and not _slot_reserve_par_charge(cellule, index_slot, ennemi):
 				slots.append(index_slot)
 		if slots.is_empty():
 			continue
-		var cout_champ: int = _gestionnaire_grille.obtenir_cout_champ(cellule)
-		if dans_champ and cout_champ < 0:
-			continue
-		var cout_direction: int = cout_champ if cout_champ >= 0 else _distance_cellules(cellule, cellule_joueur)
+		var cout_direction: int = _distance_cellules(cellule, cellule_destination)
+		if champ_a_jour:
+			var cout_champ: int = _gestionnaire_grille.obtenir_cout_champ(cellule)
+			if dans_champ and cout_champ < 0:
+				continue
+			if cout_champ >= 0:
+				cout_direction = cout_champ
 		var score: float = float(cout_direction + _gestionnaire_grille.obtenir_cout_congestion(cellule))
 		candidats.append({"cellule": cellule, "slots": slots, "score": score + randf() * 0.01})
 	candidats.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return float(a["score"]) < float(b["score"]))
@@ -214,17 +263,16 @@ func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: 
 			if _mouvement_est_bloque(ennemi, position_slot_candidat - ennemi.global_position):
 				continue
 			if _gestionnaire_grille.reserver_slot(cellule, index_slot, ennemi):
-				_demarrer_pas(ennemi, cellule, index_slot, vitesse)
+				_demarrer_pas(ennemi, cellule, index_slot)
 				return
 
-func _demarrer_pas(ennemi: Enemy, cellule: Vector2i, index_slot: int, vitesse: float) -> void:
+func _demarrer_pas(ennemi: Enemy, cellule: Vector2i, index_slot: int) -> void:
 	cellule_cible = cellule
 	slot_cible = index_slot
 	position_depart = ennemi.global_position
 	position_cible = _gestionnaire_grille.position_slot(cellule_cible, slot_cible)
 	var distance: float = position_depart.distance_to(position_cible)
-	var vitesse_effective: float = maxf(vitesse * multiplicateur_vitesse_grille, 1.0)
-	duree_deplacement_s = clampf(distance / vitesse_effective, minf(duree_pas_min_s, duree_pas_max_s), maxf(duree_pas_min_s, duree_pas_max_s))
+	duree_deplacement_s = clampf(distance / maxf(vitesse_deplacement_px_s, 1.0), minf(duree_pas_min_s, duree_pas_max_s), maxf(duree_pas_min_s, duree_pas_max_s))
 	_temps_deplacement_s = 0.0
 	progression_deplacement = 0.0
 	en_deplacement = true
@@ -235,8 +283,12 @@ func _avancer_deplacement(ennemi: Enemy, dt: float) -> void:
 	_temps_deplacement_s = minf(_temps_deplacement_s + dt, duree_deplacement_s)
 	progression_deplacement = _temps_deplacement_s / maxf(duree_deplacement_s, 0.001)
 	var progression_douce: float = progression_deplacement * progression_deplacement * (3.0 - 2.0 * progression_deplacement)
-	ennemi.global_position = position_depart.lerp(position_cible, progression_douce)
+	var prochaine_position: Vector2 = position_depart.lerp(position_cible, progression_douce)
+	var collision: KinematicCollision2D = _deplacer_avec_collisions(ennemi, prochaine_position - ennemi.global_position)
 	ennemi.velocity = (ennemi.global_position - ancienne_position) / maxf(dt, 0.0001)
+	if collision != null:
+		_annuler_pas_apres_collision(ennemi)
+		return
 	if progression_deplacement < 1.0:
 		return
 	ennemi.global_position = position_cible
@@ -247,6 +299,10 @@ func _avancer_deplacement(ennemi: Enemy, dt: float) -> void:
 	en_deplacement = false
 	progression_deplacement = 1.0
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
+
+func _annuler_pas_apres_collision(ennemi: Enemy) -> void:
+	demander_resynchronisation(ennemi)
+	_attente_decision_s = intervalle_decision_s
 
 func _trouver_slot_initial(cellule_depart: Vector2i, position_monde: Vector2) -> Dictionary:
 	return _trouver_slot_plus_proche(cellule_depart, position_monde, null)
@@ -263,7 +319,7 @@ func _trouver_slot_plus_proche(cellule_depart: Vector2i, position_monde: Vector2
 				if _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule):
 					continue
 				for index_slot in range(_gestionnaire_grille.offsets_slots.size()):
-					if _gestionnaire_grille.slot_bloque_cache(cellule, index_slot):
+					if _gestionnaire_grille.slot_bloque_cache(cellule, index_slot) or _slot_reserve_par_charge(cellule, index_slot, ennemi_autorise):
 						continue
 					var occupant: Enemy = _gestionnaire_grille.obtenir_occupant(cellule, index_slot)
 					var reservataire: Enemy = _gestionnaire_grille.obtenir_reservataire(cellule, index_slot)
@@ -359,15 +415,7 @@ func _avancer_retour_grille(ennemi: Enemy, dt: float) -> void:
 		_terminer_retour_grille(ennemi, cellule_cible == cellule_actuelle and slot_cible == slot_actuel)
 
 func _annuler_retour_apres_collision(ennemi: Enemy) -> void:
-	if slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
-		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
-	cellule_cible = cellule_actuelle
-	slot_cible = -1
-	position_depart = ennemi.global_position
-	position_cible = ennemi.global_position
-	_temps_deplacement_s = 0.0
-	progression_deplacement = 0.0
-	retour_grille_actif = false
+	demander_resynchronisation(ennemi)
 	_attente_resynchronisation_s = intervalle_decision_s
 
 func _terminer_retour_grille(ennemi: Enemy, meme_slot: bool) -> void:
@@ -408,7 +456,10 @@ func _essayer_demarrer_charge(ennemi: Enemy, cellule_joueur: Vector2i) -> bool:
 		var position_slot_cible: Vector2 = _gestionnaire_grille.position_slot(cellule_joueur, index_slot)
 		if _mouvement_est_bloque(ennemi, position_slot_cible - ennemi.global_position):
 			continue
+		if not _reserver_couloir_charge(cellule_actuelle, cellule_joueur, direction, index_slot, ennemi):
+			continue
 		if not _gestionnaire_grille.reserver_slot(cellule_joueur, index_slot, ennemi):
+			_liberer_couloir_charge()
 			continue
 		_demarrer_charge(ennemi, cellule_joueur, index_slot, direction, distance)
 		return true
@@ -426,6 +477,20 @@ func _trajet_charge_est_libre(cellule_depart: Vector2i, cellule_destination: Vec
 			return false
 		if reservataire != null and reservataire != ennemi:
 			return false
+		if _slot_reserve_par_charge(cellule_test, index_slot, ennemi):
+			return false
+	return true
+
+func _reserver_couloir_charge(cellule_depart: Vector2i, cellule_destination: Vector2i, direction: Vector2i, index_slot: int, ennemi: Enemy) -> bool:
+	if not _trajet_charge_est_libre(cellule_depart, cellule_destination, direction, index_slot, ennemi):
+		return false
+	_liberer_couloir_charge()
+	var cellule_test: Vector2i = cellule_depart
+	while cellule_test != cellule_destination:
+		cellule_test += direction
+		var cle := Vector3i(cellule_test.x, cellule_test.y, index_slot)
+		_reservations_couloir_charge[cle] = ennemi
+		_cles_couloir_charge.append(cle)
 	return true
 
 func _demarrer_charge(ennemi: Enemy, cellule_destination: Vector2i, index_slot: int, direction: Vector2i, distance_cellules: int) -> void:
@@ -436,7 +501,6 @@ func _demarrer_charge(ennemi: Enemy, cellule_destination: Vector2i, index_slot: 
 	progression_deplacement = 0.0
 	_temps_charge_s = 0.0
 	_duree_charge_s = maxf(duree_charge_par_cellule_s * float(maxi(distance_cellules, 1)), 0.001)
-	_cellule_charge_verrouillee = cellule_destination
 	_direction_charge = direction
 	_charge_active = true
 	cellule_ennemi_quittee.emit(ennemi, cellule_actuelle)
@@ -450,15 +514,7 @@ func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
 	var collision: KinematicCollision2D = _deplacer_avec_collisions(ennemi, prochaine_position - ennemi.global_position)
 	ennemi.velocity = (ennemi.global_position - ancienne_position) / maxf(dt, 0.0001)
 	if collision != null:
-		if slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
-			_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
-		cellule_cible = cellule_actuelle
-		slot_cible = -1
-		position_depart = ennemi.global_position
-		position_cible = ennemi.global_position
-		_annuler_charge()
-		en_recul = true
-		_attente_resynchronisation_s = 0.0
+		demander_resynchronisation(ennemi)
 		return
 	if progression_deplacement < 1.0:
 		return
@@ -479,14 +535,15 @@ func _appliquer_impact_charge(ennemi: Enemy, cible: Player) -> void:
 	if cible == null or not is_instance_valid(cible):
 		return
 	_resoudre_gestionnaires()
-	if _deplacement_joueur == null or _deplacement_joueur.obtenir_cellule_actuelle() != _cellule_charge_verrouillee:
+	var hurtbox_joueur := get_tree().get_first_node_in_group(&"player_hurtbox") as HurtBox
+	if hurtbox_joueur == null or not is_instance_valid(hurtbox_joueur):
 		return
-	var hurtbox_joueur := cible.get_node_or_null("Hurtbox") as HurtBox
-	if hurtbox_joueur == null:
+	var rayon_total: float = maxf(rayon_impact_charge_px, 0.0) + hurtbox_joueur.hit_radius()
+	if ennemi.global_position.distance_squared_to(hurtbox_joueur.hit_center()) > rayon_total * rayon_total:
 		return
 	if not hurtbox_joueur.tek_it(degats_charge, ennemi):
 		return
-	if recul_joueur_cellules <= 0 or _direction_charge == Vector2i.ZERO:
+	if recul_joueur_cellules <= 0 or _direction_charge == Vector2i.ZERO or _deplacement_joueur == null:
 		return
 	_deplacement_joueur.appliquer_recul_cellules(cible, _direction_charge, recul_joueur_cellules)
 
@@ -494,8 +551,30 @@ func _annuler_charge() -> void:
 	_charge_active = false
 	_temps_charge_s = 0.0
 	_duree_charge_s = 0.0
-	_cellule_charge_verrouillee = Vector2i.ZERO
 	_direction_charge = Vector2i.ZERO
+	_liberer_couloir_charge()
+
+func _liberer_couloir_charge() -> void:
+	if _ennemi == null:
+		_cles_couloir_charge.clear()
+		return
+	for cle in _cles_couloir_charge:
+		if _reservations_couloir_charge.get(cle) == _ennemi:
+			_reservations_couloir_charge.erase(cle)
+	_cles_couloir_charge.clear()
+
+func _nettoyer_reservation_couloir(cle: Vector3i) -> void:
+	if not _reservations_couloir_charge.has(cle):
+		return
+	var reservataire: Variant = _reservations_couloir_charge[cle]
+	if not is_instance_valid(reservataire):
+		_reservations_couloir_charge.erase(cle)
+
+func _slot_reserve_par_charge(cellule: Vector2i, index_slot: int, ennemi_autorise: Enemy) -> bool:
+	var cle := Vector3i(cellule.x, cellule.y, index_slot)
+	_nettoyer_reservation_couloir(cle)
+	var chargeur: Enemy = _reservations_couloir_charge.get(cle) as Enemy
+	return chargeur != null and chargeur != ennemi_autorise
 
 func _slot_respecte_lane(direction: Vector2i, index_slot_cible: int) -> bool:
 	if diagonales_autorisees or slot_actuel < 0 or slot_actuel >= _gestionnaire_grille.offsets_slots.size():
@@ -523,8 +602,6 @@ func _resoudre_gestionnaires() -> void:
 		return
 	if _gestionnaire_grille == null or not is_instance_valid(_gestionnaire_grille):
 		_gestionnaire_grille = get_tree().get_first_node_in_group("grille_combat") as GestionnaireGrilleCombat
-	if _gestionnaire_ennemis == null or not is_instance_valid(_gestionnaire_ennemis):
-		_gestionnaire_ennemis = get_tree().get_first_node_in_group("gestion_ennemis") as GestionnaireEnnemis
 	if _deplacement_joueur == null or not is_instance_valid(_deplacement_joueur):
 		_deplacement_joueur = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
 

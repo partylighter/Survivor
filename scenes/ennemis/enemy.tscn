@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3 uid="uid://6b4541veqfmk"]
+[gd_scene load_steps=4 format=3 uid="uid://6b4541veqfmk"]
 
 [ext_resource type="Script" uid="uid://dxdnx6txn5wnd" path="res://scripts/ennemis/enemy.gd" id="1_5alqo"]
+[ext_resource type="Script" uid="uid://bhyu51o3c77bt" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="2_grille"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_corps"]
+radius = 14.0
 
 [node name="Enemy" type="CharacterBody2D"]
+collision_layer = 64
+collision_mask = 0
 script = ExtResource("1_5alqo")
+
+[node name="DeplacementGrilleEnnemi" type="Node" parent="."]
+script = ExtResource("2_grille")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_corps")

@@ -2,6 +2,7 @@ extends Node
 class_name GestionDeplacementGrilleJoueur
 
 signal cellule_quittee(cellule: Vector2i)
+signal cellule_cible_changee(cellule: Vector2i)
 signal cellule_atteinte(cellule: Vector2i)
 signal deplacement_refuse(cellule: Vector2i)
 signal dash_grille_demarre(depart: Vector2i, destination: Vector2i)
@@ -112,10 +113,27 @@ func synchroniser_sur_grille(joueur: CharacterBody2D) -> void:
 func interrompre_et_recaler(joueur: CharacterBody2D) -> void:
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
-	else:
-		joueur.global_position = cellule_vers_monde(cellule_actuelle)
-		joueur.velocity = Vector2.ZERO
-		_reinitialiser_etat_transitoire(joueur)
+		return
+	joueur.global_position = cellule_vers_monde(cellule_actuelle)
+	joueur.velocity = Vector2.ZERO
+	cellule_cible = cellule_actuelle
+	position_depart = joueur.global_position
+	position_cible = joueur.global_position
+	_reinitialiser_etat_transitoire(joueur)
+	cellule_cible_changee.emit(cellule_cible)
+
+func interrompre_sans_recaler(joueur: CharacterBody2D) -> void:
+	if not _synchronise:
+		synchroniser_sur_grille(joueur)
+		return
+	cellule_actuelle = monde_vers_cellule(joueur.global_position)
+	cellule_cible = cellule_actuelle
+	position_depart = joueur.global_position
+	position_cible = joueur.global_position
+	joueur.velocity = Vector2.ZERO
+	_reinitialiser_etat_transitoire(joueur)
+	_synchronise = true
+	cellule_cible_changee.emit(cellule_cible)
 
 func obtenir_cellule_actuelle() -> Vector2i:
 	return cellule_actuelle
@@ -164,24 +182,29 @@ func cellule_est_accessible(joueur: CharacterBody2D, cellule: Vector2i, verifier
 
 func appliquer_recul_cellules(joueur: CharacterBody2D, direction: Vector2i, distance_cellules: int = 1) -> bool:
 	var direction_recul := Vector2i(clampi(direction.x, -1, 1), clampi(direction.y, -1, 1))
-	if direction_recul == Vector2i.ZERO or direction_recul.x != 0 and direction_recul.y != 0 or distance_cellules <= 0:
+	if direction_recul == Vector2i.ZERO or (direction_recul.x != 0 and direction_recul.y != 0) or distance_cellules <= 0:
 		return false
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 	if not _synchronise:
 		return false
 	if _en_deplacement:
-		interrompre_et_recaler(joueur)
+		interrompre_sans_recaler(joueur)
+
 	var destination: Vector2i = cellule_actuelle
+	var position_segment_depart: Vector2 = joueur.global_position
 	var distance_reelle: int = 0
 	for _index in range(distance_cellules):
 		var prochaine_cellule: Vector2i = destination + direction_recul
-		if not _segment_est_accessible(joueur, cellule_vers_monde(destination), cellule_vers_monde(prochaine_cellule)):
+		var position_prochaine: Vector2 = cellule_vers_monde(prochaine_cellule)
+		if not _segment_est_accessible(joueur, position_segment_depart, position_prochaine):
 			break
 		destination = prochaine_cellule
+		position_segment_depart = position_prochaine
 		distance_reelle += 1
 	if distance_reelle <= 0:
 		return false
+
 	_direction_derniere = direction_recul
 	_deplacement_force = true
 	_demarrer_deplacement(joueur, destination, maxf(duree_recul_cellule_s, 0.01) * float(distance_reelle), false)
@@ -266,6 +289,7 @@ func _demarrer_deplacement(joueur: CharacterBody2D, destination: Vector2i, duree
 	_en_deplacement = true
 	_en_dash = dash
 	_cellule_refusee_presente = false
+	cellule_cible_changee.emit(cellule_cible)
 	cellule_quittee.emit(cellule_actuelle)
 
 func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:

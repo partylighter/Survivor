@@ -29,7 +29,9 @@ var _slots_bloques: Dictionary = {}
 var _cellules_scanees: Dictionary = {}
 var _forme_obstacle := CircleShape2D.new()
 var _forme_detection_cellule := CircleShape2D.new()
-var _deplacement_joueur: GestionDeplacementGrilleJoueur
+var _joueur_suivi: Node2D
+var _cellule_joueur_suivie: Vector2i = Vector2i.ZERO
+var _cellule_joueur_initialisee: bool = false
 
 func _ready() -> void:
 	_restaurer_offsets_slots_si_vides()
@@ -39,11 +41,10 @@ func _ready() -> void:
 		_champ_direction.configurer(self)
 	_forme_obstacle.radius = maxf(rayon_test_obstacle_px, 1.0)
 	_actualiser_rayon_detection_cellule()
-	call_deferred("_connecter_joueur")
+	call_deferred("_actualiser_cellule_joueur")
 
 func _process(_dt: float) -> void:
-	if _deplacement_joueur == null or not is_instance_valid(_deplacement_joueur):
-		_connecter_joueur()
+	_actualiser_cellule_joueur()
 
 func cellule_vers_monde(cellule: Vector2i) -> Vector2:
 	return origine_grille + Vector2(cellule) * maxf(taille_cellule_px, 1.0)
@@ -206,19 +207,18 @@ func obtenir_cellule_joueur() -> Vector2i:
 func obtenir_rayon_champ() -> int:
 	return _champ_direction.obtenir_rayon() if _champ_direction != null else 0
 
-func _connecter_joueur() -> void:
-	var nouveau_deplacement := get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
-	if nouveau_deplacement == null:
+func _actualiser_cellule_joueur() -> void:
+	if _joueur_suivi == null or not is_instance_valid(_joueur_suivi):
+		_joueur_suivi = get_tree().get_first_node_in_group("joueur_principal") as Node2D
+		_cellule_joueur_initialisee = false
+	if _joueur_suivi == null:
 		return
-	if _deplacement_joueur == nouveau_deplacement:
+	var cellule_joueur: Vector2i = monde_vers_cellule(_joueur_suivi.global_position)
+	if _cellule_joueur_initialisee and cellule_joueur == _cellule_joueur_suivie:
 		return
-	_deplacement_joueur = nouveau_deplacement
-	if not _deplacement_joueur.cellule_atteinte.is_connected(_sur_cellule_joueur_atteinte):
-		_deplacement_joueur.cellule_atteinte.connect(_sur_cellule_joueur_atteinte)
-	recalculer_champ(_deplacement_joueur.obtenir_cellule_actuelle())
-
-func _sur_cellule_joueur_atteinte(cellule: Vector2i) -> void:
-	recalculer_champ(cellule)
+	_cellule_joueur_suivie = cellule_joueur
+	_cellule_joueur_initialisee = true
+	recalculer_champ(cellule_joueur)
 
 func _cle_slot(cellule: Vector2i, index_slot: int) -> Vector3i:
 	return Vector3i(cellule.x, cellule.y, index_slot)
