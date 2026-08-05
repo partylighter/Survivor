@@ -200,7 +200,8 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, stats: StatsJoueur, directi
 		joueur.dash_charges_actuelles -= 1
 	joueur.dash_timer_recup_s = 0.0
 	joueur.dash_direction = Vector2(direction).normalized()
-	var duree_dash: float = maxf(duree_dash_par_cellule_s, 0.01) * float(chemin.size())
+	var multiplicateur_diagonal: float = sqrt(2.0) if abs(direction.x) == 1 and abs(direction.y) == 1 else 1.0
+	var duree_dash: float = maxf(duree_dash_par_cellule_s, 0.01) * float(chemin.size()) * multiplicateur_diagonal
 	joueur.dash_duree_s = duree_dash
 	joueur.dash_t_restant_s = duree_dash
 	if joueur is Player:
@@ -247,6 +248,7 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 	if etait_dash:
 		joueur.dash_t_restant_s = 0.0
 		dash_grille_termine.emit(cellule_actuelle)
+		_chemin_dash_debug.clear()
 	else:
 		_appliquer_soif_distance(joueur, position_depart.distance_to(position_cible))
 
@@ -265,19 +267,22 @@ func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur,
 		_essayer_demarrer_pas(joueur, stats, direction_maintenue)
 
 func _cellule_dash_est_accessible(joueur: CharacterBody2D, depart: Vector2i, destination: Vector2i) -> bool:
-	if not _cellule_est_accessible_simple(joueur, destination):
+	var position_depart_cellule: Vector2 = cellule_vers_monde(depart)
+	if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(destination)):
 		return false
 	var direction: Vector2i = destination - depart
 	if bloquer_diagonale_coin and abs(direction.x) == 1 and abs(direction.y) == 1:
-		if not _cellule_est_accessible_simple(joueur, depart + Vector2i(direction.x, 0)):
+		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(depart + Vector2i(direction.x, 0))):
 			return false
-		if not _cellule_est_accessible_simple(joueur, depart + Vector2i(0, direction.y)):
+		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(depart + Vector2i(0, direction.y))):
 			return false
 	return true
 
 func _cellule_est_accessible_simple(joueur: CharacterBody2D, cellule: Vector2i) -> bool:
-	var position_monde: Vector2 = cellule_vers_monde(cellule)
-	if joueur is Player and not (joueur as Player).position_respecte_limites_deplacement(position_monde):
+	return _segment_est_accessible(joueur, joueur.global_position, cellule_vers_monde(cellule))
+
+func _segment_est_accessible(joueur: CharacterBody2D, depart: Vector2, arrivee: Vector2) -> bool:
+	if joueur is Player and not (joueur as Player).position_respecte_limites_deplacement(arrivee):
 		return false
 	var collision := _obtenir_collision_joueur(joueur)
 	if collision == null or collision.shape == null:
@@ -285,12 +290,19 @@ func _cellule_est_accessible_simple(joueur: CharacterBody2D, cellule: Vector2i) 
 	var parametres := PhysicsShapeQueryParameters2D.new()
 	parametres.shape = collision.shape
 	parametres.transform = collision.global_transform
-	parametres.transform.origin += position_monde - joueur.global_position
+	parametres.transform.origin += depart - joueur.global_position
 	parametres.collision_mask = joueur.collision_mask
 	parametres.collide_with_bodies = true
 	parametres.collide_with_areas = false
 	parametres.exclude = [joueur.get_rid()]
-	return joueur.get_world_2d().direct_space_state.intersect_shape(parametres, 1).is_empty()
+	parametres.motion = arrivee - depart
+	var espace: PhysicsDirectSpaceState2D = joueur.get_world_2d().direct_space_state
+	var fractions: PackedFloat32Array = espace.cast_motion(parametres)
+	if fractions.is_empty() or fractions[0] < 0.9999:
+		return false
+	parametres.transform.origin += parametres.motion
+	parametres.motion = Vector2.ZERO
+	return espace.intersect_shape(parametres, 1).is_empty()
 
 func _obtenir_collision_joueur(joueur: CharacterBody2D) -> CollisionShape2D:
 	for enfant in joueur.get_children():
@@ -383,6 +395,7 @@ func _signaler_refus(cellule: Vector2i) -> void:
 	_cellule_refusee_debug = cellule
 	_cellule_refusee_presente = true
 	deplacement_refuse.emit(cellule)
+	_cellule_refusee_presente = false
 
 func _appliquer_soif_distance(joueur: CharacterBody2D, distance: float) -> void:
 	if not joueur is Player:

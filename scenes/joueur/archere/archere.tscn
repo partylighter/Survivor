@@ -32,8 +32,6 @@
 [ext_resource type="Script" uid="uid://dyarrnfqci0fy" path="res://scripts/joueur/GestionnaireOrientationCorps.gd" id="25_l1a4x"]
 [ext_resource type="Script" uid="uid://dfqiib4t51xl8" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="26_modes"]
 [ext_resource type="Script" uid="uid://dfbi1qwwfkb3c" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="27_libre"]
-[ext_resource type="Script" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
-[ext_resource type="Script" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
 [ext_resource type="Script" uid="uid://d2rb5onhlefvl" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="28_inventaire"]
 [ext_resource type="Script" uid="uid://b78lu6p30tt7n" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="29_effets_nourriture"]
 [ext_resource type="PackedScene" uid="uid://b2gkwphybhcur" path="res://scenes/ui/interface_inventaire.tscn" id="29_interface_inventaire"]
@@ -48,6 +46,8 @@
 [ext_resource type="Resource" uid="uid://bxht2c2cc7tsf" path="res://ressources/items/composants/lame_fer.tres" id="40_lame"]
 [ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="41_arc"]
 [ext_resource type="Resource" uid="uid://d3vm77vwa5md7" path="res://ressources/items/composants/renfort_arc.tres" id="42_renfort_arc"]
+[ext_resource type="Script" uid="uid://m8whpvadso2h" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
+[ext_resource type="Script" uid="uid://omo6aa2h56wg" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1321,6 +1321,7 @@ script = ExtResource("13_xeymn")
 chemin_gestionnaire_modes_deplacement = NodePath("../GestionnaireModesDeplacement")
 chemin_gestionnaire_deplacement_libre = NodePath("../GestionDeplacementLibreJoueur")
 chemin_gestionnaire_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
+type_deplacement = 1
 acceleration_px_s2 = 23500.0
 deceleration_px_s2 = 8500.0
 freinage_virage_mult = 2.0
@@ -1347,10 +1348,18 @@ mode_par_defaut = 1
 script = ExtResource("27_libre")
 marche_multiplicateur_vitesse = 0.35
 
-[node name="GestionDeplacementGrilleJoueur" type="Node" parent="."]
+[node name="GestionDeplacementGrilleJoueur" type="Node" parent="." unique_id=1336403440]
 script = ExtResource("50_grille")
+taille_cellule_px = 100.0
+duree_pas_s = 0.5
+diagonales_autorisees = false
+delai_repetition_initial_s = 0.01
+intervalle_repetition_s = 0.07
+vitesse_reference_px_s = 500.0
+distance_dash_cellules = 2
+duree_dash_par_cellule_s = 0.060000000000000005
 
-[node name="DebugGrilleJoueur" type="Node2D" parent="."]
+[node name="DebugGrilleJoueur" type="Node2D" parent="." unique_id=2141677062]
 script = ExtResource("51_debug_grille")
 chemin_gestion_deplacement = NodePath("../GestionDeplacementJoueur")
 chemin_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
