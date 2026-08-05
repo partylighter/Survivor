@@ -56,6 +56,7 @@ var _direction_buffer: Vector2i = Vector2i.ZERO
 var _temps_buffer_restant_s: float = 0.0
 var _dash_en_buffer: bool = false
 var _temps_dash_buffer_restant_s: float = 0.0
+var _direction_dash_a_relacher: Vector2i = Vector2i.ZERO
 var _chemin_dash_debug: Array[Vector2i] = []
 var _cellule_refusee_debug: Vector2i = Vector2i.ZERO
 var _cellule_refusee_presente: bool = false
@@ -74,6 +75,7 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 		synchroniser_sur_grille(joueur)
 	_mettre_a_jour_recharge_dash(joueur, stats, dt)
 	_mettre_a_jour_temps_buffers(dt)
+	_mettre_a_jour_direction_dash_a_relacher()
 	var direction_maintenue: Vector2i = _obtenir_direction_entree()
 	var direction_juste_appuyee: Vector2i = _obtenir_direction_juste_appuyee(direction_maintenue)
 	_mettre_a_jour_maintien(direction_maintenue, dt)
@@ -316,12 +318,17 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 	cellule_atteinte.emit(cellule_actuelle)
 	if etait_dash:
 		joueur.dash_t_restant_s = 0.0
+		_direction_dash_a_relacher = Vector2i(signi(roundi(joueur.dash_direction.x)), signi(roundi(joueur.dash_direction.y)))
+		_direction_buffer = _filtrer_direction_dash_a_relacher(_direction_buffer)
+		if _direction_buffer == Vector2i.ZERO:
+			_effacer_direction_buffer()
 		dash_grille_termine.emit(cellule_actuelle)
 		_chemin_dash_debug.clear()
 	elif not etait_force:
 		_appliquer_soif_distance(joueur, position_depart.distance_to(position_cible))
 
 func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur, direction_maintenue: Vector2i) -> void:
+	direction_maintenue = _filtrer_direction_dash_a_relacher(direction_maintenue)
 	if _dash_en_buffer and _temps_dash_buffer_restant_s > 0.0:
 		_dash_en_buffer = false
 		if _essayer_demarrer_dash(joueur, stats, direction_maintenue):
@@ -396,9 +403,31 @@ func _appliquer_courbe_interpolation(t: float) -> float:
 	return progression * progression * (3.0 - 2.0 * progression)
 
 func _obtenir_direction_entree() -> Vector2i:
-	var x: int = int(Input.get_action_strength("droite") > 0.0) - int(Input.get_action_strength("gauche") > 0.0)
-	var y: int = int(Input.get_action_strength("bas") > 0.0) - int(Input.get_action_strength("haut") > 0.0)
+	var droite_appuyee: bool = Input.get_action_strength("droite") > 0.0 and _direction_dash_a_relacher.x != 1
+	var gauche_appuyee: bool = Input.get_action_strength("gauche") > 0.0 and _direction_dash_a_relacher.x != -1
+	var bas_appuye: bool = Input.get_action_strength("bas") > 0.0 and _direction_dash_a_relacher.y != 1
+	var haut_appuye: bool = Input.get_action_strength("haut") > 0.0 and _direction_dash_a_relacher.y != -1
+	var x: int = int(droite_appuyee) - int(gauche_appuyee)
+	var y: int = int(bas_appuye) - int(haut_appuye)
 	return _limiter_direction(Vector2i(x, y))
+
+func _mettre_a_jour_direction_dash_a_relacher() -> void:
+	if _direction_dash_a_relacher.x == 1 and not Input.is_action_pressed("droite"):
+		_direction_dash_a_relacher.x = 0
+	elif _direction_dash_a_relacher.x == -1 and not Input.is_action_pressed("gauche"):
+		_direction_dash_a_relacher.x = 0
+	if _direction_dash_a_relacher.y == 1 and not Input.is_action_pressed("bas"):
+		_direction_dash_a_relacher.y = 0
+	elif _direction_dash_a_relacher.y == -1 and not Input.is_action_pressed("haut"):
+		_direction_dash_a_relacher.y = 0
+
+func _filtrer_direction_dash_a_relacher(direction: Vector2i) -> Vector2i:
+	var direction_filtree: Vector2i = direction
+	if direction_filtree.x == _direction_dash_a_relacher.x:
+		direction_filtree.x = 0
+	if direction_filtree.y == _direction_dash_a_relacher.y:
+		direction_filtree.y = 0
+	return direction_filtree
 
 func _obtenir_direction_juste_appuyee(direction_maintenue: Vector2i) -> Vector2i:
 	var horizontal_appuye: bool = Input.is_action_just_pressed("gauche") or Input.is_action_just_pressed("droite")
@@ -503,6 +532,7 @@ func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
 	_effacer_direction_buffer()
 	_dash_en_buffer = false
 	_temps_dash_buffer_restant_s = 0.0
+	_direction_dash_a_relacher = Vector2i.ZERO
 	_chemin_dash_debug.clear()
 	_cellule_refusee_presente = false
 	joueur.dash_t_restant_s = 0.0

@@ -148,11 +148,9 @@ look_ahead_grille_px = -85.0
 mouse_look_sol_px = 200.0
 mouse_influence_y = 2.0
 max_offset_px = 2000.0
-zoom_sol = 0.8
-zoom_move_sol = 0.75
 intensite_camera_deplacement = 0.86
 recul_dash_camera_px = 260.0
-duree_recul_dash_s = 0.21000000000000002
+duree_recul_dash_s = 0.21
 shake_per_damage_px = 2.0
 shake_min_damage_for_full = 96.0
 

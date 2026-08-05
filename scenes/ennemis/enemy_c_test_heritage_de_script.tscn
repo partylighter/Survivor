@@ -9,9 +9,6 @@
 [sub_resource type="CircleShape2D" id="CircleShape2D_1y4wy"]
 radius = 122.44
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_n5nnx"]
-radius = 46.34
-
 [node name="EnemyC" type="CharacterBody2D" unique_id=1359294128]
 collision_layer = 64
 collision_mask = 0
@@ -52,11 +49,4 @@ debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 
 [node name="DeplacementGrilleEnnemi" type="Node" parent="." unique_id=1305357376]
 script = ExtResource("6_grille_ennemi")
-vitesse_deplacement_px_s = 315.0
 charge_activee = true
-portee_charge_cellules = 8
-recul_joueur_cellules = 4
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=418694463]
-shape = SubResource("CircleShape2D_n5nnx")
-debug_color = Color(0, 10.0080385, 11.57585, 0)
