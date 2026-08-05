@@ -6,8 +6,12 @@
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_hurtbox"]
 [ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/ennemis/ContactDamage.gd" id="5_contact"]
 [ext_resource type="Script" uid="uid://c468v3bv6lvay" path="res://scripts/gestionnaires/en_jeu/BossHealthBarDisplayer.gd" id="6_bossbar"]
+[ext_resource type="Script" uid="uid://bhyu51o3c77bt" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="7_grille"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_boss_zone_1"]
+radius = 180.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_corps"]
 radius = 180.0
 
 [node name="BossZone1" type="CharacterBody2D" unique_id=4247777]
@@ -19,14 +23,9 @@ type_ennemi = 4
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Sprite2D")
 rayon_collision_px = 180.0
-speed = 360.0
-acceleration_px_s2 = 1100.0
-deceleration_px_s2 = 1600.0
 flash_couleur = Color(2, 2, 2, 1)
 resistance_knockback_dash = 0.65
 recul_knockback_dash_mult = 0.7
-distance_arret_joueur_px = 95.0
-distance_ralentir_joueur_px = 170.0
 metadata/_custom_type_script = "uid://dovjl67ubyml3"
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1991532333]
@@ -61,3 +60,10 @@ metadata/_custom_type_script = "uid://b1wenibwev34d"
 layer = 3
 script = ExtResource("6_bossbar")
 debug_enabled = true
+
+[node name="DeplacementGrilleEnnemi" type="Node" parent="."]
+script = ExtResource("7_grille")
+vitesse_deplacement_px_s = 360.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_corps")
