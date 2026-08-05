@@ -98,7 +98,6 @@ func _ready() -> void:
 		contact_damage.set_physics_process(true)
 	_layer_orig = collision_layer
 	_mask_orig = collision_mask
-	_initialiser_comportement()
 	actualiser_activation_deplacement_grille(true)
 
 func get_type_id() -> int:
@@ -116,11 +115,6 @@ func hit_radius() -> float:
 func is_alive() -> bool:
 	return _state == State.ALIVE or _state == State.STUNNED
 
-func set_poussee_foule(v: Vector2) -> void:
-	if _state == State.DYING or _state == State.DEAD:
-		return
-	appliquer_pousse(v, 0.0)
-
 func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
 	pousse += v
 	var magnitude: float = pousse.length()
@@ -128,7 +122,6 @@ func appliquer_pousse(v: Vector2, lock_s: float = -1.0) -> void:
 		pousse *= pousse_max / magnitude
 	var duree_blocage: float = pousse_bloque_chase_duree_s if lock_s < 0.0 else lock_s
 	_pousse_lock_t = maxf(_pousse_lock_t, maxf(duree_blocage, 0.0))
-	_sur_poussee_appliquee()
 
 func appliquer_recul(direction: Vector2, force: float) -> void:
 	if direction.length_squared() <= 0.0001 or force <= 0.0:
@@ -138,7 +131,6 @@ func appliquer_recul(direction: Vector2, force: float) -> void:
 	if magnitude > recul_max:
 		recul *= recul_max / magnitude
 	_recul_lock_t = maxf(_recul_lock_t, maxf(recul_bloque_chase_duree_s, 0.0))
-	_sur_recul_applique()
 	_prendre_coup_visuel()
 
 func appliquer_recul_dash(direction: Vector2, force: float) -> void:
@@ -149,7 +141,6 @@ func appliquer_recul_dash(direction: Vector2, force: float) -> void:
 	if magnitude > recul_max:
 		recul *= recul_max / magnitude
 	_recul_lock_t = maxf(_recul_lock_t, maxf(recul_bloque_chase_duree_s, 0.0))
-	_sur_recul_applique()
 	_prendre_coup_visuel()
 
 func appliquer_recul_depuis(source: Node2D, force: float) -> void:
@@ -216,7 +207,6 @@ func _set_state(nouvel_etat: State) -> void:
 			_set_physics_and_process(true)
 			_restore_collision()
 			_reset_visual_state()
-			_reinitialiser_comportement()
 			if sprite != null:
 				sprite.visible = true
 			_doit_emit_reapparu_next_frame = true
@@ -236,7 +226,6 @@ func _set_state(nouvel_etat: State) -> void:
 			velocity = Vector2.ZERO
 			recul = Vector2.ZERO
 			pousse = Vector2.ZERO
-			_reinitialiser_comportement()
 			collision_layer = 0
 			collision_mask = 0
 			set_process(false)
@@ -249,7 +238,6 @@ func _set_state(nouvel_etat: State) -> void:
 			velocity = Vector2.ZERO
 			recul = Vector2.ZERO
 			pousse = Vector2.ZERO
-			_reinitialiser_comportement()
 			collision_layer = 0
 			collision_mask = 0
 			_set_physics_and_process(false)
@@ -372,18 +360,6 @@ func _tick_scale_impact(dt: float) -> void:
 		_scale_offset.y = clampf(_scale_offset.y, -amplitude_max, amplitude_max)
 	var nouvelle_echelle: Vector2 = _sprite_scale_neutre + _scale_offset
 	sprite.scale = Vector2(maxf(nouvelle_echelle.x, 0.05), maxf(nouvelle_echelle.y, 0.05))
-
-func _initialiser_comportement() -> void:
-	pass
-
-func _reinitialiser_comportement() -> void:
-	pass
-
-func _sur_recul_applique() -> void:
-	pass
-
-func _sur_poussee_appliquee() -> void:
-	pass
 
 func _on_damaged(amount: int, source: Node) -> void:
 	_declencher_flash()
