@@ -1,4 +1,4 @@
-extends EnemyLibre
+extends Enemy
 class_name EnemyS
 
 func _ready() -> void:
