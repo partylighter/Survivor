@@ -65,8 +65,7 @@ metadata/_custom_type_script = "uid://b1wenibwev34d"
 
 [node name="DeplacementGrilleEnnemi" type="Node" parent="." unique_id=1305357376]
 script = ExtResource("6_grille_ennemi")
-distance_arret_cellules = 3
-attaque_lunge_distance_px = 200.0
+portee_charge_cellules = 3
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=418694463]
 shape = SubResource("CircleShape2D_n5nnx")
