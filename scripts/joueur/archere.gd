@@ -65,9 +65,12 @@ const ANIMATION_TORSE_COURSE_BAS: StringName = &"torse en course bas"
 @export_group("Archere")
 @export var identifiant_personnage: StringName = &"archere"
 @export_node_path("GestionnaireOrientationCorps") var chemin_gestionnaire_orientation_corps: NodePath = NodePath("GestionnaireOrientationCorps")
+@export_group("Tir")
+@export var immobilisation_pendant_tir_active: bool = true
 @onready var arbre_animation: AnimationTree = get_node_or_null("AnimationTree") as AnimationTree
 @onready var lecteur_animation: AnimationPlayer = get_node_or_null("AnimationPlayer") as AnimationPlayer
 @onready var gestionnaire_orientation_corps: GestionnaireOrientationCorps = get_node_or_null(chemin_gestionnaire_orientation_corps) as GestionnaireOrientationCorps
+@onready var gestionnaire_arme_archere: GestionnaireArme = get_node_or_null("GestionnaireArme") as GestionnaireArme
 @onready var inactif_archere: CanvasItem = get_node_or_null("squelette du corps/inactif") as CanvasItem
 @onready var animations_dash_archere: CanvasItem = get_node_or_null("squelette du corps/animations dash") as CanvasItem
 @onready var animation_deplacement_archere: CanvasItem = get_node_or_null("squelette du corps/animation deplacement") as CanvasItem
@@ -91,6 +94,7 @@ var _animation_dash_animation_player_active: bool = false
 var _animation_dash_sprite_active: bool = false
 var _animation_dash_sprite_temps_restant_s: float = 0.0
 var _animation_course_bas_active: bool = false
+var _tir_bloquait_deplacement: bool = false
 func _ready() -> void:
 	super()
 	add_to_group("personnage_archere")
@@ -104,11 +108,34 @@ func _ready() -> void:
 	_appliquer_visibilite_course_bas(false)
 	_configurer_arbre_animation()
 func _physics_process(delta: float) -> void:
-	super(delta)
+	var arme_tir_en_preparation: ArmeTir = _obtenir_arme_tir_en_preparation()
+	if arme_tir_en_preparation != null and Input.is_action_just_pressed("dash") and _dash_peut_annuler_tir():
+		arme_tir_en_preparation.annuler_charge()
+		arme_tir_en_preparation = null
+	var immobiliser_deplacement: bool = immobilisation_pendant_tir_active and arme_tir_en_preparation != null
+	if immobiliser_deplacement and not _tir_bloquait_deplacement and gestion_deplacement != null:
+		gestion_deplacement.interrompre_deplacement_grille(self)
+	if immobiliser_deplacement:
+		var dialogue_actif_avant: bool = dialogue_actif
+		dialogue_actif = true
+		super(delta)
+		dialogue_actif = dialogue_actif_avant
+	else:
+		super(delta)
+	_tir_bloquait_deplacement = immobiliser_deplacement
 	if arbre_animation != null:
 		arbre_animation.active = velocity == Vector2.ZERO
 	if velocity == Vector2.ZERO:
 		_mettre_a_jour_arbre_animation()
+func _obtenir_arme_tir_en_preparation() -> ArmeTir:
+	if gestionnaire_arme_archere == null:
+		return null
+	var arme_tir := gestionnaire_arme_archere.arme_principale as ArmeTir
+	if arme_tir != null and arme_tir.est_en_preparation_de_tir():
+		return arme_tir
+	return null
+func _dash_peut_annuler_tir() -> bool:
+	return dash_autorise and dash_t_restant_s <= 0.0 and (dash_infini_actif or dash_charges_actuelles > 0)
 func get_identifiant_personnage() -> StringName:
 	return identifiant_personnage
 func _appliquer_visibilite_mains() -> void:

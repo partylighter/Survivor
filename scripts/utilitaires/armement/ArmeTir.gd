@@ -232,6 +232,9 @@ func annuler_charge() -> void:
 	_sequence_animation += 1
 	_jouer_animation_arme(animation_repos)
 
+func est_en_preparation_de_tir() -> bool:
+	return _attaque_en_preparation
+
 func _finir_animation_decochage(sequence: int) -> void:
 	var duree: float = _duree_animation_arme(animation_decochage)
 	if duree > 0.0:
