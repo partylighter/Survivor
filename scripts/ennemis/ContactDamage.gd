@@ -1,8 +1,6 @@
 extends Node
 class_name ContactDamage
 
-signal contact_reussi
-
 @export var degats_contact: int = 10
 @export var delai_entre_hits_s: float = 0.45
 @export var activation_radius_px: float = 900.0
@@ -58,7 +56,7 @@ func _ready() -> void:
 	_bucket      = randi() % _scan_frames
 
 	var hz: int = max(Engine.physics_ticks_per_second, 1)
-	_hit_cooldown_frames = int(round(max(delai_entre_hits_s, 0.0) * float(hz)))
+	_hit_cooldown_frames = int(round(max(delai_entre_hits_s, 0.0) * float(hz) / float(_scan_frames)))
 	_frames_since_hit    = _hit_cooldown_frames  # prêt à frapper dès le départ
 
 	player_hurtbox = _get_player_hurtbox()
@@ -122,18 +120,7 @@ func _physics_process(_dt: float) -> void:
 	if not _active:
 		return
 
-	if _frames_since_hit < _hit_cooldown_frames:
-		return
-
-	var rr: float = max(enemy_hit_radius_px, 0.0) + player_hurtbox.hit_radius()
-	if d2 <= rr * rr:
-		var hit_accepte: bool = player_hurtbox.tek_it(degats_contact, enemy)
-		if hit_accepte:
-			_appliquer_recul_joueur(player_hurtbox, ec)
-			_frames_since_hit = 0
-			contact_reussi.emit()
-			if debug_contact:
-				_dbg("HIT dmg=" + str(degats_contact))
+	_essayer_appliquer_contact(ec, d2)
 
 # ===========================================================================
 # Utilitaires
@@ -177,6 +164,31 @@ func position_en_portee_contact(position_ennemi: Vector2) -> bool:
 	var centre_ennemi: Vector2 = position_ennemi + enemy_hit_offset_px
 	var rayon_contact: float = maxf(enemy_hit_radius_px, 0.0) + player_hurtbox.hit_radius()
 	return centre_ennemi.distance_squared_to(player_hurtbox.hit_center()) <= rayon_contact * rayon_contact
+
+func essayer_contact_immediat() -> bool:
+	if enemy == null or not is_instance_valid(enemy):
+		return false
+	if player_hurtbox == null or not is_instance_valid(player_hurtbox):
+		player_hurtbox = _get_player_hurtbox()
+	if player_hurtbox == null:
+		return false
+	var centre_ennemi: Vector2 = enemy.global_position + enemy_hit_offset_px
+	return _essayer_appliquer_contact(centre_ennemi, centre_ennemi.distance_squared_to(player_hurtbox.hit_center()))
+
+func _essayer_appliquer_contact(centre_ennemi: Vector2, distance_carree: float) -> bool:
+	if _frames_since_hit < _hit_cooldown_frames:
+		return false
+	var rayon_contact: float = maxf(enemy_hit_radius_px, 0.0) + player_hurtbox.hit_radius()
+	if distance_carree > rayon_contact * rayon_contact:
+		return false
+	var hit_accepte: bool = player_hurtbox.tek_it(degats_contact, enemy)
+	if not hit_accepte:
+		return false
+	_appliquer_recul_joueur(player_hurtbox, centre_ennemi)
+	_frames_since_hit = 0
+	if debug_contact:
+		_dbg("HIT dmg=" + str(degats_contact))
+	return true
 
 func _appliquer_recul_joueur(hb: HurtBox, origine: Vector2) -> void:
 	if recul_joueur_force <= 0.0 or hb == null:

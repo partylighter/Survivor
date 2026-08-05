@@ -3,7 +3,7 @@ class_name GestionnaireGrilleCombat
 
 signal reservation_changee
 
-const OFFSETS_SLOTS_DEFAUT: Array[Vector2] = [Vector2(-22.0, -22.0), Vector2(22.0, -22.0), Vector2(-22.0, 22.0), Vector2(22.0, 22.0)]
+const OFFSETS_SLOTS_DEFAUT: Array[Vector2] = [Vector2(-60.0, -60.0), Vector2(60.0, -60.0), Vector2(-60.0, 60.0), Vector2(60.0, 60.0)]
 
 @export_group("Grille commune")
 @export var taille_cellule_px: float = 100.0
