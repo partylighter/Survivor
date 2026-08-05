@@ -8,7 +8,6 @@ signal combat_desengage(cible: Node2D)
 
 @export_group("Territoire")
 @export var rayon_activite_px: float = 900.0
-@export var distance_arret_spawn_px: float = 12.0
 @export var delai_retour_spawn_s: float = 0.7
 
 @export_group("Attaques")
