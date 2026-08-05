@@ -7,6 +7,8 @@ signal cellule_ennemi_atteinte(ennemi: Enemy, cellule: Vector2i)
 const DIRECTIONS_CARDINALES: Array[Vector2i] = [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]
 const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]
 
+enum PhaseCharge { AUCUNE, PREPARATION, ACTIVE, RECUPERATION }
+
 @export_group("Déplacement grille")
 @export var diagonales_autorisees: bool = false
 @export_range(1.0, 2000.0, 1.0) var vitesse_deplacement_px_s: float = 315.0
@@ -25,7 +27,9 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_group("Charge grille")
 @export var charge_activee: bool = false
 @export_range(1, 12, 1) var portee_charge_cellules: int = 3
+@export_range(0.0, 2.0, 0.05) var duree_preparation_charge_s: float = 0.40
 @export_range(0.01, 0.5, 0.01) var duree_charge_par_cellule_s: float = 0.08
+@export_range(0.0, 2.0, 0.05) var duree_recuperation_charge_s: float = 0.50
 @export_range(0.0, 3.0, 0.05) var delai_entre_charges_s: float = 0.45
 @export_range(0, 999999, 1) var degats_charge: int = 10
 @export_range(0.0, 300.0, 1.0) var rayon_impact_charge_px: float = 95.0
@@ -52,6 +56,8 @@ var _temps_deplacement_s: float = 0.0
 var _attente_decision_s: float = 0.0
 var _attente_resynchronisation_s: float = 0.0
 var _initialise: bool = false
+var _phase_charge: int = PhaseCharge.AUCUNE
+var _temps_phase_charge_s: float = 0.0
 var _charge_active: bool = false
 var _temps_charge_s: float = 0.0
 var _duree_charge_s: float = 0.0
@@ -125,11 +131,21 @@ func traiter(ennemi: Enemy, cible: Player, position_cible_monde: Vector2, dt: fl
 		if _attente_resynchronisation_s <= 0.0:
 			_essayer_resynchroniser_apres_recul(ennemi)
 		return true
+	if _phase_charge == PhaseCharge.PREPARATION:
+		ennemi.velocity = Vector2.ZERO
+		if autoriser_decision:
+			_avancer_preparation_charge(ennemi, dt)
+		return true
 	if _charge_active:
 		if autoriser_decision:
 			_avancer_charge(ennemi, cible, dt)
 		else:
 			ennemi.velocity = Vector2.ZERO
+		return true
+	if _phase_charge == PhaseCharge.RECUPERATION:
+		ennemi.velocity = Vector2.ZERO
+		if autoriser_decision:
+			_avancer_recuperation_charge(dt)
 		return true
 	if en_deplacement:
 		if autoriser_decision:
@@ -207,7 +223,8 @@ func deplacer_force_avec_collisions(ennemi: Enemy, mouvement: Vector2) -> Kinema
 	return _deplacer_avec_collisions(ennemi, mouvement)
 
 func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
-	if (en_deplacement or retour_grille_actif or _charge_active) and slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
+	var charge_reservant_slot: bool = _phase_charge == PhaseCharge.PREPARATION or _charge_active
+	if (en_deplacement or retour_grille_actif or charge_reservant_slot) and slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
 		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
 	en_deplacement = false
 	retour_grille_actif = false
@@ -502,8 +519,24 @@ func _demarrer_charge(ennemi: Enemy, cellule_destination: Vector2i, index_slot: 
 	_temps_charge_s = 0.0
 	_duree_charge_s = maxf(duree_charge_par_cellule_s * float(maxi(distance_cellules, 1)), 0.001)
 	_direction_charge = direction
-	_charge_active = true
+	_charge_active = false
 	_charge_armee = false
+	_phase_charge = PhaseCharge.PREPARATION
+	_temps_phase_charge_s = maxf(duree_preparation_charge_s, 0.0)
+	if _temps_phase_charge_s <= 0.0:
+		_demarrer_charge_active(ennemi)
+
+func _avancer_preparation_charge(ennemi: Enemy, dt: float) -> void:
+	_temps_phase_charge_s = maxf(_temps_phase_charge_s - dt, 0.0)
+	if _temps_phase_charge_s > 0.0:
+		return
+	_demarrer_charge_active(ennemi)
+
+func _demarrer_charge_active(ennemi: Enemy) -> void:
+	_phase_charge = PhaseCharge.ACTIVE
+	_charge_active = true
+	_temps_charge_s = 0.0
+	progression_deplacement = 0.0
 	cellule_ennemi_quittee.emit(ennemi, cellule_actuelle)
 
 func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
@@ -528,9 +561,27 @@ func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
 	_charge_active = false
 	_appliquer_impact_charge(ennemi, cible)
 	_attente_charge_s = maxf(delai_entre_charges_s, intervalle_decision_s)
-	_attente_decision_s = intervalle_decision_s
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
-	_annuler_charge()
+	_liberer_couloir_charge()
+	_phase_charge = PhaseCharge.RECUPERATION
+	_temps_phase_charge_s = maxf(duree_recuperation_charge_s, 0.0)
+	if _temps_phase_charge_s <= 0.0:
+		_terminer_recuperation_charge()
+
+func _avancer_recuperation_charge(dt: float) -> void:
+	_temps_phase_charge_s = maxf(_temps_phase_charge_s - dt, 0.0)
+	_attente_charge_s = maxf(_attente_charge_s - dt, 0.0)
+	if _temps_phase_charge_s > 0.0:
+		return
+	_terminer_recuperation_charge()
+
+func _terminer_recuperation_charge() -> void:
+	_phase_charge = PhaseCharge.AUCUNE
+	_temps_phase_charge_s = 0.0
+	_temps_charge_s = 0.0
+	_duree_charge_s = 0.0
+	_direction_charge = Vector2i.ZERO
+	_attente_decision_s = intervalle_decision_s
 
 func _appliquer_impact_charge(ennemi: Enemy, cible: Player) -> void:
 	if cible == null or not is_instance_valid(cible):
@@ -549,6 +600,8 @@ func _appliquer_impact_charge(ennemi: Enemy, cible: Player) -> void:
 	_deplacement_joueur.appliquer_recul_cellules(cible, _direction_charge, recul_joueur_cellules)
 
 func _annuler_charge() -> void:
+	_phase_charge = PhaseCharge.AUCUNE
+	_temps_phase_charge_s = 0.0
 	_charge_active = false
 	_temps_charge_s = 0.0
 	_duree_charge_s = 0.0
