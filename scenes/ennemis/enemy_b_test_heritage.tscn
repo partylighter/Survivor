@@ -5,9 +5,13 @@
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="3_rxyko"]
 [ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/ennemis/ContactDamage.gd" id="4_kwxff"]
 [ext_resource type="Texture2D" uid="uid://dcy57d3ege8yy" path="res://icon.svg" id="5_t5cw6"]
+[ext_resource type="Script" uid="uid://bhyu51o3c77bt" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="6_grille"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_y1dex"]
 radius = 122.44
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_corps"]
+radius = 68.0
 
 [node name="EnemyB" type="CharacterBody2D" unique_id=1399925958]
 script = ExtResource("1_e2sh2")
@@ -15,13 +19,7 @@ type_ennemi = 1
 chemin_sante = NodePath("Sante")
 chemin_sprite = NodePath("Icon")
 rayon_collision_px = 68.0
-speed = 950.0
-intervalle_tick_ia_frames = 3
 recul_max = 50000.0
-distance_arret_joueur_px = 160.0
-distance_ralentir_joueur_px = 320.0
-offset_cible_max_px = 190.0
-offset_cible_refresh_s = 0.75
 metadata/_custom_type_script = "uid://bflkdxpp0ja41"
 
 [node name="Sante" type="Node" parent="." unique_id=1107695323]
@@ -49,3 +47,10 @@ metadata/_custom_type_script = "uid://b1wenibwev34d"
 [node name="Icon" type="Sprite2D" parent="." unique_id=1294909429]
 modulate = Color(3.2944162, 1.1778815, 0, 1)
 texture = ExtResource("5_t5cw6")
+
+[node name="DeplacementGrilleEnnemi" type="Node" parent="."]
+script = ExtResource("6_grille")
+vitesse_deplacement_px_s = 950.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_corps")
