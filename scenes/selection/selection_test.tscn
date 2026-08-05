@@ -1,0 +1,190 @@
+[gd_scene format=3 uid="uid://blcsmpcoogtl2"]
+
+[ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="1_archere"]
+[ext_resource type="PackedScene" path="res://scenes/selection/systeme_selection_placeholder.tscn" id="2_systeme"]
+[ext_resource type="Script" path="res://scripts/selection/ZoneProgressionSelection.gd" id="3_zone"]
+
+[sub_resource type="RectangleShape2D" id="RectangleZone"]
+size = Vector2(120, 700)
+
+[node name="SelectionTest" type="Node2D" unique_id=901952521]
+
+[node name="Fond" type="Polygon2D" parent="." unique_id=181807373]
+color = Color(0.055, 0.12, 0.09, 1)
+polygon = PackedVector2Array(-700, -500, 5900, -500, 5900, 500, -700, 500)
+
+[node name="Chemin" type="Line2D" parent="." unique_id=1463631729]
+points = PackedVector2Array(-400, 0, 5800, 0)
+width = 260.0
+default_color = Color(0.16, 0.22, 0.16, 1)
+
+[node name="Archere" parent="." unique_id=1111397749 instance=ExtResource("1_archere")]
+
+[node name="Camera2D" type="Camera2D" parent="Archere" unique_id=623227970]
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+
+[node name="SystemeSelection" parent="." unique_id=1837984051 instance=ExtResource("2_systeme")]
+
+[node name="ParcoursSelection" type="Node2D" parent="." unique_id=2007525329]
+
+[node name="CiblesMauvaisEsprit" type="Node2D" parent="ParcoursSelection" unique_id=653346670]
+
+[node name="CiblePresentation" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=1259514032]
+position = Vector2(500, 0)
+
+[node name="CiblePremierePoursuite" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=842037780]
+position = Vector2(1200, 0)
+
+[node name="CibleTraque" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=992991014]
+position = Vector2(1900, -80)
+
+[node name="CibleConfrontation2" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=134733818]
+position = Vector2(2600, 70)
+
+[node name="CiblePeur" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=1614164552]
+position = Vector2(3300, -90)
+
+[node name="CibleDernierePoursuite" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=459500252]
+position = Vector2(4000, 70)
+
+[node name="CibleBoss" type="Marker2D" parent="ParcoursSelection/CiblesMauvaisEsprit" unique_id=389898694]
+position = Vector2(4700, 0)
+
+[node name="Briefing" type="Label" parent="ParcoursSelection" unique_id=168509112]
+offset_left = -180.0
+offset_top = -250.0
+offset_right = 420.0
+offset_bottom = -190.0
+theme_override_font_sizes/font_size = 24
+text = "SELECTION DES CHASSEURS
+Avancez vers la droite pour parcourir la verticale placeholder."
+
+[node name="TitrePoursuite1" type="Label" parent="ParcoursSelection" unique_id=352690807]
+offset_left = 820.0
+offset_top = -250.0
+offset_right = 1300.0
+offset_bottom = -210.0
+text = "Premiere poursuite / fragments"
+
+[node name="TitreTraque" type="Label" parent="ParcoursSelection" unique_id=1977263514]
+offset_left = 1550.0
+offset_top = -250.0
+offset_right = 1950.0
+offset_bottom = -210.0
+text = "Traque / trace placeholder"
+
+[node name="TitreConfrontation" type="Label" parent="ParcoursSelection" unique_id=1541273700]
+offset_left = 2250.0
+offset_top = -250.0
+offset_right = 2750.0
+offset_bottom = -210.0
+text = "Deuxieme confrontation"
+
+[node name="TitrePeur" type="Label" parent="ParcoursSelection" unique_id=1798368603]
+offset_left = 3050.0
+offset_top = -250.0
+offset_right = 3450.0
+offset_bottom = -210.0
+text = "Peur minimale : 75"
+
+[node name="TitreDernierePoursuite" type="Label" parent="ParcoursSelection" unique_id=1490729673]
+offset_left = 3700.0
+offset_top = -250.0
+offset_right = 4200.0
+offset_bottom = -210.0
+text = "Derniere poursuite"
+
+[node name="TitreBoss" type="Label" parent="ParcoursSelection" unique_id=422257665]
+offset_left = 4500.0
+offset_top = -250.0
+offset_right = 4900.0
+offset_bottom = -210.0
+text = "Boss placeholder : atteindre la sortie"
+
+[node name="TitreEvaluation" type="Label" parent="ParcoursSelection" unique_id=890272252]
+offset_left = 5200.0
+offset_top = -250.0
+offset_right = 5700.0
+offset_bottom = -210.0
+text = "Evaluation puis fin"
+
+[node name="ZonesProgression" type="Node2D" parent="ParcoursSelection" unique_id=299004654]
+
+[node name="ZonePresentationFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=1201544676]
+position = Vector2(700, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZonePresentationFin" unique_id=1318970087]
+shape = SubResource("RectangleZone")
+
+[node name="ZonePremierePoursuiteFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=1178048153]
+position = Vector2(1400, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 1
+prochaine_etape = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZonePremierePoursuiteFin" unique_id=664981730]
+shape = SubResource("RectangleZone")
+
+[node name="ZoneTraqueFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=461092585]
+position = Vector2(2100, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 2
+prochaine_etape = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZoneTraqueFin" unique_id=2024521137]
+shape = SubResource("RectangleZone")
+
+[node name="ZoneConfrontation2Fin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=1217715431]
+position = Vector2(2800, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 3
+prochaine_etape = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZoneConfrontation2Fin" unique_id=2102001673]
+shape = SubResource("RectangleZone")
+
+[node name="ZonePeurFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=598226238]
+position = Vector2(3500, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 4
+prochaine_etape = 5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZonePeurFin" unique_id=186019678]
+shape = SubResource("RectangleZone")
+
+[node name="ZoneDernierePoursuiteFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=57401392]
+position = Vector2(4200, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 5
+prochaine_etape = 6
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZoneDernierePoursuiteFin" unique_id=1474871440]
+shape = SubResource("RectangleZone")
+
+[node name="ZoneBossFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=872061055]
+position = Vector2(4900, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 6
+prochaine_etape = 7
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZoneBossFin" unique_id=1766390676]
+shape = SubResource("RectangleZone")
+
+[node name="ZoneEvaluationFin" type="Area2D" parent="ParcoursSelection/ZonesProgression" unique_id=1137774773]
+position = Vector2(5600, 0)
+script = ExtResource("3_zone")
+chemin_gestionnaire_selection = NodePath("../../../SystemeSelection/GestionnaireSelection")
+etape_requise = 7
+prochaine_etape = 8
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ParcoursSelection/ZonesProgression/ZoneEvaluationFin" unique_id=1966276090]
+shape = SubResource("RectangleZone")

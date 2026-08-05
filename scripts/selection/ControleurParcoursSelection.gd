@@ -12,6 +12,7 @@ class_name ControleurParcoursSelection
 @export var zone_presentation: ZoneDefinition
 @export var zone_premiere_poursuite: ZoneDefinition
 @export var zone_debut_traque: ZoneDefinition
+@export var fragments_premiere_poursuite_actifs: bool = false
 @export var scene_fragment_premiere_poursuite: PackedScene
 @export var depart_mauvais_esprit: Marker2D
 @export var cible_premiere_fuite: Marker2D
@@ -58,6 +59,8 @@ func _demarrer_premiere_poursuite() -> void:
 		return
 	premiere_poursuite_demarree = true
 	mauvais_esprit.fuir_vers(cible_premiere_fuite.global_position)
+	if not fragments_premiere_poursuite_actifs:
+		return
 	_ajouter_fragment(spawn_fragment_1.global_position)
 	_ajouter_fragment(spawn_fragment_2.global_position)
 	if fragments_poursuite_actifs.size() != 2:
@@ -114,9 +117,6 @@ func _verifier_configuration() -> bool:
 		valide = false
 	if joueur == null:
 		push_error("ControleurParcoursSelection: Player absent.")
-		valide = false
-	if aspirant_a == null or aspirant_b == null:
-		push_error("ControleurParcoursSelection: les deux aspirants sont requis.")
 		valide = false
 	if zone_presentation == null or zone_premiere_poursuite == null or zone_debut_traque == null:
 		push_error("ControleurParcoursSelection: les trois ZoneDefinition sont requises.")

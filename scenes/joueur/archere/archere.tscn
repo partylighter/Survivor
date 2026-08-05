@@ -41,11 +41,11 @@
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/sel.tres" id="32_r5uce"]
 [ext_resource type="Resource" path="res://ressources/cuisine/ingredients/viande.tres" id="36_3eba1"]
 [ext_resource type="Script" uid="uid://te460h8is4eh" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="37_equipement"]
-[ext_resource type="Script" path="res://scripts/inventaire/craft/GestionnaireCraftInventaire.gd" id="38_craft"]
+[ext_resource type="Script" uid="uid://cpnj60y8bthue" path="res://scripts/inventaire/craft/GestionnaireCraftInventaire.gd" id="38_craft"]
 [ext_resource type="Resource" path="res://ressources/forge/recettes/catalogue_equipements.tres" id="39_catalogue"]
-[ext_resource type="Resource" path="res://ressources/items/composants/lame_fer.tres" id="40_lame"]
-[ext_resource type="Resource" path="res://ressources/items/equipements/arc_en_bois.tres" id="41_arc"]
-[ext_resource type="Resource" path="res://ressources/items/composants/renfort_arc.tres" id="42_renfort_arc"]
+[ext_resource type="Resource" uid="uid://bxht2c2cc7tsf" path="res://ressources/items/composants/lame_fer.tres" id="40_lame"]
+[ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="41_arc"]
+[ext_resource type="Resource" uid="uid://d3vm77vwa5md7" path="res://ressources/items/composants/renfort_arc.tres" id="42_renfort_arc"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ys1k7"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -1100,9 +1100,9 @@ chemin_GestionDeplacementJoueur = NodePath("GestionDeplacementJoueur")
 chemin_soif = NodePath("Soif")
 chemin_sprite = NodePath("squelette du corps")
 collision_ennemis_actif = false
-visuel_deplacement_actif = false
 limite_haut = -1200.0
 limite_bas = 1200.0
+visuel_deplacement_actif = false
 
 [node name="HScrollBarHoverHeal" type="HScrollBar" parent="." unique_id=1940575337]
 unique_name_in_owner = true
@@ -1305,9 +1305,11 @@ script = ExtResource("10_hveao")
 
 [node name="Santé" type="Node" parent="." unique_id=1094994740]
 script = ExtResource("11_d1jmq")
+max_pv = 999999
 
 [node name="StatsJoueur" type="Node" parent="." unique_id=764373083]
 script = ExtResource("12_ggrrm")
+pv_max_base = 999999
 vitesse_base = 1180.0
 dash_cooldown_base = 0.35
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
@@ -1378,7 +1380,7 @@ script = ExtResource("29_effets_nourriture")
 [node name="GestionnaireEquipementJoueur" type="Node" parent="." unique_id=156640872]
 script = ExtResource("37_equipement")
 
-[node name="GestionnaireCraftInventaire" type="Node" parent="."]
+[node name="GestionnaireCraftInventaire" type="Node" parent="." unique_id=1118078079]
 script = ExtResource("38_craft")
 catalogue_recettes = ExtResource("39_catalogue")
 
@@ -1419,7 +1421,6 @@ ui_position = Vector2(16, 580)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
 
 [node name="InterfaceInventaire" parent="." unique_id=649383341 instance=ExtResource("29_interface_inventaire")]
-visible = true
 chemin_inventaire = NodePath("../GestionnaireInventaire")
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=781955153]
