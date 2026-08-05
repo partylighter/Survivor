@@ -48,7 +48,7 @@ metadata/_custom_type_script = "uid://cp87fy13f23lc"
 z_index = -1
 position = Vector2(0.5, 1)
 shape = SubResource("CircleShape2D_1y4wy")
-debug_color = Color(18.892157, 18.892157157, 18.892157, 0)
+debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 
 [node name="DeplacementGrilleEnnemi" type="Node" parent="." unique_id=1305357376]
 script = ExtResource("6_grille_ennemi")
