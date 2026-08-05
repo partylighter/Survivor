@@ -8,7 +8,9 @@ const OFFSETS_SLOTS_DEFAUT: Array[Vector2] = [Vector2(-22.0, -22.0), Vector2(22.
 @export_group("Grille commune")
 @export var taille_cellule_px: float = 100.0
 @export var origine_grille: Vector2 = Vector2.ZERO
-@export var offsets_slots: Array[Vector2] = OFFSETS_SLOTS_DEFAUT.duplicate()
+@export var offsets_slots: Array[Vector2] = OFFSETS_SLOTS_DEFAUT.duplicate():
+	set(nouveaux_offsets):
+		offsets_slots = OFFSETS_SLOTS_DEFAUT.duplicate() if nouveaux_offsets.is_empty() else nouveaux_offsets.duplicate()
 
 @export_group("Obstacles")
 @export_flags_2d_physics var masque_obstacles: int = 1
@@ -30,6 +32,7 @@ var _forme_detection_cellule := CircleShape2D.new()
 var _deplacement_joueur: GestionDeplacementGrilleJoueur
 
 func _ready() -> void:
+	_restaurer_offsets_slots_si_vides()
 	add_to_group("grille_combat")
 	_champ_direction = get_node_or_null(chemin_champ_direction) as ChampDirectionGrille
 	if _champ_direction != null:
@@ -209,10 +212,15 @@ func _cle_slot(cellule: Vector2i, index_slot: int) -> Vector3i:
 	return Vector3i(cellule.x, cellule.y, index_slot)
 
 func _actualiser_rayon_detection_cellule() -> void:
+	_restaurer_offsets_slots_si_vides()
 	var decalage_max: float = 0.0
 	for offset in offsets_slots:
 		decalage_max = maxf(decalage_max, offset.length())
 	_forme_detection_cellule.radius = maxf(rayon_test_obstacle_px + decalage_max, 1.0)
+
+func _restaurer_offsets_slots_si_vides() -> void:
+	if offsets_slots.is_empty():
+		offsets_slots = OFFSETS_SLOTS_DEFAUT.duplicate()
 
 func _position_touche_obstacle(position_monde: Vector2, forme: Shape2D) -> bool:
 	var parametres := PhysicsShapeQueryParameters2D.new()

@@ -14,6 +14,9 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_range(0.0, 0.5, 0.01) var decalage_initial_max_s: float = 0.10
 @export_range(0, 8, 1) var distance_arret_cellules: int = 1
 @export_range(0.01, 0.5, 0.01) var intervalle_decision_s: float = 0.05
+@export_range(0.0, 20.0, 0.5) var distance_snap_resynchronisation_px: float = 5.0
+@export_range(0.01, 0.3, 0.01) var duree_retour_grille_min_s: float = 0.05
+@export_range(0.01, 0.3, 0.01) var duree_retour_grille_max_s: float = 0.12
 
 var cellule_actuelle: Vector2i = Vector2i.ZERO
 var cellule_cible: Vector2i = Vector2i.ZERO
@@ -24,12 +27,15 @@ var position_cible: Vector2 = Vector2.ZERO
 var en_deplacement: bool = false
 var progression_deplacement: float = 0.0
 var duree_deplacement_s: float = 0.0
+var en_recul: bool = false
+var retour_grille_actif: bool = false
 
 var _gestionnaire_grille: GestionnaireGrilleCombat
 var _gestionnaire_ennemis: GestionnaireEnnemis
 var _ennemi: Enemy
 var _temps_deplacement_s: float = 0.0
 var _attente_decision_s: float = 0.0
+var _attente_resynchronisation_s: float = 0.0
 var _initialise: bool = false
 
 func _ready() -> void:
@@ -81,6 +87,22 @@ func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_
 	if not _initialise:
 		ennemi.velocity = Vector2.ZERO
 		return true
+	var forces_recul_actives: bool = _forces_recul_actives(ennemi)
+	if forces_recul_actives:
+		if not en_recul or retour_grille_actif:
+			interrompre_pas_pour_recul(ennemi)
+		en_recul = true
+		_appliquer_translation_recul(ennemi, dt)
+		return true
+	if en_recul:
+		if retour_grille_actif:
+			_avancer_retour_grille(ennemi, dt)
+			return true
+		ennemi.velocity = Vector2.ZERO
+		_attente_resynchronisation_s = maxf(0.0, _attente_resynchronisation_s - dt)
+		if _attente_resynchronisation_s <= 0.0:
+			_essayer_resynchroniser_apres_recul(ennemi)
+		return true
 	if en_deplacement:
 		if autoriser_decision:
 			_avancer_deplacement(ennemi, dt)
@@ -115,6 +137,22 @@ func obtenir_cellule_cible() -> Vector2i:
 
 func est_en_deplacement() -> bool:
 	return en_deplacement
+
+func est_en_recul() -> bool:
+	return en_recul
+
+func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
+	if (en_deplacement or retour_grille_actif) and slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
+		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
+	en_deplacement = false
+	retour_grille_actif = false
+	progression_deplacement = 0.0
+	_temps_deplacement_s = 0.0
+	cellule_cible = cellule_actuelle
+	slot_cible = -1
+	position_depart = ennemi.global_position
+	position_cible = ennemi.global_position
+	ennemi.velocity = Vector2.ZERO
 
 func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: float) -> void:
 	var candidats: Array[Dictionary] = []
@@ -182,6 +220,9 @@ func _avancer_deplacement(ennemi: Enemy, dt: float) -> void:
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
 
 func _trouver_slot_initial(cellule_depart: Vector2i, position_monde: Vector2) -> Dictionary:
+	return _trouver_slot_plus_proche(cellule_depart, position_monde, null)
+
+func _trouver_slot_plus_proche(cellule_depart: Vector2i, position_monde: Vector2, ennemi_autorise: Enemy, verifier_trajet: bool = false) -> Dictionary:
 	for rayon in range(0, 3):
 		var choix: Dictionary = {}
 		var meilleure_distance: float = INF
@@ -192,14 +233,129 @@ func _trouver_slot_initial(cellule_depart: Vector2i, position_monde: Vector2) ->
 				var cellule := cellule_depart + Vector2i(x, y)
 				if _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule):
 					continue
-				for index_slot in _gestionnaire_grille.obtenir_slots_libres(cellule):
-					var distance: float = position_monde.distance_squared_to(_gestionnaire_grille.position_slot(cellule, index_slot))
+				for index_slot in range(_gestionnaire_grille.offsets_slots.size()):
+					if _gestionnaire_grille.slot_bloque_cache(cellule, index_slot):
+						continue
+					var occupant: Enemy = _gestionnaire_grille.obtenir_occupant(cellule, index_slot)
+					var reservataire: Enemy = _gestionnaire_grille.obtenir_reservataire(cellule, index_slot)
+					if occupant != null and occupant != ennemi_autorise:
+						continue
+					if reservataire != null and reservataire != ennemi_autorise:
+						continue
+					var position_slot_candidat: Vector2 = _gestionnaire_grille.position_slot(cellule, index_slot)
+					if verifier_trajet and ennemi_autorise != null and _mouvement_est_bloque(ennemi_autorise, position_slot_candidat - ennemi_autorise.global_position):
+						continue
+					var distance: float = position_monde.distance_squared_to(position_slot_candidat)
 					if distance < meilleure_distance:
 						meilleure_distance = distance
 						choix = {"cellule": cellule, "slot": index_slot}
 		if not choix.is_empty():
 			return choix
 	return {}
+
+func _forces_recul_actives(ennemi: Enemy) -> bool:
+	var seuil_recul: float = maxf(ennemi.recul_seuil_blocage_px, 1.0)
+	var seuil_pousse: float = maxf(ennemi.pousse_seuil_blocage_px, 1.0)
+	return ennemi.recul.length_squared() >= seuil_recul * seuil_recul or ennemi.pousse.length_squared() >= seuil_pousse * seuil_pousse
+
+func _appliquer_translation_recul(ennemi: Enemy, dt: float) -> void:
+	var mouvement: Vector2 = (ennemi.recul + ennemi.pousse) * dt
+	ennemi.velocity = ennemi.recul + ennemi.pousse
+	if mouvement.length_squared() <= 0.000001:
+		return
+	_deplacer_avec_collisions(ennemi, mouvement)
+
+func _deplacer_avec_collisions(ennemi: Enemy, mouvement: Vector2) -> KinematicCollision2D:
+	var masque_original: int = ennemi.collision_mask
+	var joueur_exception: CollisionObject2D = ennemi.target as CollisionObject2D
+	if joueur_exception != null:
+		ennemi.add_collision_exception_with(joueur_exception)
+	ennemi.collision_mask = _gestionnaire_grille.masque_obstacles
+	var collision: KinematicCollision2D = ennemi.move_and_collide(mouvement)
+	ennemi.collision_mask = masque_original
+	if joueur_exception != null:
+		ennemi.remove_collision_exception_with(joueur_exception)
+	return collision
+
+func _mouvement_est_bloque(ennemi: Enemy, mouvement: Vector2) -> bool:
+	var masque_original: int = ennemi.collision_mask
+	var joueur_exception: CollisionObject2D = ennemi.target as CollisionObject2D
+	if joueur_exception != null:
+		ennemi.add_collision_exception_with(joueur_exception)
+	ennemi.collision_mask = _gestionnaire_grille.masque_obstacles
+	var bloque: bool = ennemi.test_move(ennemi.global_transform, mouvement)
+	ennemi.collision_mask = masque_original
+	if joueur_exception != null:
+		ennemi.remove_collision_exception_with(joueur_exception)
+	return bloque
+
+func _essayer_resynchroniser_apres_recul(ennemi: Enemy) -> void:
+	var cellule_estimee: Vector2i = _gestionnaire_grille.monde_vers_cellule(ennemi.global_position)
+	var choix: Dictionary = _trouver_slot_plus_proche(cellule_estimee, ennemi.global_position, ennemi, true)
+	if choix.is_empty():
+		_attente_resynchronisation_s = intervalle_decision_s
+		return
+	var nouvelle_cellule: Vector2i = choix["cellule"]
+	var nouveau_slot: int = int(choix["slot"])
+	var meme_slot: bool = nouvelle_cellule == cellule_actuelle and nouveau_slot == slot_actuel
+	if not meme_slot and not _gestionnaire_grille.reserver_slot(nouvelle_cellule, nouveau_slot, ennemi):
+		_attente_resynchronisation_s = intervalle_decision_s
+		return
+	cellule_cible = nouvelle_cellule
+	slot_cible = nouveau_slot
+	position_depart = ennemi.global_position
+	position_cible = _gestionnaire_grille.position_slot(cellule_cible, slot_cible)
+	var distance: float = position_depart.distance_to(position_cible)
+	if distance < distance_snap_resynchronisation_px:
+		ennemi.global_position = position_cible
+		_terminer_retour_grille(ennemi, meme_slot)
+		return
+	var plage_distance: float = maxf(30.0 - distance_snap_resynchronisation_px, 0.001)
+	var progression_duree: float = clampf((distance - distance_snap_resynchronisation_px) / plage_distance, 0.0, 1.0)
+	duree_deplacement_s = lerpf(duree_retour_grille_min_s, duree_retour_grille_max_s, progression_duree)
+	_temps_deplacement_s = 0.0
+	progression_deplacement = 0.0
+	retour_grille_actif = true
+
+func _avancer_retour_grille(ennemi: Enemy, dt: float) -> void:
+	var ancienne_position: Vector2 = ennemi.global_position
+	_temps_deplacement_s = minf(_temps_deplacement_s + dt, duree_deplacement_s)
+	progression_deplacement = _temps_deplacement_s / maxf(duree_deplacement_s, 0.001)
+	var progression_douce: float = progression_deplacement * progression_deplacement * (3.0 - 2.0 * progression_deplacement)
+	var prochaine_position: Vector2 = position_depart.lerp(position_cible, progression_douce)
+	var collision: KinematicCollision2D = _deplacer_avec_collisions(ennemi, prochaine_position - ennemi.global_position)
+	ennemi.velocity = (ennemi.global_position - ancienne_position) / maxf(dt, 0.0001)
+	if collision != null:
+		_annuler_retour_apres_collision(ennemi)
+		return
+	if progression_deplacement >= 1.0:
+		_terminer_retour_grille(ennemi, cellule_cible == cellule_actuelle and slot_cible == slot_actuel)
+
+func _annuler_retour_apres_collision(ennemi: Enemy) -> void:
+	if slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
+		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
+	cellule_cible = cellule_actuelle
+	slot_cible = -1
+	position_depart = ennemi.global_position
+	position_cible = ennemi.global_position
+	_temps_deplacement_s = 0.0
+	progression_deplacement = 0.0
+	retour_grille_actif = false
+	_attente_resynchronisation_s = intervalle_decision_s
+
+func _terminer_retour_grille(ennemi: Enemy, meme_slot: bool) -> void:
+	ennemi.global_position = position_cible
+	ennemi.velocity = Vector2.ZERO
+	if not meme_slot:
+		_gestionnaire_grille.confirmer_occupation(cellule_cible, slot_cible, ennemi)
+	cellule_actuelle = cellule_cible
+	slot_actuel = slot_cible
+	en_deplacement = false
+	en_recul = false
+	retour_grille_actif = false
+	progression_deplacement = 1.0
+	_attente_decision_s = intervalle_decision_s
+	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
 
 func _essayer_rejoindre_slot_contact(ennemi: Enemy, vitesse: float) -> bool:
 	var slots: Array[int] = _gestionnaire_grille.obtenir_slots_libres(cellule_actuelle)
@@ -235,7 +391,10 @@ func _desinscrire() -> void:
 	if _gestionnaire_grille != null and _ennemi != null:
 		_gestionnaire_grille.liberer_toutes_reservations_ennemi(_ennemi)
 	en_deplacement = false
+	en_recul = false
+	retour_grille_actif = false
 	progression_deplacement = 0.0
+	_attente_resynchronisation_s = 0.0
 	slot_actuel = -1
 	slot_cible = -1
 	_initialise = false

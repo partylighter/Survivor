@@ -1315,7 +1315,7 @@ max_pv = 999999
 script = ExtResource("12_ggrrm")
 pv_max_base = 999999
 vitesse_base = 1180.0
-dash_cooldown_base = 0.35
+dash_cooldown_base = 0.17
 metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 
 [node name="GestionDeplacementJoueur" type="Node" parent="." unique_id=2005448771]
@@ -1334,11 +1334,8 @@ elan_depart_impulsion_px_s = 2000.0
 elan_depart_plafond_mult = 500.0
 elan_depart_vitesse_max_declenche_px_s = 5000.0
 elan_depart_blocage_s = 1.0
-dash_vitesse_fin_mult = 0.5
-dash_knockback_force = 10000.0
+dash_impulsion_depart_mult = 0.33
 dash_knockback_rayon_px = 500.0
-dash_knockback_force_bord_mult = 0.55
-dash_autoriser_sans_direction = false
 dash_recharge_pendant_dash = true
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
@@ -1350,26 +1347,29 @@ mode_par_defaut = 1
 script = ExtResource("27_libre")
 marche_multiplicateur_vitesse = 0.35
 
-[node name="GestionnaireGrilleCombat" type="Node" parent="."]
+[node name="GestionnaireGrilleCombat" type="Node" parent="." unique_id=1026007890]
 script = ExtResource("52_grille_combat")
+taille_cellule_px = 250.0
+offsets_slots = Array[Vector2]([])
 
-[node name="ChampDirectionGrille" type="Node" parent="GestionnaireGrilleCombat"]
+[node name="ChampDirectionGrille" type="Node" parent="GestionnaireGrilleCombat" unique_id=1109363908]
 script = ExtResource("53_champ_direction")
 
 [node name="GestionDeplacementGrilleJoueur" type="Node" parent="." unique_id=1336403440]
 script = ExtResource("50_grille")
-duree_pas_s = 0.5
+duree_pas_s = 0.36
 diagonales_autorisees = false
-delai_repetition_initial_s = 0.01
-intervalle_repetition_s = 0.07
-vitesse_reference_px_s = 500.0
-distance_dash_cellules = 2
-duree_dash_par_cellule_s = 0.060000000000000005
+vitesse_reference_px_s = 1000.0
+duree_dash_par_cellule_s = 0.01
 
 [node name="DebugGrilleJoueur" type="Node2D" parent="." unique_id=2141677062]
 script = ExtResource("51_debug_grille")
 chemin_gestion_deplacement = NodePath("../GestionDeplacementJoueur")
 chemin_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
+afficher_slots_ennemis = false
+afficher_occupations = false
+afficher_reservations = false
+afficher_destinations_ennemis = false
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1829424238]
 script = ExtResource("14_3s74m")

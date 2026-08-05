@@ -31,8 +31,6 @@ func actualiser_mode_deplacement_grille() -> void:
 
 func _appliquer_deplacement(dt: float) -> void:
 	if deplacement_grille_ennemi != null and deplacement_grille_ennemi.traiter(self, target, dt, speed, _state == State.ALIVE):
-		recul = Vector2.ZERO
-		pousse = Vector2.ZERO
 		_vel_mouvement = Vector2.ZERO
 		return
 	super(dt)
