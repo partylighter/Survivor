@@ -14,6 +14,8 @@ radius = 257.0
 radius = 257.0
 
 [node name="EnemyBOSS" type="CharacterBody2D" unique_id=128044021]
+collision_layer = 64
+collision_mask = 0
 script = ExtResource("1_8ocdw")
 type_ennemi = 4
 chemin_sante = NodePath("Sante")
