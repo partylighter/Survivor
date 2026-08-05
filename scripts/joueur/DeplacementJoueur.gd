@@ -1,9 +1,21 @@
 extends Node
 class_name GestionDeplacementJoueur
 
+enum TypeDeplacement {
+	LIBRE,
+	GRILLE
+}
+
 @export_group("Refs")
 @export_node_path("GestionnaireModesDeplacement") var chemin_gestionnaire_modes_deplacement: NodePath
 @export_node_path("GestionDeplacementLibreJoueur") var chemin_gestionnaire_deplacement_libre: NodePath
+@export_node_path("GestionDeplacementGrilleJoueur") var chemin_gestionnaire_deplacement_grille: NodePath
+
+@export_group("Type de deplacement")
+@export var type_deplacement: TypeDeplacement = TypeDeplacement.LIBRE:
+	set(valeur):
+		type_deplacement = valeur
+		_appliquer_changement_type_deplacement()
 
 @export_group("Deplacement")
 @export var inertie_active: bool = true
@@ -45,12 +57,30 @@ var _elan_blocage_restant_s: float = 0.0
 var _ennemis_touches_dash: Dictionary = {}
 var _gestionnaire_modes_deplacement: GestionnaireModesDeplacement
 var _gestionnaire_deplacement_libre: GestionDeplacementLibreJoueur
+var _gestionnaire_deplacement_grille: GestionDeplacementGrilleJoueur
+var _type_deplacement_applique: TypeDeplacement = TypeDeplacement.LIBRE
+var _grille_suspendue_pour_vehicule: bool = false
 
 func _ready() -> void:
 	_gestionnaire_modes_deplacement = get_node_or_null(chemin_gestionnaire_modes_deplacement) as GestionnaireModesDeplacement
 	_gestionnaire_deplacement_libre = get_node_or_null(chemin_gestionnaire_deplacement_libre) as GestionDeplacementLibreJoueur
+	_gestionnaire_deplacement_grille = get_node_or_null(chemin_gestionnaire_deplacement_grille) as GestionDeplacementGrilleJoueur
+	_type_deplacement_applique = type_deplacement
+	_appliquer_changement_type_deplacement()
 
 func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
+	if type_deplacement == TypeDeplacement.GRILLE and _gestionnaire_deplacement_grille != null and not _joueur_est_en_conduite(joueur):
+		if _grille_suspendue_pour_vehicule:
+			_gestionnaire_deplacement_grille.synchroniser_sur_grille(joueur)
+			_grille_suspendue_pour_vehicule = false
+		if joueur is Player:
+			(joueur as Player).annuler_recul_externe()
+		_gestionnaire_deplacement_grille.traiter(joueur, stats, dt)
+		return
+	if type_deplacement == TypeDeplacement.GRILLE and _joueur_est_en_conduite(joueur):
+		if not _grille_suspendue_pour_vehicule and _gestionnaire_deplacement_grille != null:
+			_gestionnaire_deplacement_grille.interrompre_et_recaler(joueur)
+		_grille_suspendue_pour_vehicule = true
 	if _elan_blocage_restant_s > 0.0:
 		_elan_blocage_restant_s = maxf(0.0, _elan_blocage_restant_s - dt)
 
@@ -180,6 +210,50 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 
 func est_en_mode_combat() -> bool:
 	return _gestionnaire_modes_deplacement != null and _gestionnaire_modes_deplacement.est_en_mode_combat()
+
+func definir_type_deplacement(nouveau_type: TypeDeplacement) -> void:
+	type_deplacement = nouveau_type
+
+func est_type_grille_actif() -> bool:
+	var joueur := get_parent() as CharacterBody2D
+	return type_deplacement == TypeDeplacement.GRILLE and _gestionnaire_deplacement_grille != null and not _joueur_est_en_conduite(joueur)
+
+func interrompre_deplacement_grille(joueur: CharacterBody2D) -> void:
+	if type_deplacement == TypeDeplacement.GRILLE and _gestionnaire_deplacement_grille != null:
+		_gestionnaire_deplacement_grille.interrompre_et_recaler(joueur)
+
+func obtenir_distance_par_point_soif() -> float:
+	return maxf(distance_par_point_soif, 0.001)
+
+func obtenir_cout_soif_dash() -> float:
+	return maxf(cout_soif_dash, 0.0)
+
+func dash_autorise_sans_direction() -> bool:
+	return dash_autoriser_sans_direction
+
+func demarrer_knockback_dash_grille() -> void:
+	_ennemis_touches_dash.clear()
+
+func appliquer_knockback_dash_grille(joueur: CharacterBody2D, segment_debut: Vector2, segment_fin: Vector2) -> void:
+	_appliquer_knockback_dash(joueur, segment_debut, segment_fin)
+
+func _appliquer_changement_type_deplacement() -> void:
+	if not is_node_ready():
+		return
+	var joueur := get_parent() as CharacterBody2D
+	if joueur == null:
+		_type_deplacement_applique = type_deplacement
+		return
+	if type_deplacement == TypeDeplacement.GRILLE:
+		if _gestionnaire_deplacement_grille != null:
+			_gestionnaire_deplacement_grille.synchroniser_sur_grille(joueur)
+	else:
+		if _type_deplacement_applique == TypeDeplacement.GRILLE and _gestionnaire_deplacement_grille != null:
+			_gestionnaire_deplacement_grille.interrompre_et_recaler(joueur)
+	_type_deplacement_applique = type_deplacement
+
+func _joueur_est_en_conduite(joueur: CharacterBody2D) -> bool:
+	return joueur is Player and (joueur as Player).est_en_conduite()
 
 func _calculer_multiplicateur_direction_souris(joueur: CharacterBody2D, direction_deplacement: Vector2) -> float:
 	var direction_souris: Vector2 = joueur.get_global_mouse_position() - joueur.global_position

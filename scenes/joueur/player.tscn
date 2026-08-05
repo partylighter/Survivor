@@ -23,6 +23,8 @@
 [ext_resource type="Texture2D" uid="uid://cku6fruc3stgx" path="res://assets/player/tete.png" id="21_wucgo"]
 [ext_resource type="Script" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="22_modes"]
 [ext_resource type="Script" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
+[ext_resource type="Script" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
+[ext_resource type="Script" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
 [ext_resource type="Script" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="24_inventaire"]
 [ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
 [ext_resource type="Script" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="26_effets_nourriture"]
@@ -244,6 +246,7 @@ metadata/_custom_type_script = "uid://chnxmpb8md2vh"
 script = ExtResource("12_t6q27")
 chemin_gestionnaire_modes_deplacement = NodePath("../GestionnaireModesDeplacement")
 chemin_gestionnaire_deplacement_libre = NodePath("../GestionDeplacementLibreJoueur")
+chemin_gestionnaire_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
 acceleration_px_s2 = 23500.0
 deceleration_px_s2 = 8500.0
 freinage_virage_mult = 2.0
@@ -266,6 +269,14 @@ script = ExtResource("22_modes")
 
 [node name="GestionDeplacementLibreJoueur" type="Node" parent="."]
 script = ExtResource("23_libre")
+
+[node name="GestionDeplacementGrilleJoueur" type="Node" parent="."]
+script = ExtResource("50_grille")
+
+[node name="DebugGrilleJoueur" type="Node2D" parent="."]
+script = ExtResource("51_debug_grille")
+chemin_gestion_deplacement = NodePath("../GestionDeplacementJoueur")
+chemin_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
 
 [node name="ControleAttaquesArmes" type="Node" parent="." unique_id=1157013637]
 script = ExtResource("9_wwtew")

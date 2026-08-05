@@ -157,6 +157,8 @@ func _physics_process(dt: float) -> void:
 func definir_dialogue_actif(actif: bool) -> void:
 	dialogue_actif = actif
 	if actif:
+		if gestion_deplacement != null:
+			gestion_deplacement.interrompre_deplacement_grille(self)
 		velocity = Vector2.ZERO
 		dash_t_restant_s = 0.0
 		dash_direction = Vector2.ZERO
@@ -243,6 +245,9 @@ func tick_recul_externe(dt: float) -> Vector2:
 		_recul_externe = Vector2.ZERO
 	return out
 
+func annuler_recul_externe() -> void:
+	_recul_externe = Vector2.ZERO
+
 func collision_ennemis_pre(dt: float) -> void:
 	if not collision_ennemis_actif or dt <= 0.0:
 		return
@@ -288,6 +293,13 @@ func set_limite_droite(x: float) -> void:
 
 func set_limite_gauche(x: float) -> void:
 	_limite_gauche = x
+
+func position_respecte_limites_deplacement(position_monde: Vector2) -> bool:
+	if not barriere_actif:
+		return true
+	if position_monde.y < limite_haut + rayon_barriere_joueur or position_monde.y > limite_bas - rayon_barriere_joueur:
+		return false
+	return position_monde.x >= _limite_gauche + rayon_barriere_joueur and position_monde.x <= _limite_droite - rayon_barriere_joueur
 
 func _resoudre_collisions_ennemis(p: Vector2, dt: float, pousser_ennemi: bool) -> Vector2:
 	var enemies: Array = _get_enemies_for_collision()
