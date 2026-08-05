@@ -166,6 +166,15 @@ func _get_player_hurtbox() -> HurtBox:
 	_hurtbox_cache = get_tree().get_first_node_in_group(groupe_hurtbox_joueur) as HurtBox
 	return _hurtbox_cache
 
+func position_en_portee_contact(position_ennemi: Vector2) -> bool:
+	if player_hurtbox == null or not is_instance_valid(player_hurtbox):
+		player_hurtbox = _get_player_hurtbox()
+	if player_hurtbox == null:
+		return false
+	var centre_ennemi: Vector2 = position_ennemi + enemy_hit_offset_px
+	var rayon_contact: float = maxf(enemy_hit_radius_px, 0.0) + player_hurtbox.hit_radius()
+	return centre_ennemi.distance_squared_to(player_hurtbox.hit_center()) <= rayon_contact * rayon_contact
+
 func _appliquer_recul_joueur(hb: HurtBox, origine: Vector2) -> void:
 	if recul_joueur_force <= 0.0 or hb == null:
 		return

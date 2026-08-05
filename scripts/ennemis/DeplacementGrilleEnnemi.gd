@@ -82,16 +82,24 @@ func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_
 		ennemi.velocity = Vector2.ZERO
 		return true
 	if en_deplacement:
-		_avancer_deplacement(ennemi, dt)
+		if autoriser_decision:
+			_avancer_deplacement(ennemi, dt)
+		else:
+			ennemi.velocity = Vector2.ZERO
 		return true
 	ennemi.velocity = Vector2.ZERO
 	_attente_decision_s = maxf(0.0, _attente_decision_s - dt)
 	if not autoriser_decision or _attente_decision_s > 0.0 or cible == null or not is_instance_valid(cible):
 		return true
 	var cellule_joueur: Vector2i = _gestionnaire_grille.obtenir_cellule_joueur()
-	if _distance_cellules(cellule_actuelle, cellule_joueur) <= distance_arret_cellules:
-		_attente_decision_s = intervalle_decision_s
-		return true
+	var distance_joueur: int = _distance_cellules(cellule_actuelle, cellule_joueur)
+	if distance_joueur > 0 and distance_joueur <= distance_arret_cellules:
+		if _position_en_portee_contact(ennemi, ennemi.global_position):
+			_attente_decision_s = intervalle_decision_s
+			return true
+		if _essayer_rejoindre_slot_contact(ennemi, vitesse):
+			_attente_decision_s = intervalle_decision_s
+			return true
 	_choisir_et_demarrer_pas(ennemi, cellule_joueur, vitesse)
 	_attente_decision_s = intervalle_decision_s
 	return true
@@ -116,7 +124,9 @@ func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: 
 	var dans_champ: bool = _gestionnaire_grille.champ_contient(cellule_actuelle)
 	for direction in directions:
 		var cellule: Vector2i = cellule_actuelle + direction
-		if cellule == cellule_joueur or _gestionnaire_grille.cellule_bloquee_cachee(cellule):
+		if cellule == cellule_joueur:
+			continue
+		if _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule):
 			continue
 		if abs(direction.x) == 1 and abs(direction.y) == 1 and not _diagonale_accessible(direction):
 			continue
@@ -180,7 +190,7 @@ func _trouver_slot_initial(cellule_depart: Vector2i, position_monde: Vector2) ->
 				if rayon > 0 and abs(x) < rayon and abs(y) < rayon:
 					continue
 				var cellule := cellule_depart + Vector2i(x, y)
-				if _gestionnaire_grille.cellule_bloquee_cachee(cellule):
+				if _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule):
 					continue
 				for index_slot in _gestionnaire_grille.obtenir_slots_libres(cellule):
 					var distance: float = position_monde.distance_squared_to(_gestionnaire_grille.position_slot(cellule, index_slot))
@@ -191,8 +201,24 @@ func _trouver_slot_initial(cellule_depart: Vector2i, position_monde: Vector2) ->
 			return choix
 	return {}
 
+func _essayer_rejoindre_slot_contact(ennemi: Enemy, vitesse: float) -> bool:
+	var slots: Array[int] = _gestionnaire_grille.obtenir_slots_libres(cellule_actuelle)
+	slots.sort_custom(func(a: int, b: int) -> bool:
+		return ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule_actuelle, a)) < ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule_actuelle, b)))
+	for index_slot in slots:
+		var position: Vector2 = _gestionnaire_grille.position_slot(cellule_actuelle, index_slot)
+		if not _position_en_portee_contact(ennemi, position):
+			continue
+		if _gestionnaire_grille.reserver_slot(cellule_actuelle, index_slot, ennemi):
+			_demarrer_pas(ennemi, cellule_actuelle, index_slot, vitesse)
+			return true
+	return false
+
+func _position_en_portee_contact(ennemi: Enemy, position: Vector2) -> bool:
+	return ennemi.contact_damage != null and ennemi.contact_damage.position_en_portee_contact(position)
+
 func _diagonale_accessible(direction: Vector2i) -> bool:
-	return not _gestionnaire_grille.cellule_bloquee_cachee(cellule_actuelle + Vector2i(direction.x, 0)) and not _gestionnaire_grille.cellule_bloquee_cachee(cellule_actuelle + Vector2i(0, direction.y))
+	return not _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule_actuelle + Vector2i(direction.x, 0)) and not _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule_actuelle + Vector2i(0, direction.y))
 
 func _distance_cellules(a: Vector2i, b: Vector2i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y)

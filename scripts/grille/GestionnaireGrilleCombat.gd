@@ -12,7 +12,7 @@ const OFFSETS_SLOTS_DEFAUT: Array[Vector2] = [Vector2(-22.0, -22.0), Vector2(22.
 
 @export_group("Obstacles")
 @export_flags_2d_physics var masque_obstacles: int = 1
-@export var rayon_test_obstacle_px: float = 46.0
+@export var rayon_test_obstacle_px: float = 46.34
 
 @export_group("Refs")
 @export_node_path("ChampDirectionGrille") var chemin_champ_direction: NodePath = NodePath("ChampDirectionGrille")
@@ -23,7 +23,10 @@ var _reservations: Dictionary = {}
 var _occupation_par_ennemi: Dictionary = {}
 var _reservation_par_ennemi: Dictionary = {}
 var _cellules_bloquees: Dictionary = {}
+var _slots_bloques: Dictionary = {}
+var _cellules_scanees: Dictionary = {}
 var _forme_obstacle := CircleShape2D.new()
+var _forme_detection_cellule := CircleShape2D.new()
 var _deplacement_joueur: GestionDeplacementGrilleJoueur
 
 func _ready() -> void:
@@ -32,7 +35,12 @@ func _ready() -> void:
 	if _champ_direction != null:
 		_champ_direction.configurer(self)
 	_forme_obstacle.radius = maxf(rayon_test_obstacle_px, 1.0)
+	_actualiser_rayon_detection_cellule()
 	call_deferred("_connecter_joueur")
+
+func _process(_dt: float) -> void:
+	if _deplacement_joueur == null or not is_instance_valid(_deplacement_joueur):
+		_connecter_joueur()
 
 func cellule_vers_monde(cellule: Vector2i) -> Vector2:
 	return origine_grille + Vector2(cellule) * maxf(taille_cellule_px, 1.0)
@@ -51,7 +59,7 @@ func obtenir_slots_libres(cellule: Vector2i) -> Array[int]:
 	var resultat: Array[int] = []
 	for index_slot in range(offsets_slots.size()):
 		var cle := _cle_slot(cellule, index_slot)
-		if not _occupations.has(cle) and not _reservations.has(cle):
+		if not _slots_bloques.has(cle) and not _occupations.has(cle) and not _reservations.has(cle):
 			resultat.append(index_slot)
 	return resultat
 
@@ -133,28 +141,36 @@ func obtenir_reservataire(cellule: Vector2i, index_slot: int) -> Enemy:
 	return _reservations.get(cle) as Enemy
 
 func actualiser_cache_obstacles(centre: Vector2i, rayon: int) -> void:
-	_cellules_bloquees.clear()
 	_forme_obstacle.radius = maxf(rayon_test_obstacle_px, 1.0)
-	var espace: PhysicsDirectSpaceState2D = get_viewport().world_2d.direct_space_state
+	_actualiser_rayon_detection_cellule()
 	for y in range(-rayon, rayon + 1):
 		for x in range(-rayon, rayon + 1):
 			var cellule := centre + Vector2i(x, y)
-			var parametres := PhysicsShapeQueryParameters2D.new()
-			parametres.shape = _forme_obstacle
-			parametres.transform = Transform2D(0.0, cellule_vers_monde(cellule))
-			parametres.collision_mask = masque_obstacles
-			parametres.collide_with_bodies = true
-			parametres.collide_with_areas = false
-			var resultats: Array[Dictionary] = espace.intersect_shape(parametres, 16)
-			for resultat in resultats:
-				var collisionneur: Object = resultat.get("collider") as Object
-				if collisionneur is Player or collisionneur is Enemy:
-					continue
-				_cellules_bloquees[cellule] = true
-				break
+			assurer_cellule_cachee(cellule)
+
+func assurer_cellule_cachee(cellule: Vector2i) -> void:
+	if _cellules_scanees.has(cellule):
+		return
+	_cellules_scanees[cellule] = true
+	if not _position_touche_obstacle(cellule_vers_monde(cellule), _forme_detection_cellule):
+		return
+	var nombre_slots_bloques: int = 0
+	for index_slot in range(offsets_slots.size()):
+		if _position_touche_obstacle(position_slot(cellule, index_slot), _forme_obstacle):
+			_slots_bloques[_cle_slot(cellule, index_slot)] = true
+			nombre_slots_bloques += 1
+	if offsets_slots.is_empty() or nombre_slots_bloques >= offsets_slots.size():
+		_cellules_bloquees[cellule] = true
 
 func cellule_bloquee_cachee(cellule: Vector2i) -> bool:
 	return _cellules_bloquees.has(cellule)
+
+func cellule_bloquee_ou_scanner(cellule: Vector2i) -> bool:
+	assurer_cellule_cachee(cellule)
+	return cellule_bloquee_cachee(cellule)
+
+func slot_bloque_cache(cellule: Vector2i, index_slot: int) -> bool:
+	return _slots_bloques.has(_cle_slot(cellule, index_slot))
 
 func recalculer_champ(cellule_joueur: Vector2i) -> void:
 	if _champ_direction != null:
@@ -176,9 +192,12 @@ func obtenir_rayon_champ() -> int:
 	return _champ_direction.obtenir_rayon() if _champ_direction != null else 0
 
 func _connecter_joueur() -> void:
-	_deplacement_joueur = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
-	if _deplacement_joueur == null:
+	var nouveau_deplacement := get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
+	if nouveau_deplacement == null:
 		return
+	if _deplacement_joueur == nouveau_deplacement:
+		return
+	_deplacement_joueur = nouveau_deplacement
 	if not _deplacement_joueur.cellule_atteinte.is_connected(_sur_cellule_joueur_atteinte):
 		_deplacement_joueur.cellule_atteinte.connect(_sur_cellule_joueur_atteinte)
 	recalculer_champ(_deplacement_joueur.obtenir_cellule_actuelle())
@@ -188,6 +207,27 @@ func _sur_cellule_joueur_atteinte(cellule: Vector2i) -> void:
 
 func _cle_slot(cellule: Vector2i, index_slot: int) -> Vector3i:
 	return Vector3i(cellule.x, cellule.y, index_slot)
+
+func _actualiser_rayon_detection_cellule() -> void:
+	var decalage_max: float = 0.0
+	for offset in offsets_slots:
+		decalage_max = maxf(decalage_max, offset.length())
+	_forme_detection_cellule.radius = maxf(rayon_test_obstacle_px + decalage_max, 1.0)
+
+func _position_touche_obstacle(position_monde: Vector2, forme: Shape2D) -> bool:
+	var parametres := PhysicsShapeQueryParameters2D.new()
+	parametres.shape = forme
+	parametres.transform = Transform2D(0.0, position_monde)
+	parametres.collision_mask = masque_obstacles
+	parametres.collide_with_bodies = true
+	parametres.collide_with_areas = false
+	var resultats: Array[Dictionary] = get_viewport().world_2d.direct_space_state.intersect_shape(parametres, 32)
+	for resultat in resultats:
+		var collisionneur: Object = resultat.get("collider") as Object
+		if collisionneur is Player or collisionneur is Enemy:
+			continue
+		return true
+	return false
 
 func _nettoyer_entrees_invalides_cellule(cellule: Vector2i) -> void:
 	for index_slot in range(offsets_slots.size()):

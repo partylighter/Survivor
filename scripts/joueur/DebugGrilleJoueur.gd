@@ -140,15 +140,15 @@ func _dessiner_debug_ennemis(cellule_centrale: Vector2i) -> void:
 			for x in range(-rayon, rayon + 1):
 				var cellule := cellule_centrale + Vector2i(x, y)
 				for index_slot in range(_gestionnaire_grille.offsets_slots.size()):
-					var position: Vector2 = to_local(_gestionnaire_grille.position_slot(cellule, index_slot))
+					var position_slot_debug: Vector2 = to_local(_gestionnaire_grille.position_slot(cellule, index_slot))
 					var occupant: Enemy = _gestionnaire_grille.obtenir_occupant(cellule, index_slot)
 					var reservataire: Enemy = _gestionnaire_grille.obtenir_reservataire(cellule, index_slot)
 					if afficher_occupations and occupant != null:
-						draw_circle(position, 3.0, couleur_slot_occupe)
+						draw_circle(position_slot_debug, 3.0, couleur_slot_occupe)
 					elif afficher_reservations and reservataire != null:
-						draw_circle(position, 3.5, couleur_slot_reserve, false, 1.5)
+						draw_circle(position_slot_debug, 3.5, couleur_slot_reserve, false, 1.5)
 					else:
-						draw_circle(position, 2.0, couleur_slot_libre, false, 1.0)
+						draw_circle(position_slot_debug, 2.0, couleur_slot_libre, false, 1.0)
 	if afficher_destinations_ennemis:
 		for noeud in get_tree().get_nodes_in_group("ennemi_grille"):
 			var ennemi := noeud as Enemy

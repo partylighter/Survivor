@@ -1,16 +1,15 @@
 [gd_scene format=3 uid="uid://ceaut1y1jtphw"]
 
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="2_rjaih"]
-[ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/joueur/base/CamPlayer.gd" id="3_rx00g"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaires/en_jeu/gestionnaire_enemies.tscn" id="4_gestionnaire_ennemis"]
 [ext_resource type="Script" uid="uid://1j4gtocrueg1" path="res://scripts/monde/GestionnaireZones.gd" id="5_gestionnaire_zones"]
 [ext_resource type="Script" uid="uid://bbdqfc4nq4t3s" path="res://scripts/monde/ZoneDefinition.gd" id="6_zone_definition"]
-[ext_resource type="PackedScene" uid="uid://cqihndgca0bto" path="res://scenes/ennemis/enemy_b_test_heritage.tscn" id="7_5b0rd"]
 [ext_resource type="Script" uid="uid://c53sefj6abcqq" path="res://scripts/selection/GestionnaireSelection.gd" id="7_gestionnaire_selection"]
 [ext_resource type="Script" uid="uid://cwyei10y67h8w" path="res://scripts/selection/ControleurParcoursSelection.gd" id="8_controleur_selection"]
 [ext_resource type="Script" uid="uid://ccyb2aboe7mwr" path="res://scripts/selection/esprits/GestionnaireEspritsAspirant.gd" id="9_gestionnaire_esprits"]
 [ext_resource type="PackedScene" path="res://scenes/selection/esprits/esprit_aspirant.tscn" id="10_esprit"]
 [ext_resource type="PackedScene" path="res://scenes/selection/mauvais_esprit_selection.tscn" id="11_mauvais_esprit"]
+[ext_resource type="Script" uid="uid://kg0w3frmubyg" path="res://scripts/niveaux/ZoneCameraForge.gd" id="12_5b0rd"]
 [ext_resource type="PackedScene" uid="uid://bdfrei2hwkch7" path="res://scenes/ennemis/enemy_c_test_heritage_de_script.tscn" id="12_fragment"]
 
 [sub_resource type="Resource" id="ZoneSelectionPresentation"]
@@ -29,7 +28,7 @@ x_debut_px = -1200.0
 x_fin_px = 4800.0
 apparitions_par_sec = 0.18
 max_ennemis_zone = 2
-scenes_ennemis = Array[PackedScene]([ExtResource("7_5b0rd")])
+scenes_ennemis = Array[PackedScene]([ExtResource("12_fragment")])
 poids = PackedFloat32Array()
 
 [sub_resource type="Resource" id="ZoneSelectionDebutTraque"]
@@ -41,6 +40,9 @@ apparitions_par_sec = 0.0
 max_ennemis_zone = 0
 poids = PackedFloat32Array()
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eiucn"]
+size = Vector2(5000, 2000)
+
 [node name="LaSelection" type="Node2D" unique_id=1745261154]
 
 [node name="la selection" type="Node2D" parent="." unique_id=1826431829]
@@ -48,19 +50,9 @@ poids = PackedFloat32Array()
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("2_rjaih")]
 position = Vector2(-2629, 474)
 
-[node name="Camera2D" type="Camera2D" parent="Archere" unique_id=979914004]
-limit_left = -100000000
-limit_top = -1700
-limit_right = 100000000
-limit_bottom = 1700
-script = ExtResource("3_rx00g")
-chemin_joueur = NodePath("..")
-zoom_sol = 0.76
-zoom_move_sol = 0.62
-
 [node name="Gestionnaire Enemies" parent="." unique_id=1629525758 node_paths=PackedStringArray("gestionnaire_zones") instance=ExtResource("4_gestionnaire_ennemis")]
 chemin_joueur = NodePath("../Archere")
-scenes_ennemis = Array[PackedScene]([ExtResource("12_fragment"), ExtResource("7_5b0rd")])
+scenes_ennemis = Array[PackedScene]([ExtResource("12_fragment")])
 apparitions_par_sec = 8.0
 rayon_spawn_min = 3500.0
 rayon_spawn_max = 4000.0
@@ -96,6 +88,7 @@ script = ExtResource("5_gestionnaire_zones")
 zones = Array[ExtResource("6_zone_definition")]([SubResource("ZoneSelectionPresentation"), SubResource("ZoneSelectionPremierePoursuite"), SubResource("ZoneSelectionDebutTraque")])
 gestionnaire_ennemis = NodePath("../Gestionnaire Enemies")
 debug_draw = true
+debug_draw_couleur_zone_active = Color(1, 0.74666667, 0.19999999, 0.019607844)
 
 [node name="Selection" type="Node2D" parent="." unique_id=454437746]
 
@@ -149,10 +142,11 @@ position = Vector2(-760, 360)
 [node name="SpawnFragment2" type="Marker2D" parent="Selection/ParcoursSelection/SpawnsPremierePoursuite" unique_id=664028748]
 position = Vector2(-480, 680)
 
-[node name="ControleurParcoursSelection" type="Node" parent="Selection" unique_id=1526022624 node_paths=PackedStringArray("gestionnaire_selection", "gestionnaire_zones", "gestionnaire_esprits", "mauvais_esprit", "joueur", "depart_mauvais_esprit", "cible_premiere_fuite", "cible_debut_traque", "spawn_fragment_1", "spawn_fragment_2")]
+[node name="ControleurParcoursSelection" type="Node" parent="Selection" unique_id=1526022624 node_paths=PackedStringArray("gestionnaire_selection", "gestionnaire_zones", "gestionnaire_ennemis", "gestionnaire_esprits", "mauvais_esprit", "joueur", "depart_mauvais_esprit", "cible_premiere_fuite", "cible_debut_traque", "spawn_fragment_1", "spawn_fragment_2")]
 script = ExtResource("8_controleur_selection")
 gestionnaire_selection = NodePath("../GestionnaireSelection")
 gestionnaire_zones = NodePath("../../GestionnaireZones")
+gestionnaire_ennemis = NodePath("../../Gestionnaire Enemies")
 gestionnaire_esprits = NodePath("../GestionnaireEspritsAspirant")
 mauvais_esprit = NodePath("../MauvaisEspritSelection")
 joueur = NodePath("../../Archere")
@@ -165,3 +159,41 @@ cible_premiere_fuite = NodePath("../ParcoursSelection/CiblePremiereFuite")
 cible_debut_traque = NodePath("../ParcoursSelection/CibleDebutTraque")
 spawn_fragment_1 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment1")
 spawn_fragment_2 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment2")
+
+[node name="zones_cameras" type="Node2D" parent="." unique_id=1569619932]
+script = ExtResource("12_5b0rd")
+chemin_joueur = NodePath("../Archere")
+
+[node name="ZoneCamera1" type="Area2D" parent="zones_cameras" unique_id=1122430548]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera1" unique_id=1501898612]
+position = Vector2(-1891, 453)
+shape = SubResource("RectangleShape2D_eiucn")
+
+[node name="ZoneCamera2" type="Area2D" parent="zones_cameras" unique_id=2070344876]
+position = Vector2(5043, -10)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera2" unique_id=1769360823]
+position = Vector2(-1891, 453)
+shape = SubResource("RectangleShape2D_eiucn")
+
+[node name="ZoneCamera3" type="Area2D" parent="zones_cameras" unique_id=1002664601]
+position = Vector2(10080, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera3" unique_id=206993524]
+position = Vector2(-1891, 453)
+shape = SubResource("RectangleShape2D_eiucn")
+
+[node name="Cameras" type="Node2D" parent="." unique_id=1029240723]
+
+[node name="Camera2D" type="Camera2D" parent="Cameras" unique_id=1565848584]
+position = Vector2(-2263, 456)
+zoom = Vector2(0.505, 0.505)
+
+[node name="Camera2D2" type="Camera2D" parent="Cameras" unique_id=43404525]
+position = Vector2(2992, 456)
+zoom = Vector2(0.505, 0.505)
+
+[node name="Camera2D3" type="Camera2D" parent="Cameras" unique_id=1810174302]
+position = Vector2(8078, 386)
+zoom = Vector2(0.505, 0.505)

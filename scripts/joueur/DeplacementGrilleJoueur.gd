@@ -183,7 +183,7 @@ func _essayer_demarrer_pas(joueur: CharacterBody2D, stats: StatsJoueur, directio
 	_demarrer_deplacement(joueur, destination, calculer_duree_pas(stats) * multiplicateur_diagonal, false)
 	return true
 
-func _essayer_demarrer_dash(joueur: CharacterBody2D, stats: StatsJoueur, direction_entree: Vector2i) -> bool:
+func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direction_entree: Vector2i) -> bool:
 	if not joueur.dash_autorise or joueur.dash_t_restant_s > 0.0:
 		return false
 	if not joueur.dash_infini_actif and joueur.dash_charges_actuelles <= 0:

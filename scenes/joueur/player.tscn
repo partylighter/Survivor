@@ -21,20 +21,20 @@
 [ext_resource type="Shader" uid="uid://cnq8vjt0bnsqq" path="res://shaders/dash_reaction.gdshader" id="15_dash"]
 [ext_resource type="Texture2D" uid="uid://1s5vl1ymqtq6" path="res://assets/player/torse.png" id="20_p6id3"]
 [ext_resource type="Texture2D" uid="uid://cku6fruc3stgx" path="res://assets/player/tete.png" id="21_wucgo"]
-[ext_resource type="Script" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="22_modes"]
-[ext_resource type="Script" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
-[ext_resource type="Script" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
-[ext_resource type="Script" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
-[ext_resource type="Script" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="24_inventaire"]
-[ext_resource type="PackedScene" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
-[ext_resource type="Script" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="26_effets_nourriture"]
-[ext_resource type="Script" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="27_equipement"]
-[ext_resource type="Script" path="res://scripts/inventaire/craft/GestionnaireCraftInventaire.gd" id="28_craft"]
+[ext_resource type="Script" uid="uid://dfqiib4t51xl8" path="res://scripts/joueur/GestionnaireModesDeplacement.gd" id="22_modes"]
+[ext_resource type="Script" uid="uid://dfbi1qwwfkb3c" path="res://scripts/joueur/GestionDeplacementLibreJoueur.gd" id="23_libre"]
+[ext_resource type="Script" uid="uid://d2rb5onhlefvl" path="res://scripts/inventaire/GestionnaireInventaire.gd" id="24_inventaire"]
+[ext_resource type="PackedScene" uid="uid://b2gkwphybhcur" path="res://scenes/ui/interface_inventaire.tscn" id="25_interface_inventaire"]
+[ext_resource type="Script" uid="uid://b78lu6p30tt7n" path="res://scripts/cuisine/GestionnaireEffetsNourriture.gd" id="26_effets_nourriture"]
+[ext_resource type="Script" uid="uid://te460h8is4eh" path="res://scripts/inventaire/equipement/GestionnaireEquipementJoueur.gd" id="27_equipement"]
+[ext_resource type="Script" uid="uid://cpnj60y8bthue" path="res://scripts/inventaire/craft/GestionnaireCraftInventaire.gd" id="28_craft"]
 [ext_resource type="Resource" path="res://ressources/forge/recettes/catalogue_equipements.tres" id="29_catalogue"]
-[ext_resource type="Script" path="res://ressources/donnees/LootItemEntry.gd" id="30_item"]
-[ext_resource type="Resource" path="res://ressources/items/composants/lame_fer.tres" id="31_lame"]
-[ext_resource type="Resource" path="res://ressources/items/equipements/arc_en_bois.tres" id="32_arc"]
-[ext_resource type="Resource" path="res://ressources/items/composants/renfort_arc.tres" id="33_renfort_arc"]
+[ext_resource type="Script" uid="uid://d0pvuknpvcw5q" path="res://ressources/donnees/LootItemEntry.gd" id="30_item"]
+[ext_resource type="Resource" uid="uid://bxht2c2cc7tsf" path="res://ressources/items/composants/lame_fer.tres" id="31_lame"]
+[ext_resource type="Resource" uid="uid://br4w1ruvm2yh5" path="res://ressources/items/equipements/arc_en_bois.tres" id="32_arc"]
+[ext_resource type="Resource" uid="uid://d3vm77vwa5md7" path="res://ressources/items/composants/renfort_arc.tres" id="33_renfort_arc"]
+[ext_resource type="Script" uid="uid://m8whpvadso2h" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
+[ext_resource type="Script" uid="uid://omo6aa2h56wg" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7tfl1"]
 bg_color = Color(7.82125e-08, 0.133593, 0.17513, 0.862745)
@@ -264,16 +264,16 @@ dash_knockback_force_bord_mult = 0.55
 dash_recharge_pendant_dash = true
 metadata/_custom_type_script = "uid://dqvkgiskf54md"
 
-[node name="GestionnaireModesDeplacement" type="Node" parent="."]
+[node name="GestionnaireModesDeplacement" type="Node" parent="." unique_id=1920110105]
 script = ExtResource("22_modes")
 
-[node name="GestionDeplacementLibreJoueur" type="Node" parent="."]
+[node name="GestionDeplacementLibreJoueur" type="Node" parent="." unique_id=794139247]
 script = ExtResource("23_libre")
 
-[node name="GestionDeplacementGrilleJoueur" type="Node" parent="."]
+[node name="GestionDeplacementGrilleJoueur" type="Node" parent="." unique_id=1307305881]
 script = ExtResource("50_grille")
 
-[node name="DebugGrilleJoueur" type="Node2D" parent="."]
+[node name="DebugGrilleJoueur" type="Node2D" parent="." unique_id=1539211537]
 script = ExtResource("51_debug_grille")
 chemin_gestion_deplacement = NodePath("../GestionDeplacementJoueur")
 chemin_deplacement_grille = NodePath("../GestionDeplacementGrilleJoueur")
@@ -283,7 +283,7 @@ script = ExtResource("9_wwtew")
 chemin_gestionnaire = NodePath("../GestionnaireArme")
 metadata/_custom_type_script = "uid://bbaqmw4o6hmh8"
 
-[node name="GestionnaireInventaire" type="Node" parent="."]
+[node name="GestionnaireInventaire" type="Node" parent="." unique_id=1091106738]
 script = ExtResource("24_inventaire")
 objets_temporaires = Array[Dictionary]([{
 "id": &"minerai_fer",
@@ -308,13 +308,13 @@ objets_temporaires = Array[Dictionary]([{
 }])
 ressources_temporaires = Array[ExtResource("30_item")]([ExtResource("31_lame"), ExtResource("32_arc"), ExtResource("33_renfort_arc")])
 
-[node name="GestionnaireEffetsNourriture" type="Node" parent="."]
+[node name="GestionnaireEffetsNourriture" type="Node" parent="." unique_id=1188546809]
 script = ExtResource("26_effets_nourriture")
 
-[node name="GestionnaireEquipementJoueur" type="Node" parent="."]
+[node name="GestionnaireEquipementJoueur" type="Node" parent="." unique_id=1595233033]
 script = ExtResource("27_equipement")
 
-[node name="GestionnaireCraftInventaire" type="Node" parent="."]
+[node name="GestionnaireCraftInventaire" type="Node" parent="." unique_id=1801292122]
 script = ExtResource("28_craft")
 catalogue_recettes = ExtResource("29_catalogue")
 
@@ -332,13 +332,6 @@ metadata/_custom_type_script = "uid://d2qt2wohmdfas"
 
 [node name="EffetDashDisplayer" type="CanvasLayer" parent="." unique_id=654285535]
 script = ExtResource("14_dash")
-intensite_depart = 0.3
-duree_pulse_s = 1.45
-aberration_dash_px = 150.0
-vignette_intensite = 1.0
-bonus_bandes_dash_px = 40.0
-duree_resserrement_bandes_s = 0.2
-duree_desserrement_bandes_s = 0.3
 
 [node name="RectDash" type="ColorRect" parent="EffetDashDisplayer" unique_id=364777308]
 material = SubResource("ShaderMaterial_dash")
@@ -355,7 +348,7 @@ chemin_loot = NodePath("../GestionnaireLoot")
 ui_position = Vector2(16, 580)
 metadata/_custom_type_script = "uid://ss27awahkq0s"
 
-[node name="InterfaceInventaire" parent="." instance=ExtResource("25_interface_inventaire")]
+[node name="InterfaceInventaire" parent="." unique_id=183347726 instance=ExtResource("25_interface_inventaire")]
 chemin_inventaire = NodePath("../GestionnaireInventaire")
 
 [node name="StatsJoueurDisplayer" type="CanvasLayer" parent="." unique_id=353504141]
