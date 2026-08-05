@@ -57,12 +57,10 @@ enum State {
 @export var recul_amorti_mort: float = 8.0
 
 var _state: State = State.ALIVE
-
 var recul: Vector2 = Vector2.ZERO
 var pousse: Vector2 = Vector2.ZERO
 var _recul_lock_t: float = 0.0
 var _pousse_lock_t: float = 0.0
-
 var _secousse_t: float = 0.0
 var _sprite_pos_neutre: Vector2 = Vector2.ZERO
 var _sprite_scale_neutre: Vector2 = Vector2.ONE
@@ -71,7 +69,6 @@ var _scale_offset: Vector2 = Vector2.ZERO
 var _scale_vel: Vector2 = Vector2.ZERO
 var _scale_actif: bool = false
 var _flash_t: float = 0.0
-
 var _layer_orig: int = -1
 var _mask_orig: int = -1
 var _doit_emit_reapparu_next_frame: bool = false
@@ -81,6 +78,7 @@ var _mort_t: float = 0.0
 @onready var sprite: Sprite2D = get_node_or_null(chemin_sprite) as Sprite2D
 @onready var hurtbox: HurtBox = get_node_or_null("HurtBox") as HurtBox
 @onready var contact_damage: ContactDamage = get_node_or_null("ContactDamage") as ContactDamage
+@onready var deplacement_grille_ennemi: DeplacementGrilleEnnemi = get_node_or_null("DeplacementGrilleEnnemi") as DeplacementGrilleEnnemi
 var target: Player = null
 
 func _ready() -> void:
@@ -92,11 +90,14 @@ func _ready() -> void:
 		_sprite_scale_neutre = sprite.scale
 		_sprite_modulate_neutre = sprite.modulate
 	if sante != null:
-		sante.died.connect(_on_mort)
-		sante.damaged.connect(_on_damaged)
+		if not sante.died.is_connected(_on_mort):
+			sante.died.connect(_on_mort)
+		if not sante.damaged.is_connected(_on_damaged):
+			sante.damaged.connect(_on_damaged)
 	_layer_orig = collision_layer
 	_mask_orig = collision_mask
 	_initialiser_comportement()
+	actualiser_activation_deplacement_grille(true)
 
 func get_type_id() -> int:
 	return type_ennemi
@@ -158,21 +159,38 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 	if _state == State.DYING or _state == State.DEAD:
 		return
 	if actif_moteur:
-		_set_state(State.ALIVE)
-	else:
-		_set_physics_and_process(false)
 		if hurtbox != null:
-			hurtbox.set_actif(false)
+			hurtbox.set_actif(true)
 		if contact_damage != null:
-			contact_damage.set_physics_process(false)
-		collision_layer = 0
-		collision_mask = 0
+			contact_damage.set_physics_process(true)
+		_restore_collision()
+		_set_physics_and_process(true)
+		actualiser_activation_deplacement_grille(true)
+		return
+	actualiser_activation_deplacement_grille(false)
+	_set_physics_and_process(false)
+	if hurtbox != null:
+		hurtbox.set_actif(false)
+	if contact_damage != null:
+		contact_damage.set_physics_process(false)
+	collision_layer = 0
+	collision_mask = 0
 
 func reactiver_apres_pool() -> void:
 	_set_state(State.ALIVE)
 
 func definir_cible_joueur(nouveau_joueur: Node2D) -> void:
 	target = nouveau_joueur as Player
+
+func actualiser_activation_deplacement_grille(actif: bool) -> void:
+	if deplacement_grille_ennemi == null:
+		deplacement_grille_ennemi = get_node_or_null("DeplacementGrilleEnnemi") as DeplacementGrilleEnnemi
+	if deplacement_grille_ennemi == null:
+		return
+	if actif and is_inside_tree() and is_alive() and deplacement_grille_ennemi.est_actif_pour(self):
+		deplacement_grille_ennemi.activer(self)
+	else:
+		deplacement_grille_ennemi.desactiver(self)
 
 func _set_state(nouvel_etat: State) -> void:
 	_state = nouvel_etat
@@ -200,7 +218,9 @@ func _set_state(nouvel_etat: State) -> void:
 			if sprite != null:
 				sprite.visible = true
 			_doit_emit_reapparu_next_frame = true
+			actualiser_activation_deplacement_grille(true)
 		State.DYING:
+			actualiser_activation_deplacement_grille(false)
 			if is_in_group("enemy"):
 				remove_from_group("enemy")
 			if not has_meta("sl"):
@@ -221,6 +241,7 @@ func _set_state(nouvel_etat: State) -> void:
 			set_physics_process(true)
 			mort.emit()
 		State.DEAD:
+			actualiser_activation_deplacement_grille(false)
 			if sprite != null:
 				sprite.visible = false
 			velocity = Vector2.ZERO
@@ -250,8 +271,7 @@ func _traiter_logique(dt: float) -> void:
 	_pousse_lock_t = maxf(_pousse_lock_t - dt, 0.0)
 	var seuil_recul: float = maxf(recul_seuil_blocage_px, 1.0)
 	var seuil_pousse: float = maxf(pousse_seuil_blocage_px, 1.0)
-	var recul_actif: bool = recul_bloque_chase and (
-		_recul_lock_t > 0.0 or recul.length_squared() >= seuil_recul * seuil_recul)
+	var recul_actif: bool = recul_bloque_chase and (_recul_lock_t > 0.0 or recul.length_squared() >= seuil_recul * seuil_recul)
 	var pousse_active: bool = _pousse_lock_t > 0.0 or pousse.length_squared() >= seuil_pousse * seuil_pousse
 	if recul_actif or pousse_active:
 		if _state == State.ALIVE:
@@ -275,13 +295,34 @@ func _tick_physics_commun(dt: float) -> void:
 			_tick_scale_impact(dt)
 		if _flash_t > 0.0:
 			_tick_flash(dt)
-	velocity = _obtenir_vitesse_deplacement() + recul + pousse
-	_appliquer_contraintes_deplacement(dt)
+	velocity = recul + pousse
 	if _state == State.DYING:
 		velocity = velocity.lerp(Vector2.ZERO, 1.0 - exp(-maxf(recul_amorti_mort, 0.0) * dt))
 	_appliquer_deplacement(dt)
 	if _state == State.DYING:
 		_mort_t = maxf(_mort_t - dt, 0.0)
+
+func _appliquer_deplacement(dt: float) -> void:
+	if _state == State.DYING:
+		global_position += velocity * dt
+		return
+	if deplacement_grille_ennemi == null:
+		velocity = Vector2.ZERO
+		return
+	if deplacement_grille_ennemi.traiter(self, target, _obtenir_position_cible_deplacement(), dt, _autoriser_decision_deplacement(), _cible_deplacement_est_joueur()):
+		return
+	velocity = Vector2.ZERO
+
+func _obtenir_position_cible_deplacement() -> Vector2:
+	if target != null and is_instance_valid(target):
+		return target.global_position
+	return global_position
+
+func _autoriser_decision_deplacement() -> bool:
+	return _state == State.ALIVE
+
+func _cible_deplacement_est_joueur() -> bool:
+	return target != null and is_instance_valid(target)
 
 func _prendre_coup_visuel() -> void:
 	_secousse_t = secousse_duree_s
@@ -330,15 +371,6 @@ func _tick_scale_impact(dt: float) -> void:
 	var nouvelle_echelle: Vector2 = _sprite_scale_neutre + _scale_offset
 	sprite.scale = Vector2(maxf(nouvelle_echelle.x, 0.05), maxf(nouvelle_echelle.y, 0.05))
 
-func _obtenir_vitesse_deplacement() -> Vector2:
-	return Vector2.ZERO
-
-func _appliquer_contraintes_deplacement(_dt: float) -> void:
-	pass
-
-func _appliquer_deplacement(dt: float) -> void:
-	global_position += velocity * dt
-
 func _initialiser_comportement() -> void:
 	pass
 
@@ -355,10 +387,7 @@ func _on_damaged(amount: int, source: Node) -> void:
 	_declencher_flash()
 	if not (source is Node2D):
 		return
-	var force: float = clampf(
-		float(amount) * maxf(recul_force_par_degats, 0.0),
-		recul_force_min,
-		recul_force_max)
+	var force: float = clampf(float(amount) * maxf(recul_force_par_degats, 0.0), recul_force_min, recul_force_max)
 	if force > 0.0:
 		appliquer_recul_depuis(source as Node2D, force)
 
