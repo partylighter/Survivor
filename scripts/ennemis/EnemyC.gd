@@ -16,15 +16,15 @@ func set_combat_state(actif_moteur: bool, collision_joueur: bool) -> void:
 	super(actif_moteur, collision_joueur)
 	actualiser_activation_deplacement_grille(actif_moteur)
 
+func set_poussee_foule(_poussee: Vector2) -> void:
+	pass
+
 func actualiser_activation_deplacement_grille(actif: bool) -> void:
 	if deplacement_grille_ennemi == null:
 		deplacement_grille_ennemi = get_node_or_null("DeplacementGrilleEnnemi") as DeplacementGrilleEnnemi
-	var grille_active: bool = actif and deplacement_grille_ennemi != null and deplacement_grille_ennemi.est_actif_pour(self)
-	if contact_damage != null:
-		contact_damage.set_physics_process(actif and not grille_active)
 	if deplacement_grille_ennemi == null:
 		return
-	if grille_active:
+	if actif and deplacement_grille_ennemi.est_actif_pour(self):
 		deplacement_grille_ennemi.activer(self)
 	else:
 		deplacement_grille_ennemi.desactiver(self)
