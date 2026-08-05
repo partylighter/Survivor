@@ -206,6 +206,8 @@ func set_combat_state(actif_moteur: bool, _collision_joueur: bool) -> void:
 	collision_mask  = 0
 
 func reactiver_apres_pool() -> void:
+	if deplacement_grille_ennemi != null:
+		deplacement_grille_ennemi.reinitialiser_charge()
 	_set_state(State.ALIVE)
 
 func definir_cible_joueur(nouveau_joueur: Node2D) -> void:
