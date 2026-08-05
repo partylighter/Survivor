@@ -28,7 +28,7 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_range(0.01, 0.5, 0.01) var duree_charge_par_cellule_s: float = 0.08
 @export_range(0.0, 3.0, 0.05) var delai_entre_charges_s: float = 0.45
 @export_range(0, 999999, 1) var degats_charge: int = 10
-@export_range(0.0, 300.0, 1.0) var rayon_impact_charge_px: float = 95.0
+@export_range(0.0, 300.0, 1) var rayon_impact_charge_px: float = 95.0
 @export_range(0, 8, 1) var recul_joueur_cellules: int = 1
 
 var cellule_actuelle: Vector2i = Vector2i.ZERO
@@ -528,6 +528,7 @@ func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
 	_charge_active = false
 	_appliquer_impact_charge(ennemi, cible)
 	_attente_charge_s = maxf(delai_entre_charges_s, intervalle_decision_s)
+	_charge_armee = true
 	_attente_decision_s = intervalle_decision_s
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
 	_annuler_charge()
