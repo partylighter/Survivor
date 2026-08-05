@@ -56,7 +56,6 @@ var _charge_active: bool = false
 var _temps_charge_s: float = 0.0
 var _duree_charge_s: float = 0.0
 var _attente_charge_s: float = 0.0
-var _charge_armee: bool = true
 var _direction_charge: Vector2i = Vector2i.ZERO
 var _cles_couloir_charge: Array[Vector3i] = []
 
@@ -110,6 +109,7 @@ func traiter(ennemi: Enemy, cible: Player, position_cible_monde: Vector2, dt: fl
 	if not _initialise:
 		ennemi.velocity = Vector2.ZERO
 		return true
+	_attente_charge_s = maxf(0.0, _attente_charge_s - dt)
 	if _forces_recul_actives(ennemi):
 		if not en_recul or retour_grille_actif:
 			interrompre_pas_pour_recul(ennemi)
@@ -139,16 +139,12 @@ func traiter(ennemi: Enemy, cible: Player, position_cible_monde: Vector2, dt: fl
 		return true
 	ennemi.velocity = Vector2.ZERO
 	_attente_decision_s = maxf(0.0, _attente_decision_s - dt)
-	_attente_charge_s = maxf(0.0, _attente_charge_s - dt)
 	if not autoriser_decision or _attente_decision_s > 0.0:
 		return true
 	if cible_est_joueur and (cible == null or not is_instance_valid(cible)):
 		return true
 	var cellule_destination: Vector2i = _gestionnaire_grille.monde_vers_cellule(position_cible_monde)
-	var distance_destination: int = _distance_cellules(cellule_actuelle, cellule_destination)
-	if not _charge_armee and distance_destination > maxi(portee_charge_cellules, 1):
-		_charge_armee = true
-	if charge_activee and _charge_armee and cible_est_joueur and _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_destination):
+	if charge_activee and cible_est_joueur and _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_destination):
 		return true
 	var distance_arret: int = maxi(distance_arret_joueur_cellules, 0)
 	_choisir_et_demarrer_pas(ennemi, cellule_destination, distance_arret if cible_est_joueur else -1, cible_est_joueur and distance_arret > 0)
@@ -170,7 +166,12 @@ func est_en_deplacement() -> bool:
 func est_en_recul() -> bool:
 	return en_recul
 
+func reinitialiser_charge() -> void:
+	_attente_charge_s = 0.0
+	_annuler_charge()
+
 func preparer_deplacement_force(ennemi: Enemy) -> void:
+	var charge_interrompue: bool = _charge_active
 	_ennemi = ennemi
 	_resoudre_gestionnaires()
 	if _gestionnaire_grille == null or ennemi == null:
@@ -189,7 +190,10 @@ func preparer_deplacement_force(ennemi: Enemy) -> void:
 	position_depart = ennemi.global_position
 	position_cible = ennemi.global_position
 	_initialise = true
-	_annuler_charge()
+	if charge_interrompue:
+		_terminer_charge()
+	else:
+		_annuler_charge()
 
 func demander_resynchronisation(ennemi: Enemy) -> void:
 	preparer_deplacement_force(ennemi)
@@ -207,6 +211,7 @@ func deplacer_force_avec_collisions(ennemi: Enemy, mouvement: Vector2) -> Kinema
 	return _deplacer_avec_collisions(ennemi, mouvement)
 
 func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
+	var charge_interrompue: bool = _charge_active
 	if (en_deplacement or retour_grille_actif or _charge_active) and slot_cible >= 0 and _gestionnaire_grille.obtenir_reservataire(cellule_cible, slot_cible) == ennemi:
 		_gestionnaire_grille.liberer_slot(cellule_cible, slot_cible, ennemi)
 	en_deplacement = false
@@ -218,7 +223,10 @@ func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
 	position_depart = ennemi.global_position
 	position_cible = ennemi.global_position
 	ennemi.velocity = Vector2.ZERO
-	_annuler_charge()
+	if charge_interrompue:
+		_terminer_charge()
+	else:
+		_annuler_charge()
 
 func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_destination: Vector2i, distance_minimale_destination: int = -1, eviter_cellule_destination: bool = true) -> void:
 	var candidats: Array[Dictionary] = []
@@ -503,7 +511,6 @@ func _demarrer_charge(ennemi: Enemy, cellule_destination: Vector2i, index_slot: 
 	_duree_charge_s = maxf(duree_charge_par_cellule_s * float(maxi(distance_cellules, 1)), 0.001)
 	_direction_charge = direction
 	_charge_active = true
-	_charge_armee = false
 	cellule_ennemi_quittee.emit(ennemi, cellule_actuelle)
 
 func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
@@ -525,12 +532,10 @@ func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
 	cellule_actuelle = cellule_cible
 	slot_actuel = slot_cible
 	progression_deplacement = 1.0
-	_charge_active = false
 	_appliquer_impact_charge(ennemi, cible)
-	_attente_charge_s = maxf(delai_entre_charges_s, intervalle_decision_s)
 	_attente_decision_s = intervalle_decision_s
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
-	_annuler_charge()
+	_terminer_charge()
 
 func _appliquer_impact_charge(ennemi: Enemy, cible: Player) -> void:
 	if cible == null or not is_instance_valid(cible):
@@ -547,6 +552,10 @@ func _appliquer_impact_charge(ennemi: Enemy, cible: Player) -> void:
 	if recul_joueur_cellules <= 0 or _direction_charge == Vector2i.ZERO or _deplacement_joueur == null:
 		return
 	_deplacement_joueur.appliquer_recul_cellules(cible, _direction_charge, recul_joueur_cellules)
+
+func _terminer_charge() -> void:
+	_attente_charge_s = maxf(delai_entre_charges_s, intervalle_decision_s)
+	_annuler_charge()
 
 func _annuler_charge() -> void:
 	_charge_active = false
@@ -607,6 +616,7 @@ func _resoudre_gestionnaires() -> void:
 		_deplacement_joueur = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
 
 func _desinscrire() -> void:
+	var charge_interrompue: bool = _charge_active
 	if _gestionnaire_grille != null and _ennemi != null:
 		_gestionnaire_grille.liberer_toutes_reservations_ennemi(_ennemi)
 	en_deplacement = false
@@ -614,9 +624,10 @@ func _desinscrire() -> void:
 	retour_grille_actif = false
 	progression_deplacement = 0.0
 	_attente_resynchronisation_s = 0.0
-	_attente_charge_s = 0.0
-	_charge_armee = true
 	slot_actuel = -1
 	slot_cible = -1
 	_initialise = false
-	_annuler_charge()
+	if charge_interrompue:
+		_terminer_charge()
+	else:
+		_annuler_charge()
