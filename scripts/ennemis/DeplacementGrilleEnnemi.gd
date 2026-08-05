@@ -28,7 +28,7 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_range(0.01, 0.5, 0.01) var duree_charge_par_cellule_s: float = 0.08
 @export_range(0.0, 3.0, 0.05) var delai_entre_charges_s: float = 0.45
 @export_range(0, 999999, 1) var degats_charge: int = 10
-@export_range(0.0, 300.0, 1) var rayon_impact_charge_px: float = 95.0
+@export_range(0.0, 300.0, 1.0) var rayon_impact_charge_px: float = 95.0
 @export_range(0, 8, 1) var recul_joueur_cellules: int = 1
 
 var cellule_actuelle: Vector2i = Vector2i.ZERO
