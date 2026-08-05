@@ -353,7 +353,6 @@ func _resoudre_collisions_ennemis(p: Vector2, dt: float, pousser_ennemi: bool) -
 			p += n * pen * share_p
 
 			if pousser_ennemi:
-				e.global_position -= n * pen * share_e
 				var push_v: float = (pen / max(dt, 0.016)) * max(collision_push_mult, 0.0) * share_e
 				e.appliquer_pousse(-n * push_v)
 
