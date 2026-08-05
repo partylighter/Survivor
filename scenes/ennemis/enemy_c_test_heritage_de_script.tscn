@@ -60,12 +60,13 @@ debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 
 [node name="ContactDamage" type="Node" parent="." unique_id=2020889737]
 script = ExtResource("5_rsoyq")
-enemy_hit_radius_px = 20.0
+enemy_hit_radius_px = 21.0
 metadata/_custom_type_script = "uid://b1wenibwev34d"
 
 [node name="DeplacementGrilleEnnemi" type="Node" parent="." unique_id=1305357376]
 script = ExtResource("6_grille_ennemi")
-portee_charge_cellules = 3
+portee_charge_cellules = 8
+recul_joueur_cellules = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=418694463]
 shape = SubResource("CircleShape2D_n5nnx")
