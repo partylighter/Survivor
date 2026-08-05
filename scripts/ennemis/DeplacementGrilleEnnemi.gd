@@ -528,7 +528,6 @@ func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
 	_charge_active = false
 	_appliquer_impact_charge(ennemi, cible)
 	_attente_charge_s = maxf(delai_entre_charges_s, intervalle_decision_s)
-	_charge_armee = true
 	_attente_decision_s = intervalle_decision_s
 	cellule_ennemi_atteinte.emit(ennemi, cellule_actuelle)
 	_annuler_charge()
