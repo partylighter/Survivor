@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://c4frvi1p85wxd"]
+[gd_scene load_steps=4 format=3 uid="uid://c4frvi1p85wxd"]
 
 [ext_resource type="Script" uid="uid://b6224w7np6m50" path="res://scripts/gestionnaires/en_jeu/gestionnaire_enemies.gd" id="1_lsmnm"]
+[ext_resource type="Script" path="res://scripts/grille/GestionnaireGrilleCombat.gd" id="2_grille_combat"]
+[ext_resource type="Script" path="res://scripts/grille/ChampDirectionGrille.gd" id="3_champ_direction"]
 
 [node name="Gestionnaire Enemies" type="Node2D"]
 script = ExtResource("1_lsmnm")
+type_deplacement_ennemis = 1
+
+[node name="GestionnaireGrilleCombat" type="Node" parent="."]
+script = ExtResource("2_grille_combat")
+
+[node name="ChampDirectionGrille" type="Node" parent="GestionnaireGrilleCombat"]
+script = ExtResource("3_champ_direction")

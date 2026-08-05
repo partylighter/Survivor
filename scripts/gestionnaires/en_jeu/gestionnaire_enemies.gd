@@ -1,6 +1,11 @@
 extends Node2D
 class_name GestionnaireEnnemis
 
+enum TypeDeplacementEnnemis {
+	LIBRE,
+	GRILLE
+}
+
 signal ennemi_cree(e)
 signal ennemi_tue(e)
 signal ennemi_retire(e)
@@ -8,6 +13,9 @@ signal limite_atteinte()
 
 @export var chemin_joueur: NodePath
 @onready var joueur: Node2D = get_node_or_null(chemin_joueur) as Node2D
+
+@export_group("Deplacement ennemis")
+@export var type_deplacement_ennemis: TypeDeplacementEnnemis = TypeDeplacementEnnemis.LIBRE
 
 @export var scenes_ennemis: Array[PackedScene] = []
 @export var poids_types: PackedFloat32Array = []
@@ -215,6 +223,15 @@ func set_player_dead(v: bool) -> void:
 			var e := n as Enemy
 			if e != null and is_instance_valid(e):
 				e.set_combat_state(false, false)
+
+func definir_type_deplacement_ennemis(nouveau_type: TypeDeplacementEnnemis) -> void:
+	type_deplacement_ennemis = nouveau_type
+	for noeud in ennemis:
+		if is_instance_valid(noeud) and noeud.has_method("actualiser_mode_deplacement_grille"):
+			noeud.call("actualiser_mode_deplacement_grille")
+
+func ennemi_utilise_grille(ennemi: Enemy) -> bool:
+	return type_deplacement_ennemis == TypeDeplacementEnnemis.GRILLE and ennemi is EnemyC
 
 # ===========================================================================
 # Vagues
@@ -664,6 +681,8 @@ func _sur_pret_pour_pool(e: Node2D) -> void:
 func _activer_ennemi(e: Node2D, actif: bool) -> void:
 	e.set_physics_process(actif)
 	e.set_process(actif)
+	if e.has_method("actualiser_activation_deplacement_grille"):
+		e.call("actualiser_activation_deplacement_grille", actif)
 
 	if e is CollisionObject2D:
 		var co: CollisionObject2D = e as CollisionObject2D
@@ -966,6 +985,8 @@ func _ennemi_foule_valide(e: Node2D) -> bool:
 		return false
 	var en: Enemy = e as Enemy
 	if en == null or not en.is_alive():
+		return false
+	if ennemi_utilise_grille(en):
 		return false
 	return int(_lod_modes.get(e, 0)) != 2
 

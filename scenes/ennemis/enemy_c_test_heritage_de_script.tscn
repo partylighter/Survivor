@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_q4nmw"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_1eiqn"]
 [ext_resource type="Script" uid="uid://b1wenibwev34d" path="res://scripts/ennemis/ContactDamage.gd" id="5_rsoyq"]
+[ext_resource type="Script" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="6_grille_ennemi"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1y4wy"]
 radius = 122.44
@@ -60,6 +61,10 @@ debug_color = Color(18.892157, 18.892157, 18.892157, 0)
 [node name="ContactDamage" type="Node" parent="." unique_id=2020889737]
 script = ExtResource("5_rsoyq")
 metadata/_custom_type_script = "uid://b1wenibwev34d"
+
+[node name="DeplacementGrilleEnnemi" type="Node" parent="."]
+script = ExtResource("6_grille_ennemi")
+diagonales_autorisees = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=418694463]
 shape = SubResource("CircleShape2D_n5nnx")

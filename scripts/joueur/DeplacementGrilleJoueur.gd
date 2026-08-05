@@ -13,8 +13,6 @@ enum CourbeInterpolation {
 }
 
 @export_group("Grille")
-@export var taille_cellule_px: float = 48.0
-@export var origine_grille: Vector2 = Vector2.ZERO
 @export_range(0.03, 0.5, 0.01) var duree_pas_s: float = 0.12
 @export var diagonales_autorisees: bool = true
 @export var maintien_touche_actif: bool = true
@@ -56,8 +54,17 @@ var _temps_dash_buffer_restant_s: float = 0.0
 var _chemin_dash_debug: Array[Vector2i] = []
 var _cellule_refusee_debug: Vector2i = Vector2i.ZERO
 var _cellule_refusee_presente: bool = false
+var _gestionnaire_grille: GestionnaireGrilleCombat
+
+func _ready() -> void:
+	add_to_group("deplacement_grille_joueur")
+	_resoudre_gestionnaire_grille()
 
 func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
+	_resoudre_gestionnaire_grille()
+	if _gestionnaire_grille == null:
+		joueur.velocity = Vector2.ZERO
+		return
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 	_mettre_a_jour_recharge_dash(joueur, stats, dt)
@@ -85,6 +92,10 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 		_essayer_demarrer_pas(joueur, stats, direction_maintenue)
 
 func synchroniser_sur_grille(joueur: CharacterBody2D) -> void:
+	_resoudre_gestionnaire_grille()
+	if _gestionnaire_grille == null:
+		_synchronise = false
+		return
 	cellule_actuelle = monde_vers_cellule(joueur.global_position)
 	cellule_cible = cellule_actuelle
 	position_depart = cellule_vers_monde(cellule_actuelle)
@@ -115,13 +126,16 @@ func est_en_dash() -> bool:
 	return _en_dash
 
 func cellule_vers_monde(cellule: Vector2i) -> Vector2:
-	var taille: float = maxf(taille_cellule_px, 1.0)
-	return origine_grille + Vector2(cellule) * taille
+	_resoudre_gestionnaire_grille()
+	return _gestionnaire_grille.cellule_vers_monde(cellule) if _gestionnaire_grille != null else Vector2.ZERO
 
 func monde_vers_cellule(position_monde: Vector2) -> Vector2i:
-	var taille: float = maxf(taille_cellule_px, 1.0)
-	var coordonnee: Vector2 = (position_monde - origine_grille) / taille
-	return Vector2i(roundi(coordonnee.x), roundi(coordonnee.y))
+	_resoudre_gestionnaire_grille()
+	return _gestionnaire_grille.monde_vers_cellule(position_monde) if _gestionnaire_grille != null else Vector2i.ZERO
+
+func obtenir_gestionnaire_grille() -> GestionnaireGrilleCombat:
+	_resoudre_gestionnaire_grille()
+	return _gestionnaire_grille
 
 func calculer_duree_pas(stats: StatsJoueur) -> float:
 	var vitesse: float = vitesse_reference_px_s
@@ -315,6 +329,10 @@ func _obtenir_controleur(joueur: CharacterBody2D) -> GestionDeplacementJoueur:
 	if joueur is Player:
 		return (joueur as Player).gestion_deplacement
 	return null
+
+func _resoudre_gestionnaire_grille() -> void:
+	if _gestionnaire_grille == null or not is_instance_valid(_gestionnaire_grille):
+		_gestionnaire_grille = get_tree().get_first_node_in_group("grille_combat") as GestionnaireGrilleCombat
 
 func _appliquer_courbe_interpolation(t: float) -> float:
 	var progression: float = clampf(t, 0.0, 1.0)

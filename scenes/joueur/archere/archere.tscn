@@ -1350,7 +1350,6 @@ marche_multiplicateur_vitesse = 0.35
 
 [node name="GestionDeplacementGrilleJoueur" type="Node" parent="." unique_id=1336403440]
 script = ExtResource("50_grille")
-taille_cellule_px = 100.0
 duree_pas_s = 0.5
 diagonales_autorisees = false
 delai_repetition_initial_s = 0.01
