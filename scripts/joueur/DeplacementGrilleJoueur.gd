@@ -34,6 +34,9 @@ enum CourbeInterpolation {
 @export_range(1, 8, 1) var distance_dash_cellules: int = 3
 @export_range(0.01, 0.3, 0.01) var duree_dash_par_cellule_s: float = 0.05
 
+@export_group("Recul grille")
+@export_range(0.01, 0.5, 0.01) var duree_recul_cellule_s: float = 0.10
+
 var cellule_actuelle: Vector2i = Vector2i.ZERO
 var cellule_cible: Vector2i = Vector2i.ZERO
 var position_depart: Vector2 = Vector2.ZERO
@@ -42,6 +45,7 @@ var _duree_deplacement_s: float = 0.0
 var _temps_deplacement_s: float = 0.0
 var _en_deplacement: bool = false
 var _en_dash: bool = false
+var _deplacement_force: bool = false
 var _synchronise: bool = false
 var _direction_derniere: Vector2i = Vector2i.RIGHT
 var _direction_maintenue_precedente: Vector2i = Vector2i.ZERO
@@ -158,6 +162,31 @@ func cellule_est_accessible(joueur: CharacterBody2D, cellule: Vector2i, verifier
 			return false
 	return true
 
+func appliquer_recul_cellules(joueur: CharacterBody2D, direction: Vector2i, distance_cellules: int = 1) -> bool:
+	var direction_recul := Vector2i(clampi(direction.x, -1, 1), clampi(direction.y, -1, 1))
+	if direction_recul == Vector2i.ZERO or direction_recul.x != 0 and direction_recul.y != 0 or distance_cellules <= 0:
+		return false
+	if not _synchronise:
+		synchroniser_sur_grille(joueur)
+	if not _synchronise:
+		return false
+	if _en_deplacement:
+		interrompre_et_recaler(joueur)
+	var destination: Vector2i = cellule_actuelle
+	var distance_reelle: int = 0
+	for _index in range(distance_cellules):
+		var prochaine_cellule: Vector2i = destination + direction_recul
+		if not _segment_est_accessible(joueur, cellule_vers_monde(destination), cellule_vers_monde(prochaine_cellule)):
+			break
+		destination = prochaine_cellule
+		distance_reelle += 1
+	if distance_reelle <= 0:
+		return false
+	_direction_derniere = direction_recul
+	_deplacement_force = true
+	_demarrer_deplacement(joueur, destination, maxf(duree_recul_cellule_s, 0.01) * float(distance_reelle), false)
+	return true
+
 func obtenir_direction_buffer() -> Vector2i:
 	return _direction_buffer if _temps_buffer_restant_s > 0.0 else Vector2i.ZERO
 
@@ -253,17 +282,19 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 	if _temps_deplacement_s < _duree_deplacement_s:
 		return
 	var etait_dash: bool = _en_dash
+	var etait_force: bool = _deplacement_force
 	joueur.global_position = position_cible
 	cellule_actuelle = cellule_cible
 	_en_deplacement = false
 	_en_dash = false
+	_deplacement_force = false
 	joueur.velocity = Vector2.ZERO
 	cellule_atteinte.emit(cellule_actuelle)
 	if etait_dash:
 		joueur.dash_t_restant_s = 0.0
 		dash_grille_termine.emit(cellule_actuelle)
 		_chemin_dash_debug.clear()
-	else:
+	elif not etait_force:
 		_appliquer_soif_distance(joueur, position_depart.distance_to(position_cible))
 
 func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur, direction_maintenue: Vector2i) -> void:
@@ -439,6 +470,7 @@ func _mettre_a_jour_recharge_dash(joueur: CharacterBody2D, stats: StatsJoueur, d
 func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
 	_en_deplacement = false
 	_en_dash = false
+	_deplacement_force = false
 	_temps_deplacement_s = 0.0
 	_duree_deplacement_s = 0.0
 	_direction_maintenue_precedente = Vector2i.ZERO
