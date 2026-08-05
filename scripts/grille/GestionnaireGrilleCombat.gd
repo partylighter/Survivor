@@ -69,9 +69,10 @@ func obtenir_slots_libres(cellule: Vector2i) -> Array[int]:
 func reserver_slot(cellule: Vector2i, index_slot: int, ennemi: Enemy) -> bool:
 	if ennemi == null or index_slot < 0 or index_slot >= offsets_slots.size():
 		return false
+	assurer_cellule_cachee(cellule)
 	var cle := _cle_slot(cellule, index_slot)
 	_nettoyer_cle_invalide(cle)
-	if _occupations.has(cle) or _reservations.has(cle):
+	if _slots_bloques.has(cle) or _occupations.has(cle) or _reservations.has(cle):
 		return false
 	_liberer_reservation_ennemi(ennemi)
 	_reservations[cle] = ennemi
@@ -174,6 +175,17 @@ func cellule_bloquee_ou_scanner(cellule: Vector2i) -> bool:
 
 func slot_bloque_cache(cellule: Vector2i, index_slot: int) -> bool:
 	return _slots_bloques.has(_cle_slot(cellule, index_slot))
+
+func invalider_cellule(cellule: Vector2i) -> void:
+	_cellules_scanees.erase(cellule)
+	_cellules_bloquees.erase(cellule)
+	for index_slot in range(offsets_slots.size()):
+		_slots_bloques.erase(_cle_slot(cellule, index_slot))
+
+func invalider_cache_obstacles() -> void:
+	_cellules_scanees.clear()
+	_cellules_bloquees.clear()
+	_slots_bloques.clear()
 
 func recalculer_champ(cellule_joueur: Vector2i) -> void:
 	if _champ_direction != null:

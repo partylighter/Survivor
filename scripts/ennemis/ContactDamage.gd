@@ -1,6 +1,8 @@
 extends Node
 class_name ContactDamage
 
+signal contact_reussi
+
 @export var degats_contact: int = 10
 @export var delai_entre_hits_s: float = 0.45
 @export var activation_radius_px: float = 900.0
@@ -129,6 +131,7 @@ func _physics_process(_dt: float) -> void:
 		if hit_accepte:
 			_appliquer_recul_joueur(player_hurtbox, ec)
 			_frames_since_hit = 0
+			contact_reussi.emit()
 			if debug_contact:
 				_dbg("HIT dmg=" + str(degats_contact))
 

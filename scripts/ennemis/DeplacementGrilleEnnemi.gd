@@ -13,10 +13,12 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_range(0.05, 2.0, 0.05) var multiplicateur_vitesse_grille: float = 0.35
 @export_range(0.0, 0.5, 0.01) var decalage_initial_max_s: float = 0.10
 @export_range(0, 8, 1) var distance_arret_cellules: int = 1
+@export_range(1, 4, 1) var nombre_slots_attaque_joueur: int = 2
 @export_range(0.01, 0.5, 0.01) var intervalle_decision_s: float = 0.05
 @export_range(0.0, 20.0, 0.5) var distance_snap_resynchronisation_px: float = 5.0
 @export_range(0.01, 0.3, 0.01) var duree_retour_grille_min_s: float = 0.05
-@export_range(0.01, 0.3, 0.01) var duree_retour_grille_max_s: float = 0.12
+@export_range(1.0, 2000.0, 1.0) var vitesse_retour_grille_px_s: float = 500.0
+@export_range(0.01, 0.5, 0.01) var duree_retour_grille_max_s: float = 0.35
 
 var cellule_actuelle: Vector2i = Vector2i.ZERO
 var cellule_cible: Vector2i = Vector2i.ZERO
@@ -37,6 +39,9 @@ var _temps_deplacement_s: float = 0.0
 var _attente_decision_s: float = 0.0
 var _attente_resynchronisation_s: float = 0.0
 var _initialise: bool = false
+var _engagement_contact_actif: bool = false
+var _contact_effectue: bool = false
+var _cellule_joueur_engagement: Vector2i = Vector2i.ZERO
 
 func _ready() -> void:
 	add_to_group("deplacement_grille_ennemi")
@@ -53,6 +58,8 @@ func activer(ennemi: Enemy) -> void:
 	_resoudre_gestionnaires()
 	if not est_actif_pour(ennemi):
 		return
+	if ennemi.contact_damage != null and not ennemi.contact_damage.contact_reussi.is_connected(_sur_contact_reussi):
+		ennemi.contact_damage.contact_reussi.connect(_sur_contact_reussi)
 	_desinscrire()
 	var cellule_spawn: Vector2i = _gestionnaire_grille.monde_vers_cellule(ennemi.global_position)
 	var choix: Dictionary = _trouver_slot_initial(cellule_spawn, ennemi.global_position)
@@ -114,7 +121,18 @@ func traiter(ennemi: Enemy, cible: Player, dt: float, vitesse: float, autoriser_
 	if not autoriser_decision or _attente_decision_s > 0.0 or cible == null or not is_instance_valid(cible):
 		return true
 	var cellule_joueur: Vector2i = _gestionnaire_grille.obtenir_cellule_joueur()
+	if _engagement_contact_actif:
+		if cellule_joueur != _cellule_joueur_engagement or cellule_actuelle != cellule_joueur:
+			_annuler_engagement_contact()
+		elif not _contact_effectue:
+			_attente_decision_s = intervalle_decision_s
+			return true
+		else:
+			_annuler_engagement_contact()
 	var distance_joueur: int = _distance_cellules(cellule_actuelle, cellule_joueur)
+	if distance_joueur == 1 and _essayer_entrer_cellule_attaque(ennemi, cellule_joueur, vitesse):
+		_attente_decision_s = intervalle_decision_s
+		return true
 	if distance_joueur > 0 and distance_joueur <= distance_arret_cellules:
 		if _position_en_portee_contact(ennemi, ennemi.global_position):
 			_attente_decision_s = intervalle_decision_s
@@ -153,6 +171,7 @@ func interrompre_pas_pour_recul(ennemi: Enemy) -> void:
 	position_depart = ennemi.global_position
 	position_cible = ennemi.global_position
 	ennemi.velocity = Vector2.ZERO
+	_annuler_engagement_contact()
 
 func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: float) -> void:
 	var candidats: Array[Dictionary] = []
@@ -168,7 +187,10 @@ func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: 
 			continue
 		if abs(direction.x) == 1 and abs(direction.y) == 1 and not _diagonale_accessible(direction):
 			continue
-		var slots: Array[int] = _gestionnaire_grille.obtenir_slots_libres(cellule)
+		var slots: Array[int] = []
+		for index_slot in _gestionnaire_grille.obtenir_slots_libres(cellule):
+			if _slot_respecte_lane(direction, index_slot):
+				slots.append(index_slot)
 		if slots.is_empty():
 			continue
 		var cout_champ: int = _gestionnaire_grille.obtenir_cout_champ(cellule)
@@ -184,6 +206,9 @@ func _choisir_et_demarrer_pas(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: 
 		slots_tries.sort_custom(func(a: int, b: int) -> bool:
 			return ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule, a)) < ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule, b)))
 		for index_slot in slots_tries:
+			var position_slot_candidat: Vector2 = _gestionnaire_grille.position_slot(cellule, index_slot)
+			if _mouvement_est_bloque(ennemi, position_slot_candidat - ennemi.global_position):
+				continue
 			if _gestionnaire_grille.reserver_slot(cellule, index_slot, ennemi):
 				_demarrer_pas(ennemi, cellule, index_slot, vitesse)
 				return
@@ -310,9 +335,7 @@ func _essayer_resynchroniser_apres_recul(ennemi: Enemy) -> void:
 		ennemi.global_position = position_cible
 		_terminer_retour_grille(ennemi, meme_slot)
 		return
-	var plage_distance: float = maxf(30.0 - distance_snap_resynchronisation_px, 0.001)
-	var progression_duree: float = clampf((distance - distance_snap_resynchronisation_px) / plage_distance, 0.0, 1.0)
-	duree_deplacement_s = lerpf(duree_retour_grille_min_s, duree_retour_grille_max_s, progression_duree)
+	duree_deplacement_s = clampf(distance / maxf(vitesse_retour_grille_px_s, 1.0), minf(duree_retour_grille_min_s, duree_retour_grille_max_s), maxf(duree_retour_grille_min_s, duree_retour_grille_max_s))
 	_temps_deplacement_s = 0.0
 	progression_deplacement = 0.0
 	retour_grille_actif = true
@@ -365,6 +388,8 @@ func _essayer_rejoindre_slot_contact(ennemi: Enemy, vitesse: float) -> bool:
 		var position: Vector2 = _gestionnaire_grille.position_slot(cellule_actuelle, index_slot)
 		if not _position_en_portee_contact(ennemi, position):
 			continue
+		if _mouvement_est_bloque(ennemi, position - ennemi.global_position):
+			continue
 		if _gestionnaire_grille.reserver_slot(cellule_actuelle, index_slot, ennemi):
 			_demarrer_pas(ennemi, cellule_actuelle, index_slot, vitesse)
 			return true
@@ -372,6 +397,51 @@ func _essayer_rejoindre_slot_contact(ennemi: Enemy, vitesse: float) -> bool:
 
 func _position_en_portee_contact(ennemi: Enemy, position: Vector2) -> bool:
 	return ennemi.contact_damage != null and ennemi.contact_damage.position_en_portee_contact(position)
+
+func _essayer_entrer_cellule_attaque(ennemi: Enemy, cellule_joueur: Vector2i, vitesse: float) -> bool:
+	if _gestionnaire_grille.obtenir_nombre_slots_utilises(cellule_joueur) >= nombre_slots_attaque_joueur:
+		return false
+	var direction: Vector2i = cellule_joueur - cellule_actuelle
+	var slots: Array[int] = _gestionnaire_grille.obtenir_slots_libres(cellule_joueur)
+	slots.sort_custom(func(a: int, b: int) -> bool:
+		return ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule_joueur, a)) < ennemi.global_position.distance_squared_to(_gestionnaire_grille.position_slot(cellule_joueur, b)))
+	for index_slot in slots:
+		if not _slot_respecte_lane(direction, index_slot):
+			continue
+		var position: Vector2 = _gestionnaire_grille.position_slot(cellule_joueur, index_slot)
+		if _mouvement_est_bloque(ennemi, position - ennemi.global_position):
+			continue
+		if _gestionnaire_grille.reserver_slot(cellule_joueur, index_slot, ennemi):
+			_engagement_contact_actif = true
+			_contact_effectue = false
+			_cellule_joueur_engagement = cellule_joueur
+			_demarrer_pas(ennemi, cellule_joueur, index_slot, vitesse)
+			return true
+	return false
+
+func _slot_respecte_lane(direction: Vector2i, index_slot_cible: int) -> bool:
+	if diagonales_autorisees or slot_actuel < 0 or slot_actuel >= _gestionnaire_grille.offsets_slots.size():
+		return true
+	if index_slot_cible < 0 or index_slot_cible >= _gestionnaire_grille.offsets_slots.size():
+		return false
+	if direction == Vector2i.ZERO or abs(direction.x) == 1 and abs(direction.y) == 1:
+		return true
+	var offset_actuel: Vector2 = _gestionnaire_grille.offsets_slots[slot_actuel]
+	var offset_cible: Vector2 = _gestionnaire_grille.offsets_slots[index_slot_cible]
+	if direction.x != 0:
+		return is_equal_approx(offset_actuel.y, offset_cible.y)
+	if direction.y != 0:
+		return is_equal_approx(offset_actuel.x, offset_cible.x)
+	return true
+
+func _sur_contact_reussi() -> void:
+	if _engagement_contact_actif:
+		_contact_effectue = true
+
+func _annuler_engagement_contact() -> void:
+	_engagement_contact_actif = false
+	_contact_effectue = false
+	_cellule_joueur_engagement = Vector2i.ZERO
 
 func _diagonale_accessible(direction: Vector2i) -> bool:
 	return not _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule_actuelle + Vector2i(direction.x, 0)) and not _gestionnaire_grille.cellule_bloquee_ou_scanner(cellule_actuelle + Vector2i(0, direction.y))
@@ -398,3 +468,4 @@ func _desinscrire() -> void:
 	slot_actuel = -1
 	slot_cible = -1
 	_initialise = false
+	_annuler_engagement_contact()
