@@ -32,34 +32,7 @@ func actualiser_activation_deplacement_grille(actif: bool) -> void:
 func actualiser_mode_deplacement_grille() -> void:
 	actualiser_activation_deplacement_grille(is_physics_processing() and is_alive())
 
-func _tick_ia_alterne(dt: float) -> void:
-	_mettre_a_jour_etat_recul_grille(dt)
-
-func _mettre_a_jour_etat_recul_grille(dt: float) -> void:
-	_recul_lock_t = maxf(_recul_lock_t - dt, 0.0)
-	_pousse_lock_t = maxf(_pousse_lock_t - dt, 0.0)
-	var seuil_recul: float = maxf(recul_seuil_blocage_px, 1.0)
-	var seuil_pousse: float = maxf(pousse_seuil_blocage_px, 1.0)
-	var recul_actif: bool = recul_bloque_chase and (
-		_recul_lock_t > 0.0 or recul.length_squared() >= seuil_recul * seuil_recul)
-	var pousse_active: bool = _pousse_lock_t > 0.0 or pousse.length_squared() >= seuil_pousse * seuil_pousse
-	var bloc_actif: bool = recul_actif or pousse_active
-	_bloc_actif_prev = bloc_actif
-	_vel_mouvement = Vector2.ZERO
-	if bloc_actif:
-		if _state == State.ALIVE:
-			_state = State.STUNNED
-	elif _state == State.STUNNED:
-		_state = State.ALIVE
-
-func _maj_base_vel(_dt: float) -> void:
-	pass
-
-func _bloquer_entree_base(_dt: float) -> void:
-	pass
-
 func _appliquer_deplacement(dt: float) -> void:
-	_vel_mouvement = Vector2.ZERO
 	if _state == State.DYING or _state == State.DEAD:
 		velocity = Vector2.ZERO
 		return
