@@ -77,6 +77,7 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	_mettre_a_jour_temps_buffers(dt)
 	_mettre_a_jour_direction_dash_a_relacher()
 	var direction_maintenue: Vector2i = _obtenir_direction_entree()
+	var direction_dash_maintenue: Vector2i = _obtenir_direction_entree(true)
 	var direction_juste_appuyee: Vector2i = _obtenir_direction_juste_appuyee(direction_maintenue)
 	_mettre_a_jour_maintien(direction_maintenue, dt)
 	if _en_deplacement:
@@ -89,7 +90,7 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 			_consomme_entree_apres_arrivee(joueur, stats, direction_maintenue)
 		return
 	joueur.velocity = Vector2.ZERO
-	if Input.is_action_just_pressed("dash") and _essayer_demarrer_dash(joueur, stats, direction_maintenue):
+	if Input.is_action_just_pressed("dash") and _essayer_demarrer_dash(joueur, stats, direction_dash_maintenue):
 		return
 	if direction_juste_appuyee != Vector2i.ZERO:
 		_essayer_demarrer_pas(joueur, stats, direction_juste_appuyee)
@@ -242,7 +243,7 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direct
 		return false
 	if not joueur.dash_infini_actif and joueur.dash_charges_actuelles <= 0:
 		return false
-	var direction: Vector2i = _limiter_direction(direction_entree)
+	var direction: Vector2i = _limiter_direction_dash(direction_entree)
 	var controleur: GestionDeplacementJoueur = _obtenir_controleur(joueur)
 	if direction == Vector2i.ZERO and controleur != null and controleur.dash_autorise_sans_direction():
 		direction = _direction_derniere
@@ -331,7 +332,7 @@ func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur,
 	direction_maintenue = _filtrer_direction_dash_a_relacher(direction_maintenue)
 	if _dash_en_buffer and _temps_dash_buffer_restant_s > 0.0:
 		_dash_en_buffer = false
-		if _essayer_demarrer_dash(joueur, stats, direction_maintenue):
+		if _essayer_demarrer_dash(joueur, stats, _obtenir_direction_entree(true)):
 			return
 	if _direction_buffer != Vector2i.ZERO and _temps_buffer_restant_s > 0.0:
 		var direction: Vector2i = _direction_buffer
@@ -402,13 +403,15 @@ func _appliquer_courbe_interpolation(t: float) -> float:
 		return progression
 	return progression * progression * (3.0 - 2.0 * progression)
 
-func _obtenir_direction_entree() -> Vector2i:
+func _obtenir_direction_entree(autoriser_diagonale: bool = false) -> Vector2i:
 	var droite_appuyee: bool = Input.get_action_strength("droite") > 0.0 and _direction_dash_a_relacher.x != 1
 	var gauche_appuyee: bool = Input.get_action_strength("gauche") > 0.0 and _direction_dash_a_relacher.x != -1
 	var bas_appuye: bool = Input.get_action_strength("bas") > 0.0 and _direction_dash_a_relacher.y != 1
 	var haut_appuye: bool = Input.get_action_strength("haut") > 0.0 and _direction_dash_a_relacher.y != -1
 	var x: int = int(droite_appuyee) - int(gauche_appuyee)
 	var y: int = int(bas_appuye) - int(haut_appuye)
+	if autoriser_diagonale:
+		return Vector2i(x, y)
 	return _limiter_direction(Vector2i(x, y))
 
 func _mettre_a_jour_direction_dash_a_relacher() -> void:
@@ -447,6 +450,9 @@ func _limiter_direction(direction: Vector2i) -> Vector2i:
 	if abs(direction.x) >= abs(direction.y):
 		return Vector2i(limitee.x, 0)
 	return Vector2i(0, limitee.y)
+
+func _limiter_direction_dash(direction: Vector2i) -> Vector2i:
+	return Vector2i(clampi(direction.x, -1, 1), clampi(direction.y, -1, 1))
 
 func _mettre_a_jour_maintien(direction: Vector2i, dt: float) -> void:
 	if direction == Vector2i.ZERO or not maintien_touche_actif:

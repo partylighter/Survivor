@@ -14,6 +14,7 @@ const DIRECTIONS_DIAGONALES: Array[Vector2i] = [Vector2i(-1, -1), Vector2i(1, -1
 @export_range(0.01, 2.0, 0.01) var duree_pas_max_s: float = 0.60
 @export_range(0.0, 0.5, 0.01) var decalage_initial_max_s: float = 0.10
 @export_range(0.01, 0.5, 0.01) var intervalle_decision_s: float = 0.05
+@export_range(0, 20, 1) var distance_arret_joueur_cellules: int = 1
 
 @export_group("Retour après recul")
 @export_range(0.0, 20.0, 0.5) var distance_snap_resynchronisation_px: float = 5.0
@@ -55,6 +56,7 @@ var _charge_active: bool = false
 var _temps_charge_s: float = 0.0
 var _duree_charge_s: float = 0.0
 var _attente_charge_s: float = 0.0
+var _charge_armee: bool = true
 var _direction_charge: Vector2i = Vector2i.ZERO
 var _cles_couloir_charge: Array[Vector3i] = []
 
@@ -144,14 +146,12 @@ func traiter(ennemi: Enemy, cible: Player, position_cible_monde: Vector2, dt: fl
 		return true
 	var cellule_destination: Vector2i = _gestionnaire_grille.monde_vers_cellule(position_cible_monde)
 	var distance_destination: int = _distance_cellules(cellule_actuelle, cellule_destination)
-	if distance_destination == 0:
-		if cible_est_joueur:
-			_choisir_et_demarrer_pas(ennemi, cellule_destination, 1, true)
-		_attente_decision_s = intervalle_decision_s
+	if not _charge_armee and distance_destination > maxi(portee_charge_cellules, 1):
+		_charge_armee = true
+	if charge_activee and _charge_armee and cible_est_joueur and _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_destination):
 		return true
-	if charge_activee and cible_est_joueur and _attente_charge_s <= 0.0 and _essayer_demarrer_charge(ennemi, cellule_destination):
-		return true
-	_choisir_et_demarrer_pas(ennemi, cellule_destination, -1, cible_est_joueur)
+	var distance_arret: int = maxi(distance_arret_joueur_cellules, 0)
+	_choisir_et_demarrer_pas(ennemi, cellule_destination, distance_arret if cible_est_joueur else -1, cible_est_joueur and distance_arret > 0)
 	_attente_decision_s = intervalle_decision_s
 	return true
 
@@ -503,6 +503,7 @@ func _demarrer_charge(ennemi: Enemy, cellule_destination: Vector2i, index_slot: 
 	_duree_charge_s = maxf(duree_charge_par_cellule_s * float(maxi(distance_cellules, 1)), 0.001)
 	_direction_charge = direction
 	_charge_active = true
+	_charge_armee = false
 	cellule_ennemi_quittee.emit(ennemi, cellule_actuelle)
 
 func _avancer_charge(ennemi: Enemy, cible: Player, dt: float) -> void:
@@ -614,6 +615,7 @@ func _desinscrire() -> void:
 	progression_deplacement = 0.0
 	_attente_resynchronisation_s = 0.0
 	_attente_charge_s = 0.0
+	_charge_armee = true
 	slot_actuel = -1
 	slot_cible = -1
 	_initialise = false
