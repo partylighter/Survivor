@@ -41,6 +41,7 @@ window/stretch/aspect="expand"
 [global_group]
 
 esprit_sixieme_oeil="Tous les objets visibles uniquement avec le sixième œil"
+masque_sixieme_oeil="son parent reste visible normalement, puis disparaît lorsque le sixième œil est actif"
 
 [gui]
 

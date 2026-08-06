@@ -1469,5 +1469,8 @@ metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
 
 [node name="EffetSixiemeOeil" type="Node" parent="." unique_id=123023891]
 script = ExtResource("51_yowl1")
-intensite_active = 1.1
+intensite_active_min = 1.0
+intensite_active_max = 1.1
+intensite_outro = 0.02
+duree_transition_outro_s = 1.0
 metadata/_custom_type_script = "uid://da3e3idvm5epf"

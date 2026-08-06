@@ -13,6 +13,7 @@
 [ext_resource type="Texture2D" uid="uid://egwyi5t42sn8" path="res://assets/niveaux/la_forge/tileset-placeholder.png" id="12_374tm"]
 [ext_resource type="PackedScene" uid="uid://bdfrei2hwkch7" path="res://scenes/ennemis/enemy_c_test_heritage_de_script.tscn" id="12_fragment"]
 [ext_resource type="Script" uid="uid://da3e3idvm5epf" path="res://scripts/joueur/EffetSixiemeOeil.gd" id="13_374tm"]
+[ext_resource type="Script" uid="uid://euferwsj0in1" path="res://scripts/joueur/EffetMasquageSixiemeOeil.gd" id="13_ro0gy"]
 
 [sub_resource type="Resource" id="ZoneSelectionPresentation"]
 script = ExtResource("6_zone_definition")
@@ -184,11 +185,15 @@ cible_debut_traque = NodePath("../ParcoursSelection/CibleDebutTraque")
 spawn_fragment_1 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment1")
 spawn_fragment_2 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment2")
 
-[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2137543095 groups=["esprit_sixieme_oeil"]]
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2137543095 groups=["esprit_sixieme_oeil", "masque_sixieme_oeil"]]
 z_index = -117
 scale = Vector2(9.22, 9.22)
 tile_map_data = PackedByteArray("AACS/xcAAAAAAAEAAAD3//3/AAABAAEAAAD2//3/AAACAAEAAAD1//3/AAABAAEAAAD0//3/AAACAAEAAADz//3/AAABAAEAAADy//3/AAACAAEAAADx//3/AAABAAEAAADw//3/AAACAAEAAADz//7/AAACAAEAAAD0//7/AAABAAEAAAD1//7/AAACAAEAAADy//7/AAABAAEAAADx//7/AAACAAEAAADw//7/AAABAAEAAADw////AAACAAEAAADx////AAABAAEAAADy/wAAAAABAAEAAADz/wAAAAACAAEAAAD0/wAAAAABAAEAAAD1/wAAAAACAAEAAAD1////AAABAAEAAAD0////AAACAAEAAADz////AAABAAEAAADy////AAACAAEAAADx/wAAAAACAAEAAADw/wAAAAABAAEAAAD1/wEAAAABAAEAAAD0/wEAAAACAAEAAADz/wEAAAABAAEAAADy/wEAAAACAAEAAADx/wEAAAABAAEAAADw/wEAAAACAAEAAADw/wIAAAABAAEAAADx/wIAAAACAAEAAADy/wIAAAABAAEAAADz/wIAAAACAAEAAAD1/wIAAAACAAEAAAD0/wIAAAABAAEAAADw/wMAAAACAAEAAADx/wMAAAABAAEAAADy/wMAAAACAAEAAADz/wMAAAABAAEAAAD0/wMAAAACAAEAAAD1/wMAAAABAAEAAADx/wQAAAACAAEAAADw/wQAAAABAAEAAADy/wQAAAABAAEAAADz/wQAAAACAAEAAAD0/wQAAAABAAEAAAD1/wQAAAACAAEAAAD2/wMAAAACAAEAAAD2/wIAAAABAAEAAAD2/wEAAAACAAEAAAD2/wAAAAABAAEAAAD2////AAACAAEAAAD2//7/AAABAAEAAAD3//7/AAACAAEAAAD3////AAABAAEAAAD3/wAAAAACAAEAAAD3/wEAAAABAAEAAAD3/wIAAAACAAEAAAD4/wIAAAABAAEAAAD4/wEAAAACAAEAAAD4/wAAAAABAAEAAAD4////AAACAAEAAAD4//7/AAABAAEAAAD4//3/AAACAAEAAAD2/wQAAAABAAEAAAD3/wMAAAABAAEAAAD3/wQAAAACAAEAAAD4/wMAAAACAAEAAAD4/wQAAAABAAEAAAA=")
 tile_set = SubResource("TileSet_eiucn")
+
+[node name="EffetMasquageSixiemeOeil" type="Node" parent="TileMapLayer" unique_id=1465271790]
+script = ExtResource("13_ro0gy")
+metadata/_custom_type_script = "uid://euferwsj0in1"
 
 [node name="EnemyC" parent="." unique_id=1359294128 instance=ExtResource("12_fragment")]
 position = Vector2(-1576, 734)
@@ -197,6 +202,8 @@ position = Vector2(-1576, 734)
 script = ExtResource("13_374tm")
 intensite_intro = 2.0
 duree_transition_intro_s = 0.4
-intensite_active = 1.2
-intensite_outro = 2.0
+intensite_active_min = 1.0
+intensite_active_max = 1.1
+intensite_outro = 0.5
+duree_transition_outro_s = 0.4
 metadata/_custom_type_script = "uid://da3e3idvm5epf"

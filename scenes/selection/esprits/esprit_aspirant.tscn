@@ -1,10 +1,32 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://xwua5wtk153c"]
 
-[ext_resource type="Script" path="res://scripts/selection/esprits/EspritAspirant.gd" id="1_esprit"]
+[ext_resource type="Script" uid="uid://dydni6ggfujdu" path="res://scripts/selection/esprits/EspritAspirant.gd" id="1_esprit"]
+[ext_resource type="Shader" uid="uid://cgdctlrnu51wl" path="res://scenes/selection/esprits/mouvement_insecte.gdshader" id="2_jlft4"]
+[ext_resource type="Script" uid="uid://da3e3idvm5epf" path="res://scripts/joueur/EffetSixiemeOeil.gd" id="3_qevcq"]
 
-[node name="EspritAspirant" type="Node2D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_reige"]
+shader = ExtResource("2_jlft4")
+shader_parameter/vitesse = 3.0
+shader_parameter/amplitude_x = 50.0
+shader_parameter/amplitude_y = 50.0
+shader_parameter/agitation_x = 2.0
+shader_parameter/agitation_y = 1.5
+shader_parameter/rotation_max = 0.08
+
+[node name="EspritAspirant" type="Node2D" unique_id=1612474834 groups=["esprit_sixieme_oeil"]]
 script = ExtResource("1_esprit")
 
-[node name="Visuel" type="Polygon2D" parent="."]
+[node name="Visuel" type="Polygon2D" parent="." unique_id=2137132598]
+material = SubResource("ShaderMaterial_reige")
 color = Color(0.42, 0.92, 1, 0.9)
 polygon = PackedVector2Array(0, -18, 18, 0, 0, 18, -18, 0)
+
+[node name="EffetSixiemeOeil" type="Node" parent="." unique_id=1423403273]
+script = ExtResource("3_qevcq")
+intensite_intro = 2.0
+duree_transition_intro_s = 0.4
+intensite_active_min = 1.0
+intensite_active_max = 1.1
+intensite_outro = 0.5
+duree_transition_outro_s = 0.4
+metadata/_custom_type_script = "uid://da3e3idvm5epf"
