@@ -1,5 +1,6 @@
-[gd_scene format=3 uid="uid://ceaut1y1jtphw"]
+[gd_scene format=4 uid="uid://ceaut1y1jtphw"]
 
+[ext_resource type="Script" uid="uid://cwclgynu76vq1" path="res://scripts/joueur/base/CamPlayer.gd" id="2_5b0rd"]
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="2_rjaih"]
 [ext_resource type="PackedScene" uid="uid://c4frvi1p85wxd" path="res://scenes/gestionnaires/en_jeu/gestionnaire_enemies.tscn" id="4_gestionnaire_ennemis"]
 [ext_resource type="Script" uid="uid://1j4gtocrueg1" path="res://scripts/monde/GestionnaireZones.gd" id="5_gestionnaire_zones"]
@@ -9,8 +10,9 @@
 [ext_resource type="Script" uid="uid://ccyb2aboe7mwr" path="res://scripts/selection/esprits/GestionnaireEspritsAspirant.gd" id="9_gestionnaire_esprits"]
 [ext_resource type="PackedScene" path="res://scenes/selection/esprits/esprit_aspirant.tscn" id="10_esprit"]
 [ext_resource type="PackedScene" path="res://scenes/selection/mauvais_esprit_selection.tscn" id="11_mauvais_esprit"]
-[ext_resource type="Script" uid="uid://kg0w3frmubyg" path="res://scripts/niveaux/ZoneCameraForge.gd" id="12_5b0rd"]
+[ext_resource type="Texture2D" uid="uid://egwyi5t42sn8" path="res://assets/niveaux/la_forge/tileset-placeholder.png" id="12_374tm"]
 [ext_resource type="PackedScene" uid="uid://bdfrei2hwkch7" path="res://scenes/ennemis/enemy_c_test_heritage_de_script.tscn" id="12_fragment"]
+[ext_resource type="Script" uid="uid://da3e3idvm5epf" path="res://scripts/joueur/EffetSixiemeOeil.gd" id="13_374tm"]
 
 [sub_resource type="Resource" id="ZoneSelectionPresentation"]
 script = ExtResource("6_zone_definition")
@@ -40,15 +42,47 @@ apparitions_par_sec = 0.0
 max_ennemis_zone = 0
 poids = PackedFloat32Array()
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_eiucn"]
-size = Vector2(5000, 2000)
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ro0gy"]
+texture = ExtResource("12_374tm")
+texture_region_size = Vector2i(24, 24)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+2:1/0 = 0
+2:0/0 = 0
+1:2/0 = 0
+0:2/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_eiucn"]
+tile_size = Vector2i(24, 24)
+sources/0 = SubResource("TileSetAtlasSource_ro0gy")
 
 [node name="LaSelection" type="Node2D" unique_id=1745261154]
 
 [node name="la selection" type="Node2D" parent="." unique_id=1826431829]
 
 [node name="Archere" parent="." unique_id=783124346 instance=ExtResource("2_rjaih")]
+modulate = Color(1.3945211, 1.3945211, 1.3945211, 1)
 position = Vector2(-2629, 474)
+
+[node name="Camera2D" type="Camera2D" parent="Archere" unique_id=53051854]
+limit_left = -100000000
+limit_top = -1700
+limit_right = 100000000
+limit_bottom = 1700
+script = ExtResource("2_5b0rd")
+chemin_joueur = NodePath("..")
+look_ahead_sol_px = 170.0
+look_ahead_grille_px = -85.0
+mouse_look_sol_px = 200.0
+mouse_influence_y = 2.0
+max_offset_px = 2000.0
+intensite_camera_deplacement = 0.86
+recul_dash_camera_px = 260.0
+duree_recul_dash_s = 0.21
+shake_per_damage_px = 2.0
+shake_min_damage_for_full = 96.0
 
 [node name="Gestionnaire Enemies" parent="." unique_id=1629525758 node_paths=PackedStringArray("gestionnaire_zones") instance=ExtResource("4_gestionnaire_ennemis")]
 chemin_joueur = NodePath("../Archere")
@@ -78,7 +112,7 @@ script = ExtResource("5_gestionnaire_zones")
 zones = Array[ExtResource("6_zone_definition")]([SubResource("ZoneSelectionPresentation"), SubResource("ZoneSelectionPremierePoursuite"), SubResource("ZoneSelectionDebutTraque")])
 gestionnaire_ennemis = NodePath("../Gestionnaire Enemies")
 debug_draw = true
-debug_draw_couleur_zone_active = Color(1, 0.74666667, 0.19999999, 0.019607844)
+debug_draw_couleur_zone_active = Color(1, 0.74666667, 0.19999999, 0.003921569)
 
 [node name="Selection" type="Node2D" parent="." unique_id=454437746]
 
@@ -150,40 +184,19 @@ cible_debut_traque = NodePath("../ParcoursSelection/CibleDebutTraque")
 spawn_fragment_1 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment1")
 spawn_fragment_2 = NodePath("../ParcoursSelection/SpawnsPremierePoursuite/SpawnFragment2")
 
-[node name="zones_cameras" type="Node2D" parent="." unique_id=1569619932]
-script = ExtResource("12_5b0rd")
-chemin_joueur = NodePath("../Archere")
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=2137543095 groups=["esprit_sixieme_oeil"]]
+z_index = -117
+scale = Vector2(9.22, 9.22)
+tile_map_data = PackedByteArray("AACS/xcAAAAAAAEAAAD3//3/AAABAAEAAAD2//3/AAACAAEAAAD1//3/AAABAAEAAAD0//3/AAACAAEAAADz//3/AAABAAEAAADy//3/AAACAAEAAADx//3/AAABAAEAAADw//3/AAACAAEAAADz//7/AAACAAEAAAD0//7/AAABAAEAAAD1//7/AAACAAEAAADy//7/AAABAAEAAADx//7/AAACAAEAAADw//7/AAABAAEAAADw////AAACAAEAAADx////AAABAAEAAADy/wAAAAABAAEAAADz/wAAAAACAAEAAAD0/wAAAAABAAEAAAD1/wAAAAACAAEAAAD1////AAABAAEAAAD0////AAACAAEAAADz////AAABAAEAAADy////AAACAAEAAADx/wAAAAACAAEAAADw/wAAAAABAAEAAAD1/wEAAAABAAEAAAD0/wEAAAACAAEAAADz/wEAAAABAAEAAADy/wEAAAACAAEAAADx/wEAAAABAAEAAADw/wEAAAACAAEAAADw/wIAAAABAAEAAADx/wIAAAACAAEAAADy/wIAAAABAAEAAADz/wIAAAACAAEAAAD1/wIAAAACAAEAAAD0/wIAAAABAAEAAADw/wMAAAACAAEAAADx/wMAAAABAAEAAADy/wMAAAACAAEAAADz/wMAAAABAAEAAAD0/wMAAAACAAEAAAD1/wMAAAABAAEAAADx/wQAAAACAAEAAADw/wQAAAABAAEAAADy/wQAAAABAAEAAADz/wQAAAACAAEAAAD0/wQAAAABAAEAAAD1/wQAAAACAAEAAAD2/wMAAAACAAEAAAD2/wIAAAABAAEAAAD2/wEAAAACAAEAAAD2/wAAAAABAAEAAAD2////AAACAAEAAAD2//7/AAABAAEAAAD3//7/AAACAAEAAAD3////AAABAAEAAAD3/wAAAAACAAEAAAD3/wEAAAABAAEAAAD3/wIAAAACAAEAAAD4/wIAAAABAAEAAAD4/wEAAAACAAEAAAD4/wAAAAABAAEAAAD4////AAACAAEAAAD4//7/AAABAAEAAAD4//3/AAACAAEAAAD2/wQAAAABAAEAAAD3/wMAAAABAAEAAAD3/wQAAAACAAEAAAD4/wMAAAACAAEAAAD4/wQAAAABAAEAAAA=")
+tile_set = SubResource("TileSet_eiucn")
 
-[node name="ZoneCamera1" type="Area2D" parent="zones_cameras" unique_id=1122430548]
+[node name="EnemyC" parent="." unique_id=1359294128 instance=ExtResource("12_fragment")]
+position = Vector2(-1576, 734)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera1" unique_id=1501898612]
-position = Vector2(-1891, 453)
-shape = SubResource("RectangleShape2D_eiucn")
-
-[node name="ZoneCamera2" type="Area2D" parent="zones_cameras" unique_id=2070344876]
-position = Vector2(5043, -10)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera2" unique_id=1769360823]
-position = Vector2(-1891, 453)
-shape = SubResource("RectangleShape2D_eiucn")
-
-[node name="ZoneCamera3" type="Area2D" parent="zones_cameras" unique_id=1002664601]
-position = Vector2(10080, 0)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="zones_cameras/ZoneCamera3" unique_id=206993524]
-position = Vector2(-1891, 453)
-shape = SubResource("RectangleShape2D_eiucn")
-
-[node name="Cameras" type="Node2D" parent="." unique_id=1029240723]
-
-[node name="Camera2D" type="Camera2D" parent="Cameras" unique_id=1565848584]
-position = Vector2(-2263, 456)
-zoom = Vector2(0.505, 0.505)
-
-[node name="Camera2D2" type="Camera2D" parent="Cameras" unique_id=43404525]
-position = Vector2(2992, 456)
-zoom = Vector2(0.505, 0.505)
-
-[node name="Camera2D3" type="Camera2D" parent="Cameras" unique_id=1810174302]
-position = Vector2(8078, 386)
-zoom = Vector2(0.505, 0.505)
+[node name="EffetSixiemeOeil" type="Node" parent="." unique_id=22012100]
+script = ExtResource("13_374tm")
+intensite_intro = 2.0
+duree_transition_intro_s = 0.4
+intensite_active = 1.2
+intensite_outro = 2.0
+metadata/_custom_type_script = "uid://da3e3idvm5epf"

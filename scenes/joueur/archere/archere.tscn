@@ -48,6 +48,7 @@
 [ext_resource type="Resource" uid="uid://d3vm77vwa5md7" path="res://ressources/items/composants/renfort_arc.tres" id="42_renfort_arc"]
 [ext_resource type="Script" uid="uid://m8whpvadso2h" path="res://scripts/joueur/DeplacementGrilleJoueur.gd" id="50_grille"]
 [ext_resource type="Script" uid="uid://omo6aa2h56wg" path="res://scripts/joueur/DebugGrilleJoueur.gd" id="51_debug_grille"]
+[ext_resource type="Script" uid="uid://da3e3idvm5epf" path="res://scripts/joueur/EffetSixiemeOeil.gd" id="51_yowl1"]
 [ext_resource type="Script" uid="uid://dhf6287kavpay" path="res://scripts/grille/GestionnaireGrilleCombat.gd" id="52_grille_combat"]
 [ext_resource type="Script" uid="uid://biv2pkancwadd" path="res://scripts/grille/ChampDirectionGrille.gd" id="53_champ_direction"]
 
@@ -1465,3 +1466,8 @@ ui_position = Vector2(16, 450)
 ui_couleur_fond = Color(0, 0, 0, 1)
 ui_couleur_texte = Color(1, 0, 1, 1)
 metadata/_custom_type_script = "uid://c3p8dtpg1k02r"
+
+[node name="EffetSixiemeOeil" type="Node" parent="." unique_id=123023891]
+script = ExtResource("51_yowl1")
+intensite_active = 1.1
+metadata/_custom_type_script = "uid://da3e3idvm5epf"

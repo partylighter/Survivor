@@ -5,11 +5,12 @@
 [ext_resource type="Script" uid="uid://dckl6i06hmi3g" path="res://scripts/utilitaires/santé.gd" id="3_q4nmw"]
 [ext_resource type="Script" uid="uid://cp87fy13f23lc" path="res://scripts/utilitaires/hurtbox.gd" id="4_1eiqn"]
 [ext_resource type="Script" uid="uid://bhyu51o3c77bt" path="res://scripts/ennemis/DeplacementGrilleEnnemi.gd" id="6_grille_ennemi"]
+[ext_resource type="Script" uid="uid://da3e3idvm5epf" path="res://scripts/joueur/EffetSixiemeOeil.gd" id="6_wyoti"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1y4wy"]
 radius = 122.44
 
-[node name="EnemyC" type="CharacterBody2D" unique_id=1359294128]
+[node name="EnemyC" type="CharacterBody2D" unique_id=1359294128 groups=["esprit_sixieme_oeil"]]
 collision_layer = 64
 collision_mask = 0
 script = ExtResource("1_ic1sw")
@@ -54,3 +55,9 @@ charge_activee = true
 duree_charge_par_cellule_s = 0.2
 delai_entre_charges_s = 0.2
 recul_joueur_cellules = 3
+
+[node name="EffetSixiemeOeil" type="Node" parent="." unique_id=999210409]
+script = ExtResource("6_wyoti")
+intensite_active = 1.2
+duree_transition_s = 1.0
+metadata/_custom_type_script = "uid://da3e3idvm5epf"

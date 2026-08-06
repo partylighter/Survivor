@@ -38,6 +38,10 @@ window/size/viewport_height=720
 window/stretch/mode="viewport"
 window/stretch/aspect="expand"
 
+[global_group]
+
+esprit_sixieme_oeil="Tous les objets visibles uniquement avec le sixième œil"
+
 [gui]
 
 theme/default_font_antialiasing=2
