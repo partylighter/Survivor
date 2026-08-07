@@ -15,6 +15,9 @@ func initialiser(deplacement_grille: GestionDeplacementGrilleJoueur) -> void:
 	cellule = deplacement_grille.monde_vers_cellule(position_logique)
 	_initialise = true
 
+func initialiser_parcours(_gestionnaire) -> void:
+	pass
+
 func est_initialise() -> bool:
 	return _initialise
 
