@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=4]
 
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="1_archere"]
 [ext_resource type="Script" path="res://scripts/parcours/GestionnaireParcoursGrille.gd" id="2_gestionnaire"]
