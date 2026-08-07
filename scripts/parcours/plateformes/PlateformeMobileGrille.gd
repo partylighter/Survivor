@@ -30,8 +30,8 @@ var _temps_segment_s: float = 0.0
 var _attente_restant_s: float = 0.0
 var _en_deplacement: bool = false
 
-func initialiser_parcours(gestionnaire: GestionnaireParcoursGrille) -> void:
-	_gestionnaire = gestionnaire
+func initialiser_parcours(gestionnaire) -> void:
+	_gestionnaire = gestionnaire as GestionnaireParcoursGrille
 	if _gestionnaire == null:
 		return
 	_deplacement_grille = _gestionnaire.deplacement_grille
