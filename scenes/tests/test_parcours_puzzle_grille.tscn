@@ -35,7 +35,7 @@ size = Vector2(325, 325)
 position = Vector2(1370, -893)
 
 [node name="Camera2D" type="Camera2D" parent="Archere" unique_id=1491297280]
-zoom = Vector2(0.655, 0.655)
+zoom = Vector2(0.6, 0.6)
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
 
@@ -44,8 +44,8 @@ position_smoothing_speed = 7.0
 [node name="Parcours" type="Node2D" parent="." unique_id=655074499]
 
 [node name="SolParcours" type="TileMapLayer" parent="Parcours" unique_id=1029724018]
-position = Vector2(-162.5, -162.5)
 modulate = Color(1, 1, 1, 0.72)
+position = Vector2(-162.5, -162.5)
 tile_map_data = PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAABAAAAAAAAAAAAAAABAP//AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAABAP7/AAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAD//wIAAAAAAAAAAAAAAAIAAAAAAAAAAAABAAIAAAAAAAAAAAABAP3/AAAAAAAAAAAAAP3/AAAAAAAAAAD///3/AAAAAAAAAAD+//7/AAAAAAAAAAD+////AAAAAAAAAAD+//3/AAAAAAAAAAD+/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD+/wIAAAAAAAAAAAADAP3/AAAAAAAAAAADAP//AAAAAAAAAAADAAAAAAAAAAAAAAAEAP3/AAAAAAAAAAAEAP//AAAAAAAAAAAEAAAAAAAAAAAAAAAGAP//AAAAAAAAAAAGAAAAAAAAAAAAAAAGAAEAAAAAAAAAAAAHAP//AAAAAAAAAAAHAAAAAAAAAAAAAAAIAP//AAAAAAAAAAAIAAAAAAAAAAAAAAAJAP//AAAAAAAAAAAJAAAAAAAAAAAAAAAJAAEAAAAAAAAAAAAKAP//AAAAAAAAAAAKAAAAAAAAAAAAAAAKAAEAAAAAAAAAAAALAP//AAAAAAAAAAALAAAAAAAAAAAAAAALAAEAAAAAAAAAAAAMAP7/AAAAAAAAAAAMAP//AAAAAAAAAAAMAAAAAAAAAAAAAAAMAAEAAAAAAAAAAAANAP7/AAAAAAAAAAANAP//AAAAAAAAAAANAAAAAAAAAAAAAAANAAEAAAAAAAAAAAAOAP7/AAAAAAAAAAAOAP//AAAAAAAAAAAOAAAAAAAAAAAAAAAOAAEAAAAAAAAAAAADAAIAAAAAAAAAAAAEAAIAAAAAAAAAAAAGAP7/AAAAAAAAAAAJAP7/AAAAAAAAAAAKAP7/AAAAAAAAAAALAP7/AAAAAAAAAAAEAP7/AAAAAAAAAAAEAAEAAAAAAAAAAAAGAP3/AAAAAAAAAAAGAAIAAAAAAAAAAAA=")
 tile_set = SubResource("TileSetSol")
 
@@ -67,23 +67,22 @@ polygon = PackedVector2Array(-110, -110, 110, -110, 110, -0.4200592, 110, 110, -
 
 [node name="Checkpoints" type="Node2D" parent="Parcours/Elements" unique_id=328918165]
 
-[node name="SolDynamique" type="Node2D" parent="Parcours/Elements"]
+[node name="SolDynamique" type="Node2D" parent="Parcours/Elements" unique_id=534310209]
 
-[node name="PlateformeFragile" parent="Parcours/Elements/SolDynamique" instance=ExtResource("6_fragile")]
+[node name="PlateformeFragile" parent="Parcours/Elements/SolDynamique" unique_id=1044927501 instance=ExtResource("6_fragile")]
 position = Vector2(1625, 0)
-delai_disparition_s = 0.8
-delai_reapparition_s = 2.0
 
-[node name="PlateformeMobile" parent="Parcours/Elements/SolDynamique" instance=ExtResource("7_mobile")]
+[node name="PlateformeMobile" parent="Parcours/Elements/SolDynamique" unique_id=1415484525 instance=ExtResource("7_mobile")]
 position = Vector2(650, -650)
+duree_par_cellule_s = 0.76
 attente_entre_deplacements_s = 1.0
 
-[node name="ObjetsDeplacables" type="Node2D" parent="Parcours/Elements"]
+[node name="ObjetsDeplacables" type="Node2D" parent="Parcours/Elements" unique_id=1261687489]
 
-[node name="BlocPoussable" parent="Parcours/Elements/ObjetsDeplacables" instance=ExtResource("8_bloc")]
+[node name="BlocPoussable" parent="Parcours/Elements/ObjetsDeplacables" unique_id=1522715187 instance=ExtResource("8_bloc")]
 position = Vector2(1300, -325)
 
-[node name="PlateformeDeplacable" parent="Parcours/Elements/ObjetsDeplacables" instance=ExtResource("9_plateforme")]
+[node name="PlateformeDeplacable" parent="Parcours/Elements/ObjetsDeplacables" unique_id=472066303 instance=ExtResource("9_plateforme")]
 position = Vector2(3900, -650)
 
 [node name="Puzzles" type="Node2D" parent="Parcours/Elements" unique_id=2095274201]
@@ -108,7 +107,9 @@ offset_top = -290.0
 offset_right = 870.0
 offset_bottom = -170.0
 theme_override_font_sizes/font_size = 26
-text = "VIDE\nMarche = chute\nDash 2 cases = passage"
+text = "VIDE
+Marche = chute
+Dash 2 cases = passage"
 horizontal_alignment = 1
 
 [node name="ChoixObstacle" type="Label" parent="Reperes" unique_id=2118443088]
@@ -117,7 +118,8 @@ offset_top = -620.0
 offset_right = 2600.0
 offset_bottom = -500.0
 theme_override_font_sizes/font_size = 26
-text = "OBSTACLE PHYSIQUE\nChoisir le chemin haut ou bas"
+text = "OBSTACLE PHYSIQUE
+Choisir le chemin haut ou bas"
 horizontal_alignment = 1
 
 [node name="Puzzle" type="Label" parent="Reperes" unique_id=356834830]
@@ -126,16 +128,19 @@ offset_top = -760.0
 offset_right = 3760.0
 offset_bottom = -610.0
 theme_override_font_sizes/font_size = 26
-text = "PUZZLE D'ORDRE\n1 → 2 → 3 ouvre la porte\nX réinitialise"
+text = "PUZZLE D'ORDRE
+1 → 2 → 3 ouvre la porte
+X réinitialise"
 horizontal_alignment = 1
 
-[node name="Plateformes" type="Label" parent="Reperes"]
+[node name="Plateformes" type="Label" parent="Reperes" unique_id=1554290061]
 offset_left = 420.0
 offset_top = 760.0
 offset_right = 2100.0
 offset_bottom = 930.0
 theme_override_font_sizes/font_size = 24
-text = "SOL DYNAMIQUE : MOBILE x=2 | FRAGILE x=5,y=0\nBLOC x=4,y=-1 : pousser vers le vide | PLATEFORME x=12,y=-2 : E + direction"
+text = "SOL DYNAMIQUE : MOBILE x=2 | FRAGILE x=5,y=0
+BLOC x=4,y=-1 : pousser vers le vide | PLATEFORME x=12,y=-2 : E + direction"
 horizontal_alignment = 1
 
 [node name="Arrivee" type="Label" parent="Reperes" unique_id=932443291]
@@ -155,4 +160,8 @@ offset_top = 20.0
 offset_right = 1240.0
 offset_bottom = 190.0
 theme_override_font_sizes/font_size = 22
-text = "TEST DU KIT PARCOURS\nSol vert = fixe | absence de tuile = vide | MOBILE/FRAGILE = sol dynamique\nBLOC = pousser en marchant | PLATEFORME = monter avec direction, déplacer avec E + direction\nFRAGILE disparaît après 0,8 s | MOBILE transporte le joueur\n1→2→3 = puzzle | X = leurre | PORTE = sortie | A = déclencheur"
+text = "TEST DU KIT PARCOURS
+Sol vert = fixe | absence de tuile = vide | MOBILE/FRAGILE = sol dynamique
+BLOC = pousser en marchant | PLATEFORME = monter avec direction, déplacer avec E + direction
+FRAGILE disparaît après 0,8 s | MOBILE transporte le joueur
+1→2→3 = puzzle | X = leurre | PORTE = sortie | A = déclencheur"
