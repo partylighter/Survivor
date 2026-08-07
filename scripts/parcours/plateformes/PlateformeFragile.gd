@@ -12,8 +12,8 @@ var _active: bool = true
 var _temps_restant_s: float = 0.0
 var _attente_reapparition: bool = false
 
-func initialiser_parcours(gestionnaire: GestionnaireParcoursGrille) -> void:
-	_gestionnaire = gestionnaire
+func initialiser_parcours(gestionnaire) -> void:
+	_gestionnaire = gestionnaire as GestionnaireParcoursGrille
 	if _gestionnaire == null:
 		return
 	_gestionnaire.enregistrer_sol_dynamique(self, cellule)
