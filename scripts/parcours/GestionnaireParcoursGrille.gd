@@ -47,6 +47,7 @@ func _initialiser() -> void:
 	_checkpoint_actuel = cellule_depart
 	_cellule_reapparition_en_attente = cellule_depart
 	_checkpoint_initialise = true
+	_derniere_cellule_sure = cellule_depart
 	_memoriser_cellule_sure(cellule_depart)
 	if not deplacement_grille.cellule_atteinte.is_connected(_quand_cellule_atteinte):
 		deplacement_grille.cellule_atteinte.connect(_quand_cellule_atteinte)
@@ -54,7 +55,15 @@ func _initialiser() -> void:
 func cellule_est_sure(cellule: Vector2i) -> bool:
 	if _cellule_a_sol_statique(cellule):
 		return true
-	return _cellule_a_sol_dynamique(cellule)
+	return not _obtenir_sources_sol_dynamique_valides(cellule).is_empty()
+
+func cellule_est_stable_pour_reapparition(cellule: Vector2i) -> bool:
+	if _cellule_a_sol_statique(cellule):
+		return true
+	for source in _obtenir_sources_sol_dynamique_valides(cellule):
+		if source.has_method("autorise_reapparition_sur_sol") and bool(source.call("autorise_reapparition_sur_sol")):
+			return true
+	return false
 
 func enregistrer_sol_dynamique(source: Node, cellule: Vector2i) -> void:
 	if source == null or not is_instance_valid(source):
@@ -79,6 +88,8 @@ func retirer_sol_dynamique(source: Node, cellule: Vector2i) -> void:
 	if occupant != null and occupant.has_method("quand_sol_disparait"):
 		occupant.call("quand_sol_disparait", cellule)
 	if deplacement_grille != null and deplacement_grille.obtenir_cellule_actuelle() == cellule:
+		if deplacement_grille.est_en_transport_plateforme():
+			return
 		faire_tomber_joueur(cellule)
 
 func enregistrer_occupant(occupant: Node, cellule: Vector2i) -> bool:
@@ -109,8 +120,11 @@ func obtenir_occupant(cellule: Vector2i) -> Node:
 	if not _occupants_par_cellule.has(cellule):
 		return null
 	var valeur: Variant = _occupants_par_cellule.get(cellule)
+	if not is_instance_valid(valeur):
+		_occupants_par_cellule.erase(cellule)
+		return null
 	var occupant := valeur as Node
-	if occupant == null or not is_instance_valid(occupant):
+	if occupant == null:
 		_occupants_par_cellule.erase(cellule)
 		return null
 	return occupant
@@ -123,8 +137,11 @@ func obtenir_reservataire(cellule: Vector2i) -> Node:
 	if not _reservations_par_cellule.has(cellule):
 		return null
 	var valeur: Variant = _reservations_par_cellule.get(cellule)
+	if not is_instance_valid(valeur):
+		_reservations_par_cellule.erase(cellule)
+		return null
 	var reservataire := valeur as Node
-	if reservataire == null or not is_instance_valid(reservataire):
+	if reservataire == null:
 		_reservations_par_cellule.erase(cellule)
 		return null
 	return reservataire
@@ -176,6 +193,10 @@ func terminer_deplacement_occupant(occupant: Node, ancienne_cellule: Vector2i, n
 	if occupant_depart != occupant:
 		liberer_reservations_occupant(occupant)
 		push_warning("GestionnaireParcoursGrille: occupation source perdue pendant un déplacement.")
+		return false
+	if obtenir_reservataire(nouvelle_cellule) != occupant:
+		liberer_reservations_occupant(occupant)
+		push_warning("GestionnaireParcoursGrille: réservation destination perdue pendant un déplacement.")
 		return false
 	if occuper_destination:
 		var occupant_destination: Node = obtenir_occupant(nouvelle_cellule)
@@ -243,21 +264,23 @@ func _cellule_a_sol_statique(cellule: Vector2i) -> bool:
 	var cellule_sol: Vector2i = sol_parcours.local_to_map(sol_parcours.to_local(position_monde))
 	return sol_parcours.get_cell_source_id(cellule_sol) >= 0
 
-func _cellule_a_sol_dynamique(cellule: Vector2i) -> bool:
+func _obtenir_sources_sol_dynamique_valides(cellule: Vector2i) -> Array:
 	if not _sol_dynamique_par_cellule.has(cellule):
-		return false
+		return []
 	var sources: Array = _sol_dynamique_par_cellule.get(cellule, [])
 	var sources_valides: Array = []
 	for source in sources:
-		if source != null and is_instance_valid(source):
+		if is_instance_valid(source):
 			sources_valides.append(source)
 	if sources_valides.is_empty():
 		_sol_dynamique_par_cellule.erase(cellule)
-		return false
-	_sol_dynamique_par_cellule[cellule] = sources_valides
-	return true
+	else:
+		_sol_dynamique_par_cellule[cellule] = sources_valides
+	return sources_valides
 
 func _memoriser_cellule_sure(cellule: Vector2i) -> void:
+	if not cellule_est_stable_pour_reapparition(cellule):
+		return
 	_derniere_cellule_sure = cellule
 	if _historique_cellules_sures.is_empty() or _historique_cellules_sures.back() != cellule:
 		_historique_cellules_sures.append(cellule)
@@ -265,6 +288,9 @@ func _memoriser_cellule_sure(cellule: Vector2i) -> void:
 		_historique_cellules_sures.pop_front()
 
 func _cellule_reapparition_valide(cellule: Vector2i) -> bool:
+	return cellule_est_stable_pour_reapparition(cellule) and cellule_est_disponible_pour_joueur(cellule)
+
+func _cellule_checkpoint_reapparition_valide(cellule: Vector2i) -> bool:
 	return cellule_est_sure(cellule) and cellule_est_disponible_pour_joueur(cellule)
 
 func _obtenir_cellule_reapparition() -> Vector2i:
@@ -274,9 +300,9 @@ func _obtenir_cellule_reapparition() -> Vector2i:
 		var cellule: Vector2i = _historique_cellules_sures[index]
 		if _cellule_reapparition_valide(cellule):
 			return cellule
-	if _checkpoint_initialise and _cellule_reapparition_valide(_checkpoint_actuel):
+	if _checkpoint_initialise and _cellule_checkpoint_reapparition_valide(_checkpoint_actuel):
 		return _checkpoint_actuel
-	if _cellule_reapparition_valide(_cellule_depart):
+	if _cellule_checkpoint_reapparition_valide(_cellule_depart):
 		return _cellule_depart
 	push_warning("GestionnaireParcoursGrille: aucune cellule de réapparition sûre et libre n'a été trouvée.")
 	return _cellule_depart
@@ -285,7 +311,7 @@ func _reapparaitre_checkpoint() -> void:
 	if joueur == null or deplacement_grille == null:
 		_chute_en_cours = false
 		return
-	if not _cellule_reapparition_valide(_cellule_reapparition_en_attente):
+	if not _cellule_checkpoint_reapparition_valide(_cellule_reapparition_en_attente):
 		_cellule_reapparition_en_attente = _obtenir_cellule_reapparition()
 	joueur.global_position = deplacement_grille.cellule_vers_monde(_cellule_reapparition_en_attente)
 	deplacement_grille.synchroniser_sur_grille(joueur)
@@ -295,10 +321,20 @@ func _reapparaitre_checkpoint() -> void:
 
 func _activer_elements(cellule: Vector2i) -> void:
 	var elements: Array = _elements_par_cellule.get(cellule, [])
+	var elements_valides: Array = []
 	for valeur in elements:
+		if not is_instance_valid(valeur):
+			continue
 		var element := valeur as ElementParcours
-		if element != null and is_instance_valid(element):
-			element.activer(joueur, self)
+		if element == null:
+			continue
+		element.activer(joueur, self)
+		if is_instance_valid(element):
+			elements_valides.append(element)
+	if elements_valides.is_empty():
+		_elements_par_cellule.erase(cellule)
+	else:
+		_elements_par_cellule[cellule] = elements_valides
 
 func _recenser_elements(noeud: Node) -> void:
 	if noeud == null:
@@ -312,7 +348,7 @@ func _recenser_elements(noeud: Node) -> void:
 		_recenser_elements(enfant)
 
 func _enregistrer_element(element: ElementParcours) -> void:
-	if element == null or not element.est_initialise():
+	if element == null or not element.est_initialise() or not element.doit_etre_active_par_arrivee_joueur():
 		return
 	var elements: Array = _elements_par_cellule.get(element.cellule, [])
 	elements.append(element)

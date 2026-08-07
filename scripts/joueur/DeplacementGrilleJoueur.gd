@@ -64,6 +64,8 @@ var _cellule_refusee_presente: bool = false
 var _gestionnaire_grille: GestionnaireGrilleCombat
 var _gestionnaire_parcours: Node
 var _occupant_pousse_en_cours: Node
+var _transport_plateforme_source: Node
+var _transport_plateforme_actif: bool = false
 
 func _ready() -> void:
 	add_to_group("deplacement_grille_joueur")
@@ -79,6 +81,9 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 	_mettre_a_jour_recharge_dash(joueur, stats, dt)
+	if _transport_plateforme_actif:
+		joueur.velocity = Vector2.ZERO
+		return
 	_mettre_a_jour_temps_buffers(dt)
 	_mettre_a_jour_direction_dash_a_relacher()
 	var direction_maintenue: Vector2i = _obtenir_direction_entree()
@@ -117,6 +122,8 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 		_essayer_demarrer_pas(joueur, stats, direction_maintenue)
 
 func synchroniser_sur_grille(joueur: CharacterBody2D) -> void:
+	if _transport_plateforme_actif:
+		_interrompre_transport_source(joueur)
 	_resoudre_gestionnaire_grille()
 	if _gestionnaire_grille == null:
 		_synchronise = false
@@ -131,6 +138,8 @@ func synchroniser_sur_grille(joueur: CharacterBody2D) -> void:
 	_synchronise = true
 
 func interrompre_et_recaler(joueur: CharacterBody2D) -> void:
+	if _transport_plateforme_actif:
+		_interrompre_transport_source(joueur)
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 		return
@@ -143,6 +152,8 @@ func interrompre_et_recaler(joueur: CharacterBody2D) -> void:
 	cellule_cible_changee.emit(cellule_cible)
 
 func interrompre_sans_recaler(joueur: CharacterBody2D) -> void:
+	if _transport_plateforme_actif:
+		_interrompre_transport_source(joueur)
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 		return
@@ -166,6 +177,80 @@ func est_en_deplacement() -> bool:
 
 func est_en_dash() -> bool:
 	return _en_dash
+
+func est_en_transport_plateforme() -> bool:
+	return _transport_plateforme_actif
+
+func commencer_transport_plateforme(joueur: CharacterBody2D, source: Node, destination: Vector2i) -> bool:
+	if source == null or not is_instance_valid(source) or _transport_plateforme_actif or _en_deplacement:
+		return false
+	if _dash_en_preparation or _preparation_dash_en_attente:
+		return false
+	if not _synchronise:
+		synchroniser_sur_grille(joueur)
+	if not _synchronise:
+		return false
+	var direction: Vector2i = destination - cellule_actuelle
+	if abs(direction.x) + abs(direction.y) != 1:
+		return false
+	_transport_plateforme_source = source
+	_transport_plateforme_actif = true
+	_direction_derniere = direction
+	cellule_cible = destination
+	position_depart = joueur.global_position
+	position_cible = cellule_vers_monde(destination)
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
+	joueur.velocity = Vector2.ZERO
+	cellule_cible_changee.emit(cellule_cible)
+	cellule_quittee.emit(cellule_actuelle)
+	return true
+
+func terminer_transport_plateforme(joueur: CharacterBody2D, source: Node, destination: Vector2i, emettre_arrivee: bool = true) -> bool:
+	if not _transport_plateforme_actif or source != _transport_plateforme_source:
+		return false
+	joueur.global_position = cellule_vers_monde(destination)
+	joueur.velocity = Vector2.ZERO
+	cellule_actuelle = destination
+	cellule_cible = destination
+	position_depart = joueur.global_position
+	position_cible = joueur.global_position
+	_transport_plateforme_actif = false
+	_transport_plateforme_source = null
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
+	_direction_dash_a_relacher = Vector2i.ZERO
+	_direction_dash_a_relacher = _obtenir_direction_entree(true)
+	if emettre_arrivee:
+		cellule_atteinte.emit(cellule_actuelle)
+	return true
+
+func annuler_transport_plateforme(joueur: CharacterBody2D, source: Node, cellule_retour: Vector2i) -> bool:
+	if not _transport_plateforme_actif or source != _transport_plateforme_source:
+		return false
+	_transport_plateforme_actif = false
+	_transport_plateforme_source = null
+	cellule_actuelle = cellule_retour
+	cellule_cible = cellule_retour
+	joueur.global_position = cellule_vers_monde(cellule_retour)
+	joueur.velocity = Vector2.ZERO
+	position_depart = joueur.global_position
+	position_cible = joueur.global_position
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
+	_direction_dash_a_relacher = Vector2i.ZERO
+	_direction_dash_a_relacher = _obtenir_direction_entree(true)
+	cellule_cible_changee.emit(cellule_cible)
+	return true
 
 func cellule_vers_monde(cellule: Vector2i) -> Vector2:
 	_resoudre_gestionnaire_grille()
@@ -555,6 +640,15 @@ func _resoudre_gestionnaire_parcours() -> void:
 	if _gestionnaire_parcours == null or not is_instance_valid(_gestionnaire_parcours):
 		_gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille")
 
+func _interrompre_transport_source(joueur: CharacterBody2D) -> void:
+	if not _transport_plateforme_actif:
+		return
+	var source: Node = _transport_plateforme_source
+	if source != null and is_instance_valid(source) and source.has_method("interrompre_transport_passager"):
+		source.call("interrompre_transport_passager", joueur)
+	_transport_plateforme_actif = false
+	_transport_plateforme_source = null
+
 func _appliquer_courbe_interpolation(t: float) -> float:
 	var progression: float = clampf(t, 0.0, 1.0)
 	if courbe_interpolation == CourbeInterpolation.LINEAIRE:
@@ -684,6 +778,8 @@ func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
 	_en_deplacement = false
 	_en_dash = false
 	_deplacement_force = false
+	_transport_plateforme_actif = false
+	_transport_plateforme_source = null
 	_temps_deplacement_s = 0.0
 	_duree_deplacement_s = 0.0
 	_reinitialiser_maintien()

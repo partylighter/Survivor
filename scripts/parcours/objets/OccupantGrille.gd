@@ -28,6 +28,9 @@ func initialiser_parcours(gestionnaire) -> void:
 	_enregistre = gestionnaire_parcours.enregistrer_occupant(self, cellule)
 	set_process(false)
 
+func doit_etre_active_par_arrivee_joueur() -> bool:
+	return false
+
 func autorise_joueur_sur_cellule() -> bool:
 	return false
 

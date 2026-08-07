@@ -1,20 +1,39 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/parcours/plateformes/PlateformeMobileGrille.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/parcours/plateformes/PointTrajetPlateforme.gd" id="2_point"]
 
-[node name="PlateformeMobileGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "points_trajet")]
+[sub_resource type="RectangleShape2D" id="RectanglePlateforme"]
+size = Vector2(290, 290)
+
+[node name="PlateformeMobileGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "points_trajet", "forme_collision")]
+process_physics_priority = 10
 script = ExtResource("1_script")
 ancre_cellule = NodePath("AncreCellule")
 points_trajet = NodePath("PointsTrajet")
+forme_collision = NodePath("FormeDeplacement/CollisionShape2D")
 
 [node name="AncreCellule" type="Marker2D" parent="."]
 
 [node name="PointsTrajet" type="Node2D" parent="."]
 
 [node name="Depart" type="Marker2D" parent="PointsTrajet"]
+script = ExtResource("2_point")
+ordre = 1
 
 [node name="Arrivee" type="Marker2D" parent="PointsTrajet"]
 position = Vector2(0, 650)
+script = ExtResource("2_point")
+ordre = 2
+
+[node name="FormeDeplacement" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="FormeDeplacement"]
+shape = SubResource("RectanglePlateforme")
 
 [node name="Visuel" type="Polygon2D" parent="."]
 color = Color(0.18, 0.72, 0.78, 0.82)

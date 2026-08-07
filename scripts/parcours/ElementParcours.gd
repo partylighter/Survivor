@@ -21,5 +21,8 @@ func initialiser_parcours(_gestionnaire) -> void:
 func est_initialise() -> bool:
 	return _initialise
 
+func doit_etre_active_par_arrivee_joueur() -> bool:
+	return true
+
 func activer(_joueur: CharacterBody2D, _gestionnaire) -> void:
 	pass
