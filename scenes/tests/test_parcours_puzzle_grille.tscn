@@ -76,11 +76,6 @@ delai_reapparition_s = 2.0
 position = Vector2(650, -650)
 attente_entre_deplacements_s = 1.0
 
-[node name="PointsTrajet" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
-
-[node name="Arrivee" parent="Parcours/Elements/SolDynamique/PlateformeMobile/PointsTrajet"]
-position = Vector2(0, 1300)
-
 [node name="Puzzles" type="Node2D" parent="Parcours/Elements" unique_id=2095274201]
 
 [node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" unique_id=16386604 instance=ExtResource("4_puzzle")]
