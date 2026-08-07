@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://bxkvplha25qt" path="res://scripts/parcours/GestionnaireParcoursGrille.gd" id="2_gestionnaire"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/puzzles/puzzle_ordre.tscn" id="4_puzzle"]
 [ext_resource type="PackedScene" uid="uid://b0mwjk2mu16ky" path="res://scenes/parcours/declencheur_parcours.tscn" id="5_declencheur"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/plateformes/plateforme_fragile.tscn" id="6_fragile"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/plateformes/plateforme_mobile_grille.tscn" id="7_mobile"]
 
 [sub_resource type="Gradient" id="GradientSol"]
 colors = PackedColorArray(0.1, 0.26, 0.2, 1, 0.1, 0.26, 0.2, 1)
@@ -63,6 +65,22 @@ polygon = PackedVector2Array(-110, -110, 110, -110, 110, -0.4200592, 110, 110, -
 
 [node name="Checkpoints" type="Node2D" parent="Parcours/Elements" unique_id=328918165]
 
+[node name="SolDynamique" type="Node2D" parent="Parcours/Elements"]
+
+[node name="PlateformeFragile" parent="Parcours/Elements/SolDynamique" instance=ExtResource("6_fragile")]
+position = Vector2(1625, 0)
+delai_disparition_s = 0.8
+delai_reapparition_s = 2.0
+
+[node name="PlateformeMobile" parent="Parcours/Elements/SolDynamique" instance=ExtResource("7_mobile")]
+position = Vector2(650, -650)
+attente_entre_deplacements_s = 1.0
+
+[node name="PointsTrajet" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+
+[node name="Arrivee" parent="Parcours/Elements/SolDynamique/PlateformeMobile/PointsTrajet"]
+position = Vector2(0, 1300)
+
 [node name="Puzzles" type="Node2D" parent="Parcours/Elements" unique_id=2095274201]
 
 [node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" unique_id=16386604 instance=ExtResource("4_puzzle")]
@@ -85,9 +103,7 @@ offset_top = -290.0
 offset_right = 870.0
 offset_bottom = -170.0
 theme_override_font_sizes/font_size = 26
-text = "VIDE
-Marche = chute
-Dash 2 cases = passage"
+text = "VIDE\nMarche = chute\nDash 2 cases = passage"
 horizontal_alignment = 1
 
 [node name="ChoixObstacle" type="Label" parent="Reperes" unique_id=2118443088]
@@ -96,8 +112,7 @@ offset_top = -620.0
 offset_right = 2600.0
 offset_bottom = -500.0
 theme_override_font_sizes/font_size = 26
-text = "OBSTACLE PHYSIQUE
-Choisir le chemin haut ou bas"
+text = "OBSTACLE PHYSIQUE\nChoisir le chemin haut ou bas"
 horizontal_alignment = 1
 
 [node name="Puzzle" type="Label" parent="Reperes" unique_id=356834830]
@@ -106,9 +121,16 @@ offset_top = -760.0
 offset_right = 3760.0
 offset_bottom = -610.0
 theme_override_font_sizes/font_size = 26
-text = "PUZZLE D'ORDRE
-1 → 2 → 3 ouvre la porte
-X réinitialise"
+text = "PUZZLE D'ORDRE\n1 → 2 → 3 ouvre la porte\nX réinitialise"
+horizontal_alignment = 1
+
+[node name="Plateformes" type="Label" parent="Reperes"]
+offset_left = 420.0
+offset_top = 760.0
+offset_right = 1900.0
+offset_bottom = 900.0
+theme_override_font_sizes/font_size = 24
+text = "SOL DYNAMIQUE : MOBILE sur la colonne x=2 | FRAGILE sur la case x=5,y=0"
 horizontal_alignment = 1
 
 [node name="Arrivee" type="Label" parent="Reperes" unique_id=932443291]
@@ -125,9 +147,7 @@ horizontal_alignment = 1
 [node name="Instructions" type="Label" parent="Interface" unique_id=2034458753]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 1050.0
-offset_bottom = 150.0
+offset_right = 1200.0
+offset_bottom = 170.0
 theme_override_font_sizes/font_size = 22
-text = "TEST DU KIT PARCOURS
-Sol vert = destination sûre | absence de tuile = vide | obstacle rouge = collision
-C = checkpoint | 1→2→3 = puzzle | X = leurre | PORTE = sortie du puzzle | A = déclencheur"
+text = "TEST DU KIT PARCOURS\nSol vert = fixe | absence de tuile = vide | MOBILE/FRAGILE = sol dynamique\nFRAGILE disparaît après 0,8 s | MOBILE transporte le joueur entre ses points\n1→2→3 = puzzle | X = leurre | PORTE = sortie | A = déclencheur"
