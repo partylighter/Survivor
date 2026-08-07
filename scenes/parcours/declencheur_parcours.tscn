@@ -1,15 +1,15 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://b0mwjk2mu16ky"]
 
-[ext_resource type="Script" path="res://scripts/parcours/DeclencheurParcours.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://b25ui2nctbkfn" path="res://scripts/parcours/DeclencheurParcours.gd" id="1_script"]
 
-[node name="DeclencheurParcours" type="Node2D"]
+[node name="DeclencheurParcours" type="Node2D" unique_id=2109943820]
 script = ExtResource("1_script")
 
-[node name="Visuel" type="Polygon2D" parent="."]
+[node name="Visuel" type="Polygon2D" parent="." unique_id=1387380777]
 color = Color(0.15, 0.65, 0.72, 0.45)
 polygon = PackedVector2Array(-70, -70, 70, -70, 70, 70, -70, 70)
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="." unique_id=931149920]
 offset_left = -45.0
 offset_top = -40.0
 offset_right = 45.0
