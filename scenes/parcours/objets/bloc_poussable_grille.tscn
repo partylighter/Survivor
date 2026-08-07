@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/objets/BlocPoussableGrille.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleBloc"]
+size = Vector2(230, 230)
+
+[node name="BlocPoussableGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "corps_collision", "collision_shape")]
+script = ExtResource("1_script")
+ancre_cellule = NodePath("AncreCellule")
+corps_collision = NodePath("Corps")
+collision_shape = NodePath("Corps/CollisionShape2D")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
+
+[node name="Corps" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Corps"]
+shape = SubResource("RectangleBloc")
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.62, 0.42, 0.18, 0.95)
+polygon = PackedVector2Array(-115, -115, 115, -115, 115, 115, -115, 115)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -80.0
+offset_top = -32.0
+offset_right = 80.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 28
+text = "BLOC"
+horizontal_alignment = 1
+vertical_alignment = 1

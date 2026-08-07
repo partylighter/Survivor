@@ -1,0 +1,37 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/objets/PlateformeDeplacableGrille.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectanglePlateforme"]
+size = Vector2(290, 290)
+
+[node name="PlateformeDeplacableGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "corps_collision", "collision_shape")]
+script = ExtResource("1_script")
+ancre_cellule = NodePath("AncreCellule")
+corps_collision = NodePath("ZoneForme")
+collision_shape = NodePath("ZoneForme/CollisionShape2D")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
+
+[node name="ZoneForme" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneForme"]
+shape = SubResource("RectanglePlateforme")
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.82, 0.7, 0.2, 0.86)
+polygon = PackedVector2Array(-145, -145, 145, -145, 145, 145, -145, 145)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -110.0
+offset_top = -45.0
+offset_right = 110.0
+offset_bottom = 45.0
+theme_override_font_sizes/font_size = 24
+text = "PLATEFORME\nE + direction"
+horizontal_alignment = 1
+vertical_alignment = 1

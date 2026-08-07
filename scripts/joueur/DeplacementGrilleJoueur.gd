@@ -62,13 +62,17 @@ var _chemin_dash_debug: Array[Vector2i] = []
 var _cellule_refusee_debug: Vector2i = Vector2i.ZERO
 var _cellule_refusee_presente: bool = false
 var _gestionnaire_grille: GestionnaireGrilleCombat
+var _gestionnaire_parcours: Node
+var _occupant_pousse_en_cours: Node
 
 func _ready() -> void:
 	add_to_group("deplacement_grille_joueur")
 	_resoudre_gestionnaire_grille()
+	_resoudre_gestionnaire_parcours()
 
 func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	_resoudre_gestionnaire_grille()
+	_resoudre_gestionnaire_parcours()
 	if _gestionnaire_grille == null:
 		joueur.velocity = Vector2.ZERO
 		return
@@ -184,12 +188,16 @@ func calculer_duree_pas(stats: StatsJoueur) -> float:
 	return clampf(duree, minf(duree_pas_min_s, duree_pas_max_s), maxf(duree_pas_min_s, duree_pas_max_s))
 
 func cellule_est_accessible(joueur: CharacterBody2D, cellule: Vector2i, verifier_coins: bool = true) -> bool:
+	if not _cellule_logiquement_disponible_pour_joueur(cellule):
+		return false
 	if not _cellule_est_accessible_simple(joueur, cellule):
 		return false
 	var direction: Vector2i = cellule - cellule_actuelle
 	if verifier_coins and bloquer_diagonale_coin and abs(direction.x) == 1 and abs(direction.y) == 1:
 		var cellule_horizontale := cellule_actuelle + Vector2i(direction.x, 0)
 		var cellule_verticale := cellule_actuelle + Vector2i(0, direction.y)
+		if not _cellule_logiquement_disponible_pour_joueur(cellule_horizontale) or not _cellule_logiquement_disponible_pour_joueur(cellule_verticale):
+			return false
 		if not _cellule_est_accessible_simple(joueur, cellule_horizontale):
 			return false
 		if not _cellule_est_accessible_simple(joueur, cellule_verticale):
@@ -241,12 +249,51 @@ func _essayer_demarrer_pas(joueur: CharacterBody2D, stats: StatsJoueur, directio
 	if direction_valide == Vector2i.ZERO:
 		return false
 	var destination: Vector2i = cellule_actuelle + direction_valide
+	_resoudre_gestionnaire_parcours()
+	var occupant: Node = _obtenir_occupant_parcours(destination)
+	if occupant != null and Input.is_action_pressed("interagir") and occupant.has_method("est_deplacable_manuellement_par_joueur") and bool(occupant.call("est_deplacable_manuellement_par_joueur")):
+		if occupant.has_method("demarrer_deplacement_manuel_par_joueur") and bool(occupant.call("demarrer_deplacement_manuel_par_joueur", joueur, direction_valide)):
+			_direction_derniere = direction_valide
+			_effacer_direction_buffer()
+			_reinitialiser_maintien()
+		else:
+			_signaler_refus(destination)
+		return true
+	if occupant != null and not _occupant_autorise_joueur(occupant):
+		if _essayer_pousser_occupant(joueur, stats, occupant, direction_valide):
+			return true
+		_signaler_refus(destination)
+		return false
+	if not _cellule_logiquement_disponible_pour_joueur(destination):
+		_signaler_refus(destination)
+		return false
 	if not cellule_est_accessible(joueur, destination):
 		_signaler_refus(destination)
 		return false
 	_direction_derniere = direction_valide
 	var multiplicateur_diagonal: float = sqrt(2.0) if abs(direction_valide.x) == 1 and abs(direction_valide.y) == 1 else 1.0
 	_demarrer_deplacement(joueur, destination, calculer_duree_pas(stats) * multiplicateur_diagonal, false)
+	return true
+
+func _essayer_pousser_occupant(joueur: CharacterBody2D, stats: StatsJoueur, occupant: Node, direction: Vector2i) -> bool:
+	if occupant == null or abs(direction.x) + abs(direction.y) != 1:
+		return false
+	if not occupant.has_method("peut_etre_pousse_par_joueur") or not bool(occupant.call("peut_etre_pousse_par_joueur", joueur, direction)):
+		return false
+	var destination_joueur: Vector2i = cellule_actuelle + direction
+	var rids_a_ignorer: Array = []
+	if occupant.has_method("obtenir_rids_collision_pour_joueur"):
+		var valeur_rids: Variant = occupant.call("obtenir_rids_collision_pour_joueur")
+		if valeur_rids is Array:
+			rids_a_ignorer = valeur_rids
+	if not _segment_est_accessible(joueur, joueur.global_position, cellule_vers_monde(destination_joueur), rids_a_ignorer):
+		return false
+	var duree: float = calculer_duree_pas(stats)
+	if not occupant.has_method("demarrer_poussee_joueur") or not bool(occupant.call("demarrer_poussee_joueur", joueur, direction, duree)):
+		return false
+	_occupant_pousse_en_cours = occupant
+	_direction_derniere = direction
+	_demarrer_deplacement(joueur, destination_joueur, duree, false)
 	return true
 
 func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direction_entree: Vector2i) -> bool:
@@ -353,6 +400,11 @@ func _demarrer_deplacement(joueur: CharacterBody2D, destination: Vector2i, duree
 	cellule_quittee.emit(cellule_actuelle)
 
 func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
+	if _occupant_pousse_en_cours != null:
+		if is_instance_valid(_occupant_pousse_en_cours) and not _occupant_pousse_en_cours.is_queued_for_deletion() and _occupant_pousse_en_cours.has_method("avancer_deplacement_coordonne"):
+			_occupant_pousse_en_cours.call("avancer_deplacement_coordonne", dt)
+		else:
+			_occupant_pousse_en_cours = null
 	var ancienne_position: Vector2 = joueur.global_position
 	_temps_deplacement_s = minf(_temps_deplacement_s + dt, _duree_deplacement_s)
 	var progression: float = _temps_deplacement_s / _duree_deplacement_s
@@ -373,6 +425,7 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 	_en_dash = false
 	_deplacement_force = false
 	joueur.velocity = Vector2.ZERO
+	_terminer_poussee_coordonne()
 	cellule_atteinte.emit(cellule_actuelle)
 	if etait_dash:
 		joueur.dash_t_restant_s = 0.0
@@ -384,6 +437,14 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 		_chemin_dash_debug.clear()
 	elif not etait_force:
 		_appliquer_soif_distance(joueur, position_depart.distance_to(position_cible))
+
+func _terminer_poussee_coordonne() -> void:
+	if _occupant_pousse_en_cours == null:
+		return
+	if is_instance_valid(_occupant_pousse_en_cours) and not _occupant_pousse_en_cours.is_queued_for_deletion():
+		if _occupant_pousse_en_cours.has_method("est_en_deplacement_occupant") and bool(_occupant_pousse_en_cours.call("est_en_deplacement_occupant")) and _occupant_pousse_en_cours.has_method("terminer_deplacement_immediatement"):
+			_occupant_pousse_en_cours.call("terminer_deplacement_immediatement")
+	_occupant_pousse_en_cours = null
 
 func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur, direction_maintenue: Vector2i) -> void:
 	direction_maintenue = _filtrer_direction_dash_a_relacher(direction_maintenue)
@@ -406,21 +467,27 @@ func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur,
 		_essayer_demarrer_pas(joueur, stats, direction_maintenue)
 
 func _cellule_dash_est_accessible(joueur: CharacterBody2D, depart: Vector2i, destination: Vector2i) -> bool:
+	if not _cellule_logiquement_disponible_pour_joueur(destination):
+		return false
 	var position_depart_cellule: Vector2 = cellule_vers_monde(depart)
 	if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(destination)):
 		return false
 	var direction: Vector2i = destination - depart
 	if bloquer_diagonale_coin and abs(direction.x) == 1 and abs(direction.y) == 1:
-		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(depart + Vector2i(direction.x, 0))):
+		var cellule_horizontale: Vector2i = depart + Vector2i(direction.x, 0)
+		var cellule_verticale: Vector2i = depart + Vector2i(0, direction.y)
+		if not _cellule_logiquement_disponible_pour_joueur(cellule_horizontale) or not _cellule_logiquement_disponible_pour_joueur(cellule_verticale):
 			return false
-		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(depart + Vector2i(0, direction.y))):
+		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(cellule_horizontale)):
+			return false
+		if not _segment_est_accessible(joueur, position_depart_cellule, cellule_vers_monde(cellule_verticale)):
 			return false
 	return true
 
 func _cellule_est_accessible_simple(joueur: CharacterBody2D, cellule: Vector2i) -> bool:
 	return _segment_est_accessible(joueur, joueur.global_position, cellule_vers_monde(cellule))
 
-func _segment_est_accessible(joueur: CharacterBody2D, depart: Vector2, arrivee: Vector2) -> bool:
+func _segment_est_accessible(joueur: CharacterBody2D, depart: Vector2, arrivee: Vector2, rids_a_ignorer: Array = []) -> bool:
 	if joueur is Player and not (joueur as Player).position_respecte_limites_deplacement(arrivee):
 		return false
 	var collision := _obtenir_collision_joueur(joueur)
@@ -433,7 +500,12 @@ func _segment_est_accessible(joueur: CharacterBody2D, depart: Vector2, arrivee: 
 	parametres.collision_mask = joueur.collision_mask
 	parametres.collide_with_bodies = true
 	parametres.collide_with_areas = false
-	parametres.exclude = [joueur.get_rid()]
+	var exclusions: Array[RID] = [joueur.get_rid()]
+	for valeur in rids_a_ignorer:
+		var rid: RID = valeur
+		if not exclusions.has(rid):
+			exclusions.append(rid)
+	parametres.exclude = exclusions
 	parametres.motion = arrivee - depart
 	var espace: PhysicsDirectSpaceState2D = joueur.get_world_2d().direct_space_state
 	var fractions: PackedFloat32Array = espace.cast_motion(parametres)
@@ -442,6 +514,26 @@ func _segment_est_accessible(joueur: CharacterBody2D, depart: Vector2, arrivee: 
 	parametres.transform.origin += parametres.motion
 	parametres.motion = Vector2.ZERO
 	return espace.intersect_shape(parametres, 1).is_empty()
+
+func _cellule_logiquement_disponible_pour_joueur(cellule: Vector2i) -> bool:
+	_resoudre_gestionnaire_parcours()
+	if _gestionnaire_parcours == null or not _gestionnaire_parcours.has_method("cellule_est_disponible_pour_joueur"):
+		return true
+	return bool(_gestionnaire_parcours.call("cellule_est_disponible_pour_joueur", cellule))
+
+func _obtenir_occupant_parcours(cellule: Vector2i) -> Node:
+	_resoudre_gestionnaire_parcours()
+	if _gestionnaire_parcours == null or not _gestionnaire_parcours.has_method("obtenir_occupant"):
+		return null
+	return _gestionnaire_parcours.call("obtenir_occupant", cellule) as Node
+
+func _occupant_autorise_joueur(occupant: Node) -> bool:
+	if occupant == null:
+		return true
+	_resoudre_gestionnaire_parcours()
+	if _gestionnaire_parcours == null or not _gestionnaire_parcours.has_method("occupant_autorise_joueur"):
+		return false
+	return bool(_gestionnaire_parcours.call("occupant_autorise_joueur", occupant))
 
 func _obtenir_collision_joueur(joueur: CharacterBody2D) -> CollisionShape2D:
 	for enfant in joueur.get_children():
@@ -458,6 +550,10 @@ func _obtenir_controleur(joueur: CharacterBody2D) -> GestionDeplacementJoueur:
 func _resoudre_gestionnaire_grille() -> void:
 	if _gestionnaire_grille == null or not is_instance_valid(_gestionnaire_grille):
 		_gestionnaire_grille = get_tree().get_first_node_in_group("grille_combat") as GestionnaireGrilleCombat
+
+func _resoudre_gestionnaire_parcours() -> void:
+	if _gestionnaire_parcours == null or not is_instance_valid(_gestionnaire_parcours):
+		_gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille")
 
 func _appliquer_courbe_interpolation(t: float) -> float:
 	var progression: float = clampf(t, 0.0, 1.0)
@@ -584,6 +680,7 @@ func _mettre_a_jour_recharge_dash(joueur: CharacterBody2D, stats: StatsJoueur, d
 			joueur.dash_charges_actuelles = mini(joueur.dash_charges_actuelles + 1, dash_max)
 
 func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
+	_terminer_poussee_coordonne()
 	_en_deplacement = false
 	_en_dash = false
 	_deplacement_force = false

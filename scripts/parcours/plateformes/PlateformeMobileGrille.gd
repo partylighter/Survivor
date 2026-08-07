@@ -29,6 +29,7 @@ var _duree_segment_s: float = 0.0
 var _temps_segment_s: float = 0.0
 var _attente_restant_s: float = 0.0
 var _en_deplacement: bool = false
+var _enregistre_occupation: bool = false
 
 func initialiser_parcours(gestionnaire) -> void:
 	_gestionnaire = gestionnaire as GestionnaireParcoursGrille
@@ -39,9 +40,16 @@ func initialiser_parcours(gestionnaire) -> void:
 	if _deplacement_grille == null:
 		return
 	_construire_trajet()
+	_enregistre_occupation = _gestionnaire.enregistrer_occupant(self, cellule)
+	if not _enregistre_occupation:
+		set_process(false)
+		return
 	_gestionnaire.enregistrer_sol_dynamique(self, cellule)
 	_attente_restant_s = maxf(attente_entre_deplacements_s, 0.0)
 	set_process(demarrer_automatiquement and _cellules_trajet.size() > 1)
+
+func autorise_joueur_sur_cellule() -> bool:
+	return not _en_deplacement
 
 func _process(dt: float) -> void:
 	if _en_deplacement:
@@ -86,17 +94,25 @@ func _demarrer_segment_suivant() -> void:
 		return
 	var distance_cellules: int = maxi(abs(delta_cellules.x), abs(delta_cellules.y))
 	var direction: Vector2i = Vector2i(signi(delta_cellules.x), signi(delta_cellules.y))
+	var cellules_reservees: Array[Vector2i] = []
+	for index in range(1, distance_cellules + 1):
+		cellules_reservees.append(cellule + direction * index)
+	if not _gestionnaire.reserver_cellules_occupant(self, cellules_reservees):
+		_attente_restant_s = maxf(attente_entre_deplacements_s, 0.0)
+		return
 	var joueur_transporte: bool = false
 	if transporter_joueur and _joueur != null and _deplacement_grille.obtenir_cellule_actuelle() == cellule and not _deplacement_grille.est_en_deplacement():
 		joueur_transporte = _deplacement_grille.appliquer_recul_cellules(_joueur, direction, distance_cellules)
 		if not joueur_transporte:
+			_gestionnaire.liberer_reservations_occupant(self)
 			_attente_restant_s = maxf(attente_entre_deplacements_s, 0.0)
 			return
 	_cellule_depart_segment = cellule
 	_cellule_destination = destination
 	_index_destination = prochain_index
 	_position_depart = global_position
-	_position_destination = _deplacement_grille.cellule_vers_monde(destination)
+	var delta_monde: Vector2 = _deplacement_grille.cellule_vers_monde(destination) - _deplacement_grille.cellule_vers_monde(cellule)
+	_position_destination = global_position + delta_monde
 	_duree_segment_s = maxf(duree_par_cellule_s, 0.01) * float(distance_cellules)
 	if joueur_transporte:
 		_duree_segment_s = maxf(_deplacement_grille.duree_recul_cellule_s, 0.01) * float(distance_cellules)
@@ -113,6 +129,13 @@ func _avancer_segment(dt: float) -> void:
 		return
 	global_position = _position_destination
 	var ancienne_cellule: Vector2i = _cellule_depart_segment
+	var occupation_confirmee: bool = _gestionnaire.terminer_deplacement_occupant(self, ancienne_cellule, _cellule_destination, true)
+	if not occupation_confirmee:
+		global_position = _position_depart
+		_gestionnaire.retirer_sol_dynamique(self, _cellule_destination)
+		_en_deplacement = false
+		_attente_restant_s = maxf(attente_entre_deplacements_s, 0.0)
+		return
 	cellule = _cellule_destination
 	_index_trajet = _index_destination
 	_en_deplacement = false
@@ -140,3 +163,7 @@ func _exit_tree() -> void:
 	_gestionnaire.retirer_sol_dynamique(self, cellule)
 	if _en_deplacement and _cellule_destination != cellule:
 		_gestionnaire.retirer_sol_dynamique(self, _cellule_destination)
+	if _enregistre_occupation:
+		_gestionnaire.retirer_occupant(self, cellule)
+	else:
+		_gestionnaire.liberer_reservations_occupant(self)
