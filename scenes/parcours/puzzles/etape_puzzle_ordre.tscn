@@ -2,10 +2,13 @@
 
 [ext_resource type="Script" path="res://scripts/parcours/puzzles/EtapePuzzleOrdre.gd" id="1_script"]
 
-[node name="EtapePuzzleOrdre" type="Node2D" node_paths=PackedStringArray("label_ordre", "visuel")]
+[node name="EtapePuzzleOrdre" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "label_ordre", "visuel")]
 script = ExtResource("1_script")
+ancre_cellule = NodePath("AncreCellule")
 label_ordre = NodePath("Label")
 visuel = NodePath("Visuel")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
 
 [node name="Visuel" type="Polygon2D" parent="."]
 color = Color(0.18, 0.42, 0.78, 0.85)

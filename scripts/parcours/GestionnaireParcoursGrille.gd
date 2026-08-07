@@ -1,7 +1,7 @@
 extends Node
 class_name GestionnaireParcoursGrille
 
-signal joueur_tombe(cellule: Vector2i, checkpoint: Vector2i)
+signal joueur_tombe(cellule: Vector2i, reapparition: Vector2i)
 signal joueur_reapparu(cellule: Vector2i)
 signal checkpoint_change(cellule: Vector2i)
 
@@ -12,9 +12,11 @@ signal checkpoint_change(cellule: Vector2i)
 @export var conteneur_elements: Node
 
 var _elements_par_cellule: Dictionary = {}
+var _cellule_depart: Vector2i = Vector2i.ZERO
 var _checkpoint_actuel: Vector2i = Vector2i.ZERO
 var _checkpoint_initialise: bool = false
 var _derniere_cellule_sure: Vector2i = Vector2i.ZERO
+var _cellule_reapparition_en_attente: Vector2i = Vector2i.ZERO
 var _chute_en_cours: bool = false
 
 func _ready() -> void:
@@ -29,8 +31,10 @@ func _initialiser() -> void:
 	if not cellule_est_sure(cellule_depart):
 		push_error("GestionnaireParcoursGrille: la cellule de départ ne possède pas de sol.")
 		return
+	_cellule_depart = cellule_depart
 	_checkpoint_actuel = cellule_depart
 	_derniere_cellule_sure = cellule_depart
+	_cellule_reapparition_en_attente = cellule_depart
 	_checkpoint_initialise = true
 	_recenser_elements(conteneur_elements)
 	if not deplacement_grille.cellule_atteinte.is_connected(_quand_cellule_atteinte):
@@ -64,21 +68,29 @@ func _quand_cellule_atteinte(cellule: Vector2i) -> void:
 		return
 	if not cellule_est_sure(cellule):
 		_chute_en_cours = true
-		joueur_tombe.emit(cellule, _checkpoint_actuel)
+		_cellule_reapparition_en_attente = _obtenir_cellule_reapparition()
+		joueur_tombe.emit(cellule, _cellule_reapparition_en_attente)
 		call_deferred("_reapparaitre_checkpoint")
 		return
 	_derniere_cellule_sure = cellule
 	_activer_elements(cellule)
 
+func _obtenir_cellule_reapparition() -> Vector2i:
+	if cellule_est_sure(_derniere_cellule_sure):
+		return _derniere_cellule_sure
+	if _checkpoint_initialise and cellule_est_sure(_checkpoint_actuel):
+		return _checkpoint_actuel
+	return _cellule_depart
+
 func _reapparaitre_checkpoint() -> void:
-	if joueur == null or deplacement_grille == null or not _checkpoint_initialise:
+	if joueur == null or deplacement_grille == null:
 		_chute_en_cours = false
 		return
-	joueur.global_position = deplacement_grille.cellule_vers_monde(_checkpoint_actuel)
+	joueur.global_position = deplacement_grille.cellule_vers_monde(_cellule_reapparition_en_attente)
 	deplacement_grille.synchroniser_sur_grille(joueur)
-	_derniere_cellule_sure = _checkpoint_actuel
+	_derniere_cellule_sure = _cellule_reapparition_en_attente
 	_chute_en_cours = false
-	joueur_reapparu.emit(_checkpoint_actuel)
+	joueur_reapparu.emit(_cellule_reapparition_en_attente)
 
 func _activer_elements(cellule: Vector2i) -> void:
 	var elements: Array = _elements_par_cellule.get(cellule, [])

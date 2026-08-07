@@ -2,8 +2,11 @@
 
 [ext_resource type="Script" path="res://scripts/parcours/CheckpointParcours.gd" id="1_script"]
 
-[node name="CheckpointParcours" type="Node2D"]
+[node name="CheckpointParcours" type="Node2D" node_paths=PackedStringArray("ancre_cellule")]
 script = ExtResource("1_script")
+ancre_cellule = NodePath("AncreCellule")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
 
 [node name="Visuel" type="Polygon2D" parent="."]
 color = Color(0.15, 0.75, 0.95, 0.7)

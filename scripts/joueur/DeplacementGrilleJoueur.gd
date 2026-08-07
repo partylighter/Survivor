@@ -54,8 +54,9 @@ var _temps_maintien_s: float = 0.0
 var _temps_depuis_repetition_s: float = 0.0
 var _direction_buffer: Vector2i = Vector2i.ZERO
 var _temps_buffer_restant_s: float = 0.0
-var _dash_en_buffer: bool = false
-var _temps_dash_buffer_restant_s: float = 0.0
+var _dash_en_preparation: bool = false
+var _preparation_dash_en_attente: bool = false
+var _direction_dash_preparee: Vector2i = Vector2i.ZERO
 var _direction_dash_a_relacher: Vector2i = Vector2i.ZERO
 var _chemin_dash_debug: Array[Vector2i] = []
 var _cellule_refusee_debug: Vector2i = Vector2i.ZERO
@@ -79,19 +80,31 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	var direction_maintenue: Vector2i = _obtenir_direction_entree()
 	var direction_dash_maintenue: Vector2i = _obtenir_direction_entree(true)
 	var direction_juste_appuyee: Vector2i = _obtenir_direction_juste_appuyee(direction_maintenue)
-	_mettre_a_jour_maintien(direction_maintenue, dt)
 	if _en_deplacement:
-		if direction_juste_appuyee != Vector2i.ZERO:
-			_memoriser_direction_buffer(direction_juste_appuyee)
-		if Input.is_action_just_pressed("dash"):
-			_memoriser_dash_buffer()
+		var dash_bloque_entrees: bool = false
+		if not _en_dash and Input.is_action_just_pressed("dash") and _commencer_attente_preparation_dash(joueur, direction_dash_maintenue):
+			dash_bloque_entrees = true
+		elif _preparation_dash_en_attente:
+			dash_bloque_entrees = true
+			if Input.is_action_just_released("dash") or not Input.is_action_pressed("dash"):
+				_annuler_preparation_dash()
+			else:
+				_mettre_a_jour_direction_dash_preparee(direction_dash_maintenue)
+		if not dash_bloque_entrees:
+			_mettre_a_jour_maintien(direction_maintenue, dt)
+			if direction_juste_appuyee != Vector2i.ZERO:
+				_memoriser_direction_buffer(direction_juste_appuyee)
 		_avancer_deplacement(joueur, dt)
 		if not _en_deplacement:
 			_consomme_entree_apres_arrivee(joueur, stats, direction_maintenue)
 		return
 	joueur.velocity = Vector2.ZERO
-	if Input.is_action_just_pressed("dash") and _essayer_demarrer_dash(joueur, stats, direction_dash_maintenue):
+	if _dash_en_preparation:
+		_traiter_preparation_dash(joueur, stats, direction_dash_maintenue)
 		return
+	if Input.is_action_just_pressed("dash") and _commencer_preparation_dash(joueur, direction_dash_maintenue):
+		return
+	_mettre_a_jour_maintien(direction_maintenue, dt)
 	if direction_juste_appuyee != Vector2i.ZERO:
 		_essayer_demarrer_pas(joueur, stats, direction_juste_appuyee)
 		return
@@ -193,7 +206,6 @@ func appliquer_recul_cellules(joueur: CharacterBody2D, direction: Vector2i, dist
 		return false
 	if _en_deplacement:
 		interrompre_sans_recaler(joueur)
-
 	var destination: Vector2i = cellule_actuelle
 	var position_segment_depart: Vector2 = joueur.global_position
 	var distance_reelle: int = 0
@@ -207,7 +219,6 @@ func appliquer_recul_cellules(joueur: CharacterBody2D, direction: Vector2i, dist
 		distance_reelle += 1
 	if distance_reelle <= 0:
 		return false
-
 	_direction_derniere = direction_recul
 	_deplacement_force = true
 	_demarrer_deplacement(joueur, destination, maxf(duree_recul_cellule_s, 0.01) * float(distance_reelle), false)
@@ -239,16 +250,12 @@ func _essayer_demarrer_pas(joueur: CharacterBody2D, stats: StatsJoueur, directio
 	return true
 
 func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direction_entree: Vector2i) -> bool:
-	if not joueur.dash_autorise or joueur.dash_t_restant_s > 0.0:
-		return false
-	if not joueur.dash_infini_actif and joueur.dash_charges_actuelles <= 0:
+	if not _dash_peut_etre_prepare(joueur):
 		return false
 	var direction: Vector2i = _limiter_direction_dash(direction_entree)
-	var controleur: GestionDeplacementJoueur = _obtenir_controleur(joueur)
-	if direction == Vector2i.ZERO and controleur != null and controleur.dash_autorise_sans_direction():
-		direction = _direction_derniere
 	if direction == Vector2i.ZERO:
 		return false
+	var controleur: GestionDeplacementJoueur = _obtenir_controleur(joueur)
 	var chemin: Array[Vector2i] = []
 	var cellule_depart: Vector2i = cellule_actuelle
 	var cellule_test: Vector2i = cellule_depart
@@ -282,6 +289,56 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direct
 	_demarrer_deplacement(joueur, chemin.back(), duree_dash, true)
 	dash_grille_demarre.emit(cellule_depart, chemin.back())
 	return true
+
+func _dash_peut_etre_prepare(joueur: CharacterBody2D) -> bool:
+	if not joueur.dash_autorise or joueur.dash_t_restant_s > 0.0:
+		return false
+	return joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0
+
+func _commencer_preparation_dash(joueur: CharacterBody2D, direction: Vector2i) -> bool:
+	if not _dash_peut_etre_prepare(joueur):
+		return false
+	_dash_en_preparation = true
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
+	_mettre_a_jour_direction_dash_preparee(direction)
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
+	return true
+
+func _commencer_attente_preparation_dash(joueur: CharacterBody2D, direction: Vector2i) -> bool:
+	if not _dash_peut_etre_prepare(joueur):
+		return false
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = true
+	_direction_dash_preparee = Vector2i.ZERO
+	_mettre_a_jour_direction_dash_preparee(direction)
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
+	return true
+
+func _mettre_a_jour_direction_dash_preparee(direction: Vector2i) -> void:
+	var direction_valide: Vector2i = _limiter_direction_dash(direction)
+	if direction_valide != Vector2i.ZERO:
+		_direction_dash_preparee = direction_valide
+
+func _traiter_preparation_dash(joueur: CharacterBody2D, stats: StatsJoueur, direction: Vector2i) -> void:
+	_mettre_a_jour_direction_dash_preparee(direction)
+	if Input.is_action_just_released("dash"):
+		var direction_preparee: Vector2i = _direction_dash_preparee
+		_annuler_preparation_dash()
+		if direction_preparee != Vector2i.ZERO:
+			_essayer_demarrer_dash(joueur, stats, direction_preparee)
+		return
+	if not Input.is_action_pressed("dash"):
+		_annuler_preparation_dash()
+
+func _annuler_preparation_dash() -> void:
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
 
 func _demarrer_deplacement(joueur: CharacterBody2D, destination: Vector2i, duree: float, dash: bool) -> void:
 	cellule_cible = destination
@@ -330,10 +387,15 @@ func _avancer_deplacement(joueur: CharacterBody2D, dt: float) -> void:
 
 func _consomme_entree_apres_arrivee(joueur: CharacterBody2D, stats: StatsJoueur, direction_maintenue: Vector2i) -> void:
 	direction_maintenue = _filtrer_direction_dash_a_relacher(direction_maintenue)
-	if _dash_en_buffer and _temps_dash_buffer_restant_s > 0.0:
-		_dash_en_buffer = false
-		if _essayer_demarrer_dash(joueur, stats, _obtenir_direction_entree(true)):
+	if _preparation_dash_en_attente:
+		if Input.is_action_pressed("dash") and _dash_peut_etre_prepare(joueur):
+			_dash_en_preparation = true
+			_preparation_dash_en_attente = false
+			_mettre_a_jour_direction_dash_preparee(_obtenir_direction_entree(true))
+			_effacer_direction_buffer()
+			_reinitialiser_maintien()
 			return
+		_annuler_preparation_dash()
 	if _direction_buffer != Vector2i.ZERO and _temps_buffer_restant_s > 0.0:
 		var direction: Vector2i = _direction_buffer
 		_effacer_direction_buffer()
@@ -468,6 +530,11 @@ func _mettre_a_jour_maintien(direction: Vector2i, dt: float) -> void:
 	_temps_maintien_s += dt
 	_temps_depuis_repetition_s += dt
 
+func _reinitialiser_maintien() -> void:
+	_direction_maintenue_precedente = Vector2i.ZERO
+	_temps_maintien_s = 0.0
+	_temps_depuis_repetition_s = 0.0
+
 func _repetition_maintien_prete(direction: Vector2i) -> bool:
 	if not maintien_touche_actif or direction == Vector2i.ZERO:
 		return false
@@ -479,21 +546,11 @@ func _memoriser_direction_buffer(direction: Vector2i) -> void:
 	_direction_buffer = direction
 	_temps_buffer_restant_s = duree_buffer_entree_s
 
-func _memoriser_dash_buffer() -> void:
-	if not buffer_entree_actif:
-		return
-	_dash_en_buffer = true
-	_temps_dash_buffer_restant_s = duree_buffer_entree_s
-
 func _mettre_a_jour_temps_buffers(dt: float) -> void:
 	if _temps_buffer_restant_s > 0.0:
 		_temps_buffer_restant_s = maxf(0.0, _temps_buffer_restant_s - dt)
 		if _temps_buffer_restant_s <= 0.0:
 			_effacer_direction_buffer()
-	if _temps_dash_buffer_restant_s > 0.0:
-		_temps_dash_buffer_restant_s = maxf(0.0, _temps_dash_buffer_restant_s - dt)
-		if _temps_dash_buffer_restant_s <= 0.0:
-			_dash_en_buffer = false
 
 func _effacer_direction_buffer() -> void:
 	_direction_buffer = Vector2i.ZERO
@@ -532,12 +589,11 @@ func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
 	_deplacement_force = false
 	_temps_deplacement_s = 0.0
 	_duree_deplacement_s = 0.0
-	_direction_maintenue_precedente = Vector2i.ZERO
-	_temps_maintien_s = 0.0
-	_temps_depuis_repetition_s = 0.0
+	_reinitialiser_maintien()
 	_effacer_direction_buffer()
-	_dash_en_buffer = false
-	_temps_dash_buffer_restant_s = 0.0
+	_dash_en_preparation = false
+	_preparation_dash_en_attente = false
+	_direction_dash_preparee = Vector2i.ZERO
 	_direction_dash_a_relacher = Vector2i.ZERO
 	_chemin_dash_debug.clear()
 	_cellule_refusee_presente = false
