@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/plateformes/PlateformeMobileGrille.gd" id="1_script"]
+
+[node name="PlateformeMobileGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "points_trajet")]
+script = ExtResource("1_script")
+ancre_cellule = NodePath("AncreCellule")
+points_trajet = NodePath("PointsTrajet")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
+
+[node name="PointsTrajet" type="Node2D" parent="."]
+
+[node name="Depart" type="Marker2D" parent="PointsTrajet"]
+
+[node name="Arrivee" type="Marker2D" parent="PointsTrajet"]
+position = Vector2(0, 650)
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.18, 0.72, 0.78, 0.82)
+polygon = PackedVector2Array(-145, -145, 145, -145, 145, 145, -145, 145)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -80.0
+offset_top = -35.0
+offset_right = 80.0
+offset_bottom = 35.0
+theme_override_font_sizes/font_size = 28
+text = "MOBILE"
+horizontal_alignment = 1
+vertical_alignment = 1
