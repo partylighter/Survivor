@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/puzzles/PuzzleOrdre.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/puzzles/etape_puzzle_ordre.tscn" id="2_etape"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/porte_parcours.tscn" id="3_porte"]
+
+[node name="PuzzleOrdre" type="Node2D" node_paths=PackedStringArray("porte")]
+script = ExtResource("1_script")
+porte = NodePath("Porte")
+
+[node name="Etapes" type="Node2D" parent="."]
+
+[node name="Etape1" parent="Etapes" instance=ExtResource("2_etape")]
+
+[node name="Etape2" parent="Etapes" instance=ExtResource("2_etape")]
+position = Vector2(0, -325)
+ordre = 2
+
+[node name="Etape3" parent="Etapes" instance=ExtResource("2_etape")]
+position = Vector2(325, -325)
+ordre = 3
+
+[node name="Leurre" parent="Etapes" instance=ExtResource("2_etape")]
+position = Vector2(0, 325)
+leurre = true
+
+[node name="Porte" parent="." instance=ExtResource("3_porte")]
+position = Vector2(650, 0)

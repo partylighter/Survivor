@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/puzzles/EtapePuzzleOrdre.gd" id="1_script"]
+
+[node name="EtapePuzzleOrdre" type="Node2D" node_paths=PackedStringArray("label_ordre", "visuel")]
+script = ExtResource("1_script")
+label_ordre = NodePath("Label")
+visuel = NodePath("Visuel")
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.18, 0.42, 0.78, 0.85)
+polygon = PackedVector2Array(-72, -72, 72, -72, 72, 72, -72, 72)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -45.0
+offset_top = -42.0
+offset_right = 45.0
+offset_bottom = 42.0
+theme_override_font_sizes/font_size = 42
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1

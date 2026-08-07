@@ -1,0 +1,32 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/PorteParcours.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="RectanglePorte"]
+size = Vector2(220, 220)
+
+[node name="PorteParcours" type="Node2D" node_paths=PackedStringArray("collision_shape", "visuel")]
+script = ExtResource("1_script")
+collision_shape = NodePath("Corps/CollisionShape2D")
+visuel = NodePath("Visuel")
+
+[node name="Corps" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Corps"]
+shape = SubResource("RectanglePorte")
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.54, 0.10, 0.36, 1)
+polygon = PackedVector2Array(-110, -110, 110, -110, 110, 110, -110, 110)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -60.0
+offset_top = -32.0
+offset_right = 60.0
+offset_bottom = 32.0
+theme_override_font_sizes/font_size = 28
+text = "PORTE"
+horizontal_alignment = 1
+vertical_alignment = 1

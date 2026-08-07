@@ -1,46 +1,39 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/tests/TestParcoursGrille.gd" id="1_test"]
-[ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="2_archere"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="3_tuile"]
+[ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="1_archere"]
+[ext_resource type="Script" path="res://scripts/parcours/GestionnaireParcoursGrille.gd" id="2_gestionnaire"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/checkpoint_parcours.tscn" id="3_checkpoint"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/puzzles/puzzle_ordre.tscn" id="4_puzzle"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/declencheur_parcours.tscn" id="5_declencheur"]
 
-[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_sol"]
-texture = ExtResource("3_tuile")
-texture_region_size = Vector2i(128, 128)
+[sub_resource type="Gradient" id="GradientSol"]
+colors = PackedColorArray(0.10, 0.26, 0.20, 1, 0.10, 0.26, 0.20, 1)
+
+[sub_resource type="GradientTexture2D" id="TextureSol"]
+gradient = SubResource("GradientSol")
+width = 325
+height = 325
+
+[sub_resource type="TileSetAtlasSource" id="AtlasSol"]
+texture = SubResource("TextureSol")
+texture_region_size = Vector2i(325, 325)
 0:0/0 = 0
 
-[sub_resource type="TileSet" id="TileSet_sol"]
+[sub_resource type="TileSet" id="TileSetSol"]
 tile_size = Vector2i(325, 325)
-sources/0 = SubResource("TileSetAtlasSource_sol")
+sources/0 = SubResource("AtlasSol")
 
 [sub_resource type="RectangleShape2D" id="RectangleObstacle"]
 size = Vector2(220, 220)
 
-[sub_resource type="RectangleShape2D" id="RectanglePorte"]
-size = Vector2(220, 220)
-
-[sub_resource type="RectangleShape2D" id="RectangleEvenement"]
-size = Vector2(240, 240)
-
-[node name="TestParcoursPuzzle" type="Node2D" node_paths=PackedStringArray("joueur", "deplacement_grille", "sol_logique", "porte_puzzle", "zone_evenement", "label_etat")]
-script = ExtResource("1_test")
-joueur = NodePath("Archere")
-deplacement_grille = NodePath("Archere/GestionDeplacementGrilleJoueur")
-sol_logique = NodePath("SolLogique")
-porte_puzzle = NodePath("PortePuzzle")
-zone_evenement = NodePath("ZoneEvenement")
-label_etat = NodePath("Interface/Etat")
+[node name="TestParcoursPuzzle" type="Node2D"]
 
 [node name="Fond" type="Polygon2D" parent="."]
 z_index = -20
 color = Color(0.025, 0.045, 0.06, 1)
 polygon = PackedVector2Array(-700, -1000, 4900, -1000, 4900, 1000, -700, 1000)
 
-[node name="SolLogique" type="TileMapLayer" parent="."]
-visible = false
-tile_set = SubResource("TileSet_sol")
-
-[node name="Archere" parent="." instance=ExtResource("2_archere")]
+[node name="Archere" parent="." instance=ExtResource("1_archere")]
 position = Vector2(0, 0)
 
 [node name="Camera2D" type="Camera2D" parent="Archere"]
@@ -48,138 +41,83 @@ zoom = Vector2(0.5, 0.5)
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
 
-[node name="ObstacleCentral" type="StaticBody2D" parent="."]
+[node name="Parcours" type="Node2D" parent="."]
+
+[node name="SolParcours" type="TileMapLayer" parent="Parcours"]
+modulate = Color(1, 1, 1, 0.72)
+tile_map_data = PackedByteArray("AAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAGAP//AAAAAAAAAAAGAAAAAAAAAAAAAAAGAAEAAAAAAAAAAAAHAP//AAAAAAAAAAAHAAAAAAAAAAAAAAAHAAEAAAAAAAAAAAAIAP//AAAAAAAAAAAIAAEAAAAAAAAAAAAJAP//AAAAAAAAAAAJAAAAAAAAAAAAAAAJAAEAAAAAAAAAAAAKAP//AAAAAAAAAAAKAAAAAAAAAAAAAAAKAAEAAAAAAAAAAAALAP//AAAAAAAAAAAMAP//AAAAAAAAAAAMAAAAAAAAAAAAAAANAAAAAAAAAAAA")
+tile_set = SubResource("TileSetSol")
+
+[node name="Obstacles" type="Node2D" parent="Parcours"]
+
+[node name="ObstacleCentral" type="StaticBody2D" parent="Parcours/Obstacles"]
 position = Vector2(2275, 0)
 collision_layer = 1
 collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ObstacleCentral"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Parcours/Obstacles/ObstacleCentral"]
 shape = SubResource("RectangleObstacle")
 
-[node name="Visuel" type="Polygon2D" parent="ObstacleCentral"]
+[node name="Visuel" type="Polygon2D" parent="Parcours/Obstacles/ObstacleCentral"]
 color = Color(0.48, 0.12, 0.08, 1)
 polygon = PackedVector2Array(-110, -110, 110, -110, 110, 110, -110, 110)
 
-[node name="PortePuzzle" type="StaticBody2D" parent="."]
-position = Vector2(3900, 0)
-collision_layer = 1
-collision_mask = 1
+[node name="Elements" type="Node2D" parent="Parcours"]
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="PortePuzzle"]
-shape = SubResource("RectanglePorte")
+[node name="Checkpoints" type="Node2D" parent="Parcours/Elements"]
 
-[node name="Visuel" type="Polygon2D" parent="PortePuzzle"]
-color = Color(0.54, 0.10, 0.36, 1)
-polygon = PackedVector2Array(-110, -110, 110, -110, 110, 110, -110, 110)
+[node name="CheckpointApresDash" parent="Parcours/Elements/Checkpoints" instance=ExtResource("3_checkpoint")]
+position = Vector2(1300, 0)
 
-[node name="ZoneEvenement" type="Area2D" parent="."]
+[node name="Puzzles" type="Node2D" parent="Parcours/Elements"]
+
+[node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" instance=ExtResource("4_puzzle")]
+position = Vector2(3250, 0)
+
+[node name="Evenements" type="Node2D" parent="Parcours/Elements"]
+
+[node name="Arrivee" parent="Parcours/Elements/Evenements" instance=ExtResource("5_declencheur")]
 position = Vector2(4225, 0)
-collision_layer = 0
-collision_mask = 1
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="ZoneEvenement"]
-shape = SubResource("RectangleEvenement")
-
-[node name="Visuel" type="Polygon2D" parent="ZoneEvenement"]
-color = Color(0.15, 0.65, 0.72, 0.24)
-polygon = PackedVector2Array(-120, -120, 120, -120, 120, 120, -120, 120)
+[node name="GestionnaireParcoursGrille" type="Node" parent="."]
+script = ExtResource("2_gestionnaire")
 
 [node name="Reperes" type="Node2D" parent="."]
 
-[node name="TrouDash" type="Node2D" parent="Reperes"]
-position = Vector2(650, -260)
-
-[node name="Label" type="Label" parent="Reperes/TrouDash"]
-offset_left = -170.0
-offset_top = -60.0
-offset_right = 170.0
-offset_bottom = 60.0
+[node name="TrouDash" type="Label" parent="Reperes"]
+offset_left = 430.0
+offset_top = -290.0
+offset_right = 870.0
+offset_bottom = -170.0
 theme_override_font_sizes/font_size = 26
 text = "VIDE\nMarche = chute\nDash 2 cases = passage"
 horizontal_alignment = 1
 
-[node name="ChoixObstacle" type="Node2D" parent="Reperes"]
-position = Vector2(2275, -570)
-
-[node name="Label" type="Label" parent="Reperes/ChoixObstacle"]
-offset_left = -260.0
-offset_top = -50.0
-offset_right = 260.0
-offset_bottom = 50.0
+[node name="ChoixObstacle" type="Label" parent="Reperes"]
+offset_left = 1950.0
+offset_top = -620.0
+offset_right = 2600.0
+offset_bottom = -500.0
 theme_override_font_sizes/font_size = 26
 text = "OBSTACLE PHYSIQUE\nChoisir le chemin haut ou bas"
 horizontal_alignment = 1
 
-[node name="Puzzle" type="Node2D" parent="Reperes"]
-position = Vector2(3440, -650)
-
-[node name="Label" type="Label" parent="Reperes/Puzzle"]
-offset_left = -330.0
-offset_top = -60.0
-offset_right = 330.0
-offset_bottom = 60.0
+[node name="Puzzle" type="Label" parent="Reperes"]
+offset_left = 2980.0
+offset_top = -760.0
+offset_right = 3760.0
+offset_bottom = -610.0
 theme_override_font_sizes/font_size = 26
-text = "PUZZLE D'ORDRE\nBleu 1 → orange 2 → vert 3\nRouge = mauvais choix"
+text = "PUZZLE D'ORDRE\n1 → 2 → 3 ouvre la porte\nX réinitialise"
 horizontal_alignment = 1
 
-[node name="Porte" type="Node2D" parent="Reperes"]
-position = Vector2(3900, 260)
-
-[node name="Label" type="Label" parent="Reperes/Porte"]
-offset_left = -180.0
-offset_top = -30.0
-offset_right = 180.0
-offset_bottom = 30.0
+[node name="Arrivee" type="Label" parent="Reperes"]
+offset_left = 4000.0
+offset_top = -280.0
+offset_right = 4450.0
+offset_bottom = -200.0
 theme_override_font_sizes/font_size = 24
-text = "Porte ouverte par le puzzle"
-horizontal_alignment = 1
-
-[node name="Arrivee" type="Node2D" parent="Reperes"]
-position = Vector2(4225, -260)
-
-[node name="Label" type="Label" parent="Reperes/Arrivee"]
-offset_left = -210.0
-offset_top = -40.0
-offset_right = 210.0
-offset_bottom = 40.0
-theme_override_font_sizes/font_size = 24
-text = "Area2D : événement scripté"
-horizontal_alignment = 1
-
-[node name="Numero1" type="Label" parent="Reperes"]
-offset_left = 3210.0
-offset_top = -55.0
-offset_right = 3290.0
-offset_bottom = 55.0
-theme_override_font_sizes/font_size = 42
-text = "1"
-horizontal_alignment = 1
-
-[node name="Numero2" type="Label" parent="Reperes"]
-offset_left = 3210.0
-offset_top = -380.0
-offset_right = 3290.0
-offset_bottom = -270.0
-theme_override_font_sizes/font_size = 42
-text = "2"
-horizontal_alignment = 1
-
-[node name="Numero3" type="Label" parent="Reperes"]
-offset_left = 3535.0
-offset_top = -380.0
-offset_right = 3615.0
-offset_bottom = -270.0
-theme_override_font_sizes/font_size = 42
-text = "3"
-horizontal_alignment = 1
-
-[node name="MauvaisChoix" type="Label" parent="Reperes"]
-offset_left = 3200.0
-offset_top = 270.0
-offset_right = 3300.0
-offset_bottom = 380.0
-theme_override_font_sizes/font_size = 42
-text = "X"
+text = "Déclencheur de parcours"
 horizontal_alignment = 1
 
 [node name="Interface" type="CanvasLayer" parent="."]
@@ -187,15 +125,7 @@ horizontal_alignment = 1
 [node name="Instructions" type="Label" parent="Interface"]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 920.0
-offset_bottom = 118.0
+offset_right = 1050.0
+offset_bottom = 150.0
 theme_override_font_sizes/font_size = 22
-text = "TEST PARCOURS GRILLE\nSol vert = sûr | contour rouge = vide | carré rouge = obstacle\nDéplacement normal : 1 case | Dash : 2 cases, y compris au-dessus du vide"
-
-[node name="Etat" type="Label" parent="Interface"]
-offset_left = 20.0
-offset_top = 130.0
-offset_right = 920.0
-offset_bottom = 220.0
-theme_override_font_sizes/font_size = 22
-text = "Initialisation du test..."
+text = "TEST DU KIT PARCOURS\nSol vert = destination sûre | absence de tuile = vide | obstacle rouge = collision\nC = checkpoint | 1→2→3 = puzzle | X = leurre | PORTE = sortie du puzzle | A = déclencheur"
