@@ -107,7 +107,7 @@ func _physics_process(dt: float) -> void:
 	if _t >= duree_vie_s:
 		desactiver()
 
-func _gerer_impact(collider: Object, _hit_pos: Vector2) -> bool:
+func _gerer_impact(collider: Object, hit_pos: Vector2) -> bool:
 	if collider == null:
 		return false
 
@@ -120,7 +120,7 @@ func _gerer_impact(collider: Object, _hit_pos: Vector2) -> bool:
 			return false
 		_cibles_deja_touchees[id] = true
 
-	_appliquer_impact(collider)
+	_appliquer_impact(collider, hit_pos)
 
 	_contacts_restants -= 1
 	return true
@@ -164,12 +164,12 @@ func _intersect_large(from: Vector2, to: Vector2) -> Dictionary:
 
 	return best
 
-func _appliquer_impact(collider: Object) -> void:
+func _appliquer_impact(collider: Object, hit_pos: Vector2) -> void:
 	var hb: HurtBox = _resolve_hurtbox(collider)
 	var src: Node2D = _source if is_instance_valid(_source) else self
 
 	if hb != null:
-		hb.tek_it(_degats, src)
+		hb.tek_it_depuis(_degats, src, hit_pos)
 		_appliquer_recul_sur_chaine(hb.get_parent(), src, _recul_force)
 	elif collider != null and collider.has_method("tek_it"):
 		collider.call("tek_it", _degats, src)

@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cgqs200twliqw" path="res://scenes/joueur/archere/archere.tscn" id="1_archere"]
 [ext_resource type="Script" uid="uid://bxkvplha25qt" path="res://scripts/parcours/GestionnaireParcoursGrille.gd" id="2_gestionnaire"]
+[ext_resource type="Script" path="res://scripts/parcours/ennemis/GestionnaireTourPuzzleGrille.gd" id="3_tours"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/puzzles/puzzle_ordre.tscn" id="4_puzzle"]
 [ext_resource type="PackedScene" uid="uid://b0mwjk2mu16ky" path="res://scenes/parcours/declencheur_parcours.tscn" id="5_declencheur"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/plateformes/plateforme_fragile.tscn" id="6_fragile"]
@@ -9,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/parcours/plateformes/PointTrajetPlateforme.gd" id="7_point_script"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/objets/bloc_poussable_grille.tscn" id="8_bloc"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/objets/plateforme_deplacable_grille.tscn" id="9_plateforme"]
+[ext_resource type="PackedScene" path="res://scenes/parcours/ennemis/ennemi_puzzle_grille.tscn" id="10_ennemi_puzzle"]
 
 [sub_resource type="Gradient" id="GradientSol"]
 colors = PackedColorArray(0.1, 0.26, 0.2, 1, 0.1, 0.26, 0.2, 1)
@@ -48,7 +50,7 @@ position_smoothing_speed = 7.0
 [node name="SolParcours" type="TileMapLayer" parent="Parcours"]
 modulate = Color(1, 1, 1, 0.72)
 position = Vector2(-162.5, -162.5)
-tile_map_data = PackedByteArray("AAAAAP//AAAAAAAAAAABAP//AAAAAAAAAAACAP//AAAAAAAAAAADAP//AAAAAAAAAAAGAP//AAAAAAAAAAAHAP//AAAAAAAAAAAIAP//AAAAAAAAAAAKAP//AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAACAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAACAAEAAAAAAAAAAAADAAEAAAAAAAAAAAAKAAEAAAAAAAAAAAALAAEAAAAAAAAAAAAMAAEAAAAAAAAAAAAVAAMAAAAAAAAAAAAWAAMAAAAAAAAAAAATAAQAAAAAAAAAAAAUAAQAAAAAAAAAAAAVAAQAAAAAAAAAAAAWAAQAAAAAAAAAAAAXAAQAAAAAAAAAAAAYAAQAAAAAAAAAAAAVAAUAAAAAAAAAAAA=")
+tile_map_data = PackedByteArray("AAAAAP//AAAAAAAAAAABAP//AAAAAAAAAAACAP//AAAAAAAAAAADAP//AAAAAAAAAAAGAP//AAAAAAAAAAAHAP//AAAAAAAAAAAIAP//AAAAAAAAAAAKAP//AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAACAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAACAAEAAAAAAAAAAAADAAEAAAAAAAAAAAAKAAEAAAAAAAAAAAALAAEAAAAAAAAAAAAMAAEAAAAAAAAAAAAVAAMAAAAAAAAAAAAWAAMAAAAAAAAAAAATAAQAAAAAAAAAAAAUAAQAAAAAAAAAAAAVAAQAAAAAAAAAAAAWAAQAAAAAAAAAAAAXAAQAAAAAAAAAAAAYAAQAAAAAAAAAAAAVAAUAAAAAAAAAAAAZAAQAAAAAAAAAAAAaAAQAAAAAAAAAAAAbAAQAAAAAAAAAAAAcAAQAAAAAAAAAAAAdAAQAAAAAAAAAAAAeAAQAAAAAAAAAAAAfAAQAAAAAAAAAAAAgAAQAAAAAAAAAAAAhAAQAAAAAAAAAAAAiAAQAAAAAAAAAAAAjAAQAAAAAAAAAAAAkAAQAAAAAAAAAAAAZAAMAAAAAAAAAAAAaAAMAAAAAAAAAAAAbAAMAAAAAAAAAAAAcAAMAAAAAAAAAAAAdAAMAAAAAAAAAAAAeAAMAAAAAAAAAAAAfAAMAAAAAAAAAAAAgAAMAAAAAAAAAAAAhAAMAAAAAAAAAAAAiAAMAAAAAAAAAAAAjAAMAAAAAAAAAAAAeAAUAAAAAAAAAAAAfAAUAAAAAAAAAAAAgAAUAAAAAAAAAAAAhAAUAAAAAAAAAAAA=")
 tile_set = SubResource("TileSetSol")
 
 [node name="Obstacles" type="Node2D" parent="Parcours"]
@@ -147,14 +149,66 @@ vertical_alignment = 1
 [node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" instance=ExtResource("4_puzzle")]
 position = Vector2(6825, 1300)
 
+[node name="EnnemisPuzzle" type="Node2D" parent="Parcours/Elements"]
+
+[node name="Patrouilleur" parent="Parcours/Elements/EnnemisPuzzle" instance=ExtResource("10_ennemi_puzzle")]
+position = Vector2(8775, 975)
+nom_affiche = "PATROUILLE"
+ordre_resolution = 10
+distance_activation_joueur_cellules = 5
+pattern = [Vector2i(1, 0), Vector2i(1, 0), Vector2i(-1, 0), Vector2i(-1, 0)]
+peut_recevoir_degats = false
+
+[node name="Belier" parent="Parcours/Elements/EnnemisPuzzle" instance=ExtResource("10_ennemi_puzzle")]
+position = Vector2(9425, 1300)
+nom_affiche = "BELIER"
+ordre_resolution = 20
+mode_activation = 1
+tous_les_n_deplacements = 2
+distance_activation_joueur_cellules = 5
+pattern = [Vector2i(-1, 0), Vector2i(-1, 0), Vector2i(1, 0), Vector2i(1, 0)]
+direction_initiale = Vector2i(-1, 0)
+pousse_joueur = true
+inflige_degats = true
+degats_joueur = 12
+peut_recevoir_degats = false
+
+[node name="TempsReel" parent="Parcours/Elements/EnnemisPuzzle" instance=ExtResource("10_ennemi_puzzle")]
+position = Vector2(10400, 1625)
+nom_affiche = "TEMPS REEL"
+ordre_resolution = 30
+mode_activation = 2
+intervalle_temps_reel_s = 0.85
+distance_activation_joueur_cellules = 5
+pattern = [Vector2i(0, -1), Vector2i(0, 1)]
+direction_initiale = Vector2i(0, -1)
+inflige_degats = true
+degats_joueur = 8
+pv_max = 20
+
+[node name="GardienDos" parent="Parcours/Elements/EnnemisPuzzle" instance=ExtResource("10_ennemi_puzzle")]
+position = Vector2(11050, 975)
+nom_affiche = "DOS SEUL"
+ordre_resolution = 40
+mode_activation = 3
+direction_initiale = Vector2i(-1, 0)
+pv_max = 15
+vulnerable_avant = false
+vulnerable_gauche = false
+vulnerable_droite = false
+vulnerable_indifferencie = false
+
 [node name="Evenements" type="Node2D" parent="Parcours/Elements"]
 
 [node name="Arrivee" parent="Parcours/Elements/Evenements" instance=ExtResource("5_declencheur")]
-position = Vector2(7800, 1300)
+position = Vector2(11700, 1300)
 
 [node name="GestionnaireParcoursGrille" type="Node" parent="." node_paths=PackedStringArray("joueur")]
 script = ExtResource("2_gestionnaire")
 joueur = NodePath("../Archere")
+
+[node name="GestionnaireTourPuzzleGrille" type="Node" parent="."]
+script = ExtResource("3_tours")
 
 [node name="Reperes" type="Node2D" parent="."]
 
@@ -203,10 +257,19 @@ theme_override_font_sizes/font_size = 24
 text = "5 — PUZZLE D'ORDRE\n1 → 2 → 3 ouvre la porte • X réinitialise."
 horizontal_alignment = 1
 
+[node name="Zone6" type="Label" parent="Reperes"]
+offset_left = 8050.0
+offset_top = 1950.0
+offset_right = 11750.0
+offset_bottom = 2180.0
+theme_override_font_sizes/font_size = 22
+text = "6 — ENNEMIS PUZZLE\nPATROUILLE = bouge à chaque pas • BELIER = tous les 2 pas, pousse + dégâts\nTEMPS REEL = timer indépendant • DOS SEUL = immobile, dégâts acceptés uniquement par l'arrière (flèche jaune = face)"
+horizontal_alignment = 1
+
 [node name="Fin" type="Label" parent="Reperes"]
-offset_left = 7600.0
+offset_left = 11400.0
 offset_top = 1120.0
-offset_right = 8100.0
+offset_right = 12000.0
 offset_bottom = 1240.0
 theme_override_font_sizes/font_size = 24
 text = "SORTIE"
@@ -217,7 +280,7 @@ horizontal_alignment = 1
 [node name="Instructions" type="Label" parent="Interface"]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 1280.0
-offset_bottom = 155.0
-theme_override_font_sizes/font_size = 21
-text = "PARCOURS PUZZLE COMPLET\n1 Blocs en chaîne → 2 Fragile → 3 E : porter/poser + dash → 4 Plateforme mobile → 5 Ordre 1→2→3 → sortie\nVert = sol fixe • vide = chute • E reprend/repose la plateforme portable"
+offset_right = 1340.0
+offset_bottom = 175.0
+theme_override_font_sizes/font_size = 20
+text = "PARCOURS PUZZLE COMPLET\n1 Blocs → 2 Fragile → 3 E porter/poser + dash → 4 Mobile → 5 Ordre → 6 Ennemis puzzle → sortie\nEnnemis rouges : pattern fixe • flèche jaune = orientation • certains poussent/blessent • vulnérabilité configurable par côté"

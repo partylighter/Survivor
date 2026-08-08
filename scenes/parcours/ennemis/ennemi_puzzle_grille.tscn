@@ -1,0 +1,66 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/parcours/ennemis/EnnemiPuzzleGrille.gd" id="1_ennemi"]
+[ext_resource type="Script" path="res://scripts/utilitaires/santé.gd" id="2_sante"]
+[ext_resource type="Script" path="res://scripts/utilitaires/hurtbox.gd" id="3_hurtbox"]
+
+[sub_resource type="RectangleShape2D" id="RectangleCorps"]
+size = Vector2(235, 235)
+
+[sub_resource type="RectangleShape2D" id="RectangleHurtbox"]
+size = Vector2(220, 220)
+
+[node name="EnnemiPuzzleGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "corps_collision", "collision_shape", "chemin_sante", "chemin_hurtbox", "chemin_orientation_visuelle", "chemin_label")]
+script = ExtResource("1_ennemi")
+ancre_cellule = NodePath("AncreCellule")
+corps_collision = NodePath("Corps")
+collision_shape = NodePath("Corps/CollisionShape2D")
+chemin_sante = NodePath("Sante")
+chemin_hurtbox = NodePath("HurtBox")
+chemin_orientation_visuelle = NodePath("Orientation")
+chemin_label = NodePath("Label")
+
+[node name="AncreCellule" type="Marker2D" parent="."]
+
+[node name="Corps" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Corps"]
+shape = SubResource("RectangleCorps")
+
+[node name="Sante" type="Node" parent="."]
+script = ExtResource("2_sante")
+max_pv = 30
+
+[node name="HurtBox" type="Area2D" parent="."]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("3_hurtbox")
+chemin_sante = NodePath("../Sante")
+invincibilite_s = 0.08
+hit_radius_px = 110.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox"]
+shape = SubResource("RectangleHurtbox")
+
+[node name="Visuel" type="Polygon2D" parent="."]
+color = Color(0.68, 0.18, 0.22, 0.96)
+polygon = PackedVector2Array(-115, -115, 115, -115, 115, 115, -115, 115)
+
+[node name="Orientation" type="Node2D" parent="."]
+
+[node name="Fleche" type="Polygon2D" parent="Orientation"]
+position = Vector2(45, 0)
+color = Color(1, 0.86, 0.25, 1)
+polygon = PackedVector2Array(65, 0, -25, -42, -25, 42)
+
+[node name="Label" type="Label" parent="."]
+offset_left = -115.0
+offset_top = -64.0
+offset_right = 115.0
+offset_bottom = 64.0
+theme_override_font_sizes/font_size = 22
+text = "PUZZLE\nPV 30/30"
+horizontal_alignment = 1
+vertical_alignment = 1

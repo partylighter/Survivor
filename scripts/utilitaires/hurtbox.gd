@@ -39,11 +39,19 @@ func get_invulnerabilite_restant_s() -> float:
 	return maxf(_i_t, 0.0)
 
 func tek_it(damage: int, source: Node) -> bool:
+	return _appliquer_hit(damage, source, Vector2.ZERO, false)
+
+func tek_it_depuis(damage: int, source: Node, origine_monde: Vector2) -> bool:
+	return _appliquer_hit(damage, source, origine_monde, true)
+
+func _appliquer_hit(damage: int, source: Node, origine_monde: Vector2, origine_definie: bool) -> bool:
 	if damage <= 0:
 		return false
 	if _i_t > 0.0:
 		return false
 	if _hote_est_invulnerable():
+		return false
+	if not _hote_accepte_degats(source, origine_monde, origine_definie):
 		return false
 	if sante == null:
 		return false
@@ -63,6 +71,16 @@ func _hote_est_invulnerable() -> bool:
 	if hote != null and hote.has_method("est_invulnerable_aux_degats"):
 		return bool(hote.call("est_invulnerable_aux_degats"))
 	return false
+
+func _hote_accepte_degats(source: Node, origine_monde: Vector2, origine_definie: bool) -> bool:
+	var hote: Node = get_parent()
+	if hote == null:
+		return true
+	if origine_definie and hote.has_method("accepte_degats_source_depuis"):
+		return bool(hote.call("accepte_degats_source_depuis", source, origine_monde))
+	if hote.has_method("accepte_degats_source"):
+		return bool(hote.call("accepte_degats_source", source))
+	return true
 
 
 func set_actif(v: bool) -> void:
