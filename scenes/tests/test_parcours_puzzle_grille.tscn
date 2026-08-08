@@ -5,7 +5,8 @@
 [ext_resource type="PackedScene" path="res://scenes/parcours/puzzles/puzzle_ordre.tscn" id="4_puzzle"]
 [ext_resource type="PackedScene" uid="uid://b0mwjk2mu16ky" path="res://scenes/parcours/declencheur_parcours.tscn" id="5_declencheur"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/plateformes/plateforme_fragile.tscn" id="6_fragile"]
-[ext_resource type="PackedScene" path="res://scenes/parcours/plateformes/plateforme_mobile_grille.tscn" id="7_mobile"]
+[ext_resource type="Script" path="res://scripts/parcours/plateformes/PlateformeMobileGrille.gd" id="7_mobile_script"]
+[ext_resource type="Script" path="res://scripts/parcours/plateformes/PointTrajetPlateforme.gd" id="7_point_script"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/objets/bloc_poussable_grille.tscn" id="8_bloc"]
 [ext_resource type="PackedScene" path="res://scenes/parcours/objets/plateforme_deplacable_grille.tscn" id="9_plateforme"]
 
@@ -27,141 +28,196 @@ tile_size = Vector2i(325, 325)
 sources/0 = SubResource("AtlasSol")
 
 [sub_resource type="RectangleShape2D" id="RectangleObstacle"]
-size = Vector2(325, 325)
+size = Vector2(300, 300)
+
+[sub_resource type="RectangleShape2D" id="RectangleMobile"]
+size = Vector2(290, 290)
 
 [node name="TestParcoursPuzzle" type="Node2D" unique_id=1932425241]
 
 [node name="Archere" parent="." unique_id=368238821 instance=ExtResource("1_archere")]
-position = Vector2(1370, -893)
+position = Vector2(0, 0)
 
 [node name="Camera2D" type="Camera2D" parent="Archere" unique_id=1491297280]
-zoom = Vector2(0.6, 0.6)
+zoom = Vector2(0.65, 0.65)
 position_smoothing_enabled = true
 position_smoothing_speed = 7.0
 
-[node name="Node2D" type="Node2D" parent="." unique_id=1118748183]
+[node name="Parcours" type="Node2D" parent="."]
 
-[node name="Parcours" type="Node2D" parent="." unique_id=655074499]
-
-[node name="SolParcours" type="TileMapLayer" parent="Parcours" unique_id=1029724018]
+[node name="SolParcours" type="TileMapLayer" parent="Parcours"]
 modulate = Color(1, 1, 1, 0.72)
 position = Vector2(-162.5, -162.5)
-tile_map_data = PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAABAAAAAAAAAAAAAAABAP//AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAABAP7/AAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAD//wIAAAAAAAAAAAAAAAIAAAAAAAAAAAABAAIAAAAAAAAAAAABAP3/AAAAAAAAAAAAAP3/AAAAAAAAAAD///3/AAAAAAAAAAD+//7/AAAAAAAAAAD+////AAAAAAAAAAD+//3/AAAAAAAAAAD+/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD+/wIAAAAAAAAAAAADAP3/AAAAAAAAAAADAP//AAAAAAAAAAADAAAAAAAAAAAAAAAEAP3/AAAAAAAAAAAEAP//AAAAAAAAAAAEAAAAAAAAAAAAAAAGAP//AAAAAAAAAAAGAAAAAAAAAAAAAAAGAAEAAAAAAAAAAAAHAP//AAAAAAAAAAAHAAAAAAAAAAAAAAAIAP//AAAAAAAAAAAIAAAAAAAAAAAAAAAJAP//AAAAAAAAAAAJAAAAAAAAAAAAAAAJAAEAAAAAAAAAAAAKAP//AAAAAAAAAAAKAAAAAAAAAAAAAAAKAAEAAAAAAAAAAAALAP//AAAAAAAAAAALAAAAAAAAAAAAAAALAAEAAAAAAAAAAAAMAP7/AAAAAAAAAAAMAP//AAAAAAAAAAAMAAAAAAAAAAAAAAAMAAEAAAAAAAAAAAANAP7/AAAAAAAAAAANAP//AAAAAAAAAAANAAAAAAAAAAAAAAANAAEAAAAAAAAAAAAOAP7/AAAAAAAAAAAOAP//AAAAAAAAAAAOAAAAAAAAAAAAAAAOAAEAAAAAAAAAAAADAAIAAAAAAAAAAAAEAAIAAAAAAAAAAAAGAP7/AAAAAAAAAAAJAP7/AAAAAAAAAAAKAP7/AAAAAAAAAAALAP7/AAAAAAAAAAAEAP7/AAAAAAAAAAAEAAEAAAAAAAAAAAAGAP3/AAAAAAAAAAAGAAIAAAAAAAAAAAA=")
+tile_map_data = PackedByteArray("AAAAAP//AAAAAAAAAAABAP//AAAAAAAAAAACAP//AAAAAAAAAAADAP//AAAAAAAAAAAGAP//AAAAAAAAAAAHAP//AAAAAAAAAAAIAP//AAAAAAAAAAAKAP//AAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAACAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAKAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAARAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAABAAEAAAAAAAAAAAACAAEAAAAAAAAAAAADAAEAAAAAAAAAAAAKAAEAAAAAAAAAAAALAAEAAAAAAAAAAAAMAAEAAAAAAAAAAAAVAAMAAAAAAAAAAAAWAAMAAAAAAAAAAAATAAQAAAAAAAAAAAAUAAQAAAAAAAAAAAAVAAQAAAAAAAAAAAAWAAQAAAAAAAAAAAAXAAQAAAAAAAAAAAAYAAQAAAAAAAAAAAAVAAUAAAAAAAAAAAA=")
 tile_set = SubResource("TileSetSol")
 
-[node name="Obstacles" type="Node2D" parent="Parcours" unique_id=1612639146]
+[node name="Obstacles" type="Node2D" parent="Parcours"]
 
-[node name="ObstacleCentral" type="StaticBody2D" parent="Parcours/Obstacles" unique_id=1588531082]
-position = Vector2(1949, 0)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Parcours/Obstacles/ObstacleCentral" unique_id=305040998]
-shape = SubResource("RectangleObstacle")
-
-[node name="Visuel" type="Polygon2D" parent="Parcours/Obstacles/ObstacleCentral" unique_id=2015349706]
-position = Vector2(0.9999509, -3.0000153)
-scale = Vector2(1.3909087, 1.3818179)
-color = Color(0.48, 0.12, 0.08, 1)
-polygon = PackedVector2Array(-110, -110, 110, -110, 110, -0.4200592, 110, 110, -0.17156982, 110.00003, -110, 110, -110, 0)
-
-[node name="Elements" type="Node2D" parent="Parcours" unique_id=210334501]
-
-[node name="Checkpoints" type="Node2D" parent="Parcours/Elements" unique_id=328918165]
-
-[node name="SolDynamique" type="Node2D" parent="Parcours/Elements" unique_id=534310209]
-
-[node name="PlateformeFragile" parent="Parcours/Elements/SolDynamique" unique_id=1044927501 instance=ExtResource("6_fragile")]
-position = Vector2(1625, 0)
-
-[node name="PlateformeMobile" parent="Parcours/Elements/SolDynamique" unique_id=1415484525 instance=ExtResource("7_mobile")]
-position = Vector2(650, -650)
-duree_par_cellule_s = 0.76
-attente_entre_deplacements_s = 1.0
-
-[node name="ObjetsDeplacables" type="Node2D" parent="Parcours/Elements" unique_id=1261687489]
-
-[node name="BlocPoussable" parent="Parcours/Elements/ObjetsDeplacables" unique_id=1522715187 instance=ExtResource("8_bloc")]
+[node name="MurCouloirHaut" type="StaticBody2D" parent="Parcours/Obstacles"]
 position = Vector2(1300, -325)
 
-[node name="PlateformeDeplacable" parent="Parcours/Elements/ObjetsDeplacables" unique_id=472066303 instance=ExtResource("9_plateforme")]
-position = Vector2(3900, -650)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Parcours/Obstacles/MurCouloirHaut"]
+shape = SubResource("RectangleObstacle")
 
-[node name="Puzzles" type="Node2D" parent="Parcours/Elements" unique_id=2095274201]
+[node name="Visuel" type="Polygon2D" parent="Parcours/Obstacles/MurCouloirHaut"]
+color = Color(0.48, 0.12, 0.08, 1)
+polygon = PackedVector2Array(-150, -150, 150, -150, 150, 150, -150, 150)
 
-[node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" unique_id=16386604 instance=ExtResource("4_puzzle")]
-position = Vector2(3250, 0)
+[node name="MurCouloirBas" type="StaticBody2D" parent="Parcours/Obstacles"]
+position = Vector2(1300, 325)
 
-[node name="Evenements" type="Node2D" parent="Parcours/Elements" unique_id=1457455440]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Parcours/Obstacles/MurCouloirBas"]
+shape = SubResource("RectangleObstacle")
 
-[node name="Arrivee" parent="Parcours/Elements/Evenements" unique_id=724699471 instance=ExtResource("5_declencheur")]
-position = Vector2(4225, 0)
+[node name="Visuel" type="Polygon2D" parent="Parcours/Obstacles/MurCouloirBas"]
+color = Color(0.48, 0.12, 0.08, 1)
+polygon = PackedVector2Array(-150, -150, 150, -150, 150, 150, -150, 150)
 
-[node name="GestionnaireParcoursGrille" type="Node" parent="." unique_id=2011285553 node_paths=PackedStringArray("joueur")]
+[node name="Elements" type="Node2D" parent="Parcours"]
+
+[node name="Checkpoints" type="Node2D" parent="Parcours/Elements"]
+
+[node name="ObjetsDeplacables" type="Node2D" parent="Parcours/Elements"]
+
+[node name="BlocPoussableA" parent="Parcours/Elements/ObjetsDeplacables" instance=ExtResource("8_bloc")]
+position = Vector2(1300, 0)
+
+[node name="BlocPoussableB" parent="Parcours/Elements/ObjetsDeplacables" instance=ExtResource("8_bloc")]
+position = Vector2(1625, 0)
+
+[node name="PlateformeDeplacable" parent="Parcours/Elements/ObjetsDeplacables" instance=ExtResource("9_plateforme")]
+position = Vector2(3575, 325)
+
+[node name="SolDynamique" type="Node2D" parent="Parcours/Elements"]
+
+[node name="PlateformeFragile" parent="Parcours/Elements/SolDynamique" instance=ExtResource("6_fragile")]
+position = Vector2(2925, -325)
+delai_disparition_s = 1.1
+delai_reapparition_s = 3.0
+
+[node name="PlateformeMobile" type="Node2D" parent="Parcours/Elements/SolDynamique" node_paths=PackedStringArray("ancre_cellule", "points_trajet", "forme_collision")]
+position = Vector2(5850, 0)
+process_physics_priority = 10
+script = ExtResource("7_mobile_script")
+ancre_cellule = NodePath("AncreCellule")
+points_trajet = NodePath("PointsTrajet")
+forme_collision = NodePath("FormeDeplacement/CollisionShape2D")
+duree_par_cellule_s = 0.35
+attente_entre_deplacements_s = 1.25
+
+[node name="AncreCellule" type="Marker2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+
+[node name="PointsTrajet" type="Node2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+
+[node name="Depart" type="Marker2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile/PointsTrajet"]
+script = ExtResource("7_point_script")
+ordre = 1
+
+[node name="Arrivee" type="Marker2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile/PointsTrajet"]
+position = Vector2(0, 1300)
+script = ExtResource("7_point_script")
+ordre = 2
+attente_s = 1.0
+
+[node name="FormeDeplacement" type="Area2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile/FormeDeplacement"]
+shape = SubResource("RectangleMobile")
+
+[node name="Visuel" type="Polygon2D" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+color = Color(0.18, 0.72, 0.78, 0.82)
+polygon = PackedVector2Array(-145, -145, 145, -145, 145, 145, -145, 145)
+
+[node name="Label" type="Label" parent="Parcours/Elements/SolDynamique/PlateformeMobile"]
+offset_left = -105.0
+offset_top = -35.0
+offset_right = 105.0
+offset_bottom = 35.0
+theme_override_font_sizes/font_size = 26
+text = "ASCENSEUR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Puzzles" type="Node2D" parent="Parcours/Elements"]
+
+[node name="PuzzleOrdre" parent="Parcours/Elements/Puzzles" instance=ExtResource("4_puzzle")]
+position = Vector2(6825, 1300)
+
+[node name="Evenements" type="Node2D" parent="Parcours/Elements"]
+
+[node name="Arrivee" parent="Parcours/Elements/Evenements" instance=ExtResource("5_declencheur")]
+position = Vector2(7800, 1300)
+
+[node name="GestionnaireParcoursGrille" type="Node" parent="." node_paths=PackedStringArray("joueur")]
 script = ExtResource("2_gestionnaire")
 joueur = NodePath("../Archere")
 
-[node name="Reperes" type="Node2D" parent="." unique_id=38984866]
+[node name="Reperes" type="Node2D" parent="."]
 
-[node name="TrouDash" type="Label" parent="Reperes" unique_id=1506108362]
-offset_left = 430.0
-offset_top = -290.0
-offset_right = 870.0
-offset_bottom = -170.0
-theme_override_font_sizes/font_size = 26
-text = "VIDE
-Marche = chute
-Dash 2 cases = passage"
-horizontal_alignment = 1
-
-[node name="ChoixObstacle" type="Label" parent="Reperes" unique_id=2118443088]
-offset_left = 1950.0
+[node name="Zone1" type="Label" parent="Reperes"]
+offset_left = 0.0
 offset_top = -620.0
-offset_right = 2600.0
+offset_right = 1950.0
 offset_bottom = -500.0
-theme_override_font_sizes/font_size = 26
-text = "OBSTACLE PHYSIQUE
-Choisir le chemin haut ou bas"
+theme_override_font_sizes/font_size = 25
+text = "1 — POUSSÉE EN CHAÎNE\nLes deux blocs ferment le couloir. Pousse-les ensemble jusqu'à pouvoir passer par le haut."
 horizontal_alignment = 1
 
-[node name="Puzzle" type="Label" parent="Reperes" unique_id=356834830]
-offset_left = 2980.0
-offset_top = -760.0
-offset_right = 3760.0
-offset_bottom = -610.0
-theme_override_font_sizes/font_size = 26
-text = "PUZZLE D'ORDRE
-1 → 2 → 3 ouvre la porte
-X réinitialise"
+[node name="Zone2" type="Label" parent="Reperes"]
+offset_left = 2500.0
+offset_top = -700.0
+offset_right = 3500.0
+offset_bottom = -560.0
+theme_override_font_sizes/font_size = 25
+text = "2 — FRAGILE\nTraverse avant sa disparition."
 horizontal_alignment = 1
 
-[node name="Plateformes" type="Label" parent="Reperes" unique_id=1554290061]
-offset_left = 420.0
-offset_top = 760.0
-offset_right = 2100.0
-offset_bottom = 930.0
+[node name="Zone3" type="Label" parent="Reperes"]
+offset_left = 3300.0
+offset_top = 520.0
+offset_right = 5200.0
+offset_bottom = 700.0
 theme_override_font_sizes/font_size = 24
-text = "SOL DYNAMIQUE : MOBILE x=2 | FRAGILE x=5,y=0
-BLOC x=4,y=-1 : pousser vers le vide | PLATEFORME x=12,y=-2 : E prendre / E poser devant"
+text = "3 — PLATEFORME PORTABLE + DASH\nE pour prendre • pose-la dans le premier trou • monte dessus • dash vers la rive droite."
 horizontal_alignment = 1
 
-[node name="Arrivee" type="Label" parent="Reperes" unique_id=932443291]
-offset_left = 4000.0
-offset_top = -280.0
-offset_right = 4450.0
-offset_bottom = -200.0
+[node name="Zone4" type="Label" parent="Reperes"]
+offset_left = 5400.0
+offset_top = -520.0
+offset_right = 6300.0
+offset_bottom = -380.0
 theme_override_font_sizes/font_size = 24
-text = "Déclencheur de parcours"
+text = "4 — ASCENSEUR MOBILE\nMonte dessus et laisse-le descendre."
 horizontal_alignment = 1
 
-[node name="Interface" type="CanvasLayer" parent="." unique_id=801943657]
+[node name="Zone5" type="Label" parent="Reperes"]
+offset_left = 6400.0
+offset_top = 1750.0
+offset_right = 7700.0
+offset_bottom = 1920.0
+theme_override_font_sizes/font_size = 24
+text = "5 — PUZZLE D'ORDRE\n1 → 2 → 3 ouvre la porte • X réinitialise."
+horizontal_alignment = 1
 
-[node name="Instructions" type="Label" parent="Interface" unique_id=2034458753]
+[node name="Fin" type="Label" parent="Reperes"]
+offset_left = 7600.0
+offset_top = 1120.0
+offset_right = 8100.0
+offset_bottom = 1240.0
+theme_override_font_sizes/font_size = 24
+text = "SORTIE"
+horizontal_alignment = 1
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Instructions" type="Label" parent="Interface"]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 1240.0
-offset_bottom = 190.0
-theme_override_font_sizes/font_size = 22
-text = "TEST DU KIT PARCOURS
-Sol vert = fixe | absence de tuile = vide | MOBILE/FRAGILE = sol dynamique
-BLOC = pousser en marchant | PLATEFORME = E pour prendre, se déplacer avec, E pour poser devant
-FRAGILE disparaît après 0,8 s | MOBILE transporte le joueur
-1→2→3 = puzzle | X = leurre | PORTE = sortie | A = déclencheur"
+offset_right = 1280.0
+offset_bottom = 155.0
+theme_override_font_sizes/font_size = 21
+text = "PARCOURS PUZZLE COMPLET\n1 Blocs en chaîne → 2 Fragile → 3 E : porter/poser + dash → 4 Plateforme mobile → 5 Ordre 1→2→3 → sortie\nVert = sol fixe • vide = chute • E reprend/repose la plateforme portable"
