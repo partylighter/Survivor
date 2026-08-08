@@ -6,6 +6,7 @@
 size = Vector2(290, 290)
 
 [node name="PlateformeDeplacableGrille" type="Node2D" node_paths=PackedStringArray("ancre_cellule", "corps_collision", "collision_shape")]
+process_physics_priority = 20
 script = ExtResource("1_script")
 ancre_cellule = NodePath("AncreCellule")
 corps_collision = NodePath("ZoneForme")
@@ -32,6 +33,6 @@ offset_top = -45.0
 offset_right = 110.0
 offset_bottom = 45.0
 theme_override_font_sizes/font_size = 24
-text = "PLATEFORME\nE + direction"
+text = "PLATEFORME\nE : prendre / poser"
 horizontal_alignment = 1
 vertical_alignment = 1

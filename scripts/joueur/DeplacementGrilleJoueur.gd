@@ -66,6 +66,8 @@ var _gestionnaire_parcours: Node
 var _occupant_pousse_en_cours: Node
 var _transport_plateforme_source: Node
 var _transport_plateforme_actif: bool = false
+var _objet_porte: Node
+var _interaction_objet_en_attente: bool = false
 
 func _ready() -> void:
 	add_to_group("deplacement_grille_joueur")
@@ -81,15 +83,19 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 	_mettre_a_jour_recharge_dash(joueur, stats, dt)
+	_nettoyer_objet_porte_invalide()
 	if _transport_plateforme_actif:
 		joueur.velocity = Vector2.ZERO
 		return
 	_mettre_a_jour_temps_buffers(dt)
 	_mettre_a_jour_direction_dash_a_relacher()
+	var interaction_appuyee: bool = Input.is_action_just_pressed("interagir")
 	var direction_maintenue: Vector2i = _obtenir_direction_entree()
 	var direction_dash_maintenue: Vector2i = _obtenir_direction_entree(true)
 	var direction_juste_appuyee: Vector2i = _obtenir_direction_juste_appuyee(direction_maintenue)
 	if _en_deplacement:
+		if interaction_appuyee and not _en_dash:
+			_interaction_objet_en_attente = true
 		var dash_bloque_entrees: bool = false
 		if not _en_dash and Input.is_action_just_pressed("dash") and _commencer_attente_preparation_dash(joueur, direction_dash_maintenue):
 			dash_bloque_entrees = true
@@ -105,9 +111,15 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 				_memoriser_direction_buffer(direction_juste_appuyee)
 		_avancer_deplacement(joueur, dt)
 		if not _en_deplacement:
+			if _interaction_objet_en_attente:
+				_interaction_objet_en_attente = false
+				if _traiter_interaction_objet_porte(joueur):
+					return
 			_consomme_entree_apres_arrivee(joueur, stats, direction_maintenue)
 		return
 	joueur.velocity = Vector2.ZERO
+	if interaction_appuyee and _traiter_interaction_objet_porte(joueur):
+		return
 	if _dash_en_preparation:
 		_traiter_preparation_dash(joueur, stats, direction_dash_maintenue)
 		return
@@ -140,6 +152,7 @@ func synchroniser_sur_grille(joueur: CharacterBody2D) -> void:
 func interrompre_et_recaler(joueur: CharacterBody2D) -> void:
 	if _transport_plateforme_actif:
 		_interrompre_transport_source(joueur)
+	_interrompre_objet_porte(joueur)
 	if not _synchronise:
 		synchroniser_sur_grille(joueur)
 		return
@@ -180,6 +193,14 @@ func est_en_dash() -> bool:
 
 func est_en_transport_plateforme() -> bool:
 	return _transport_plateforme_actif
+
+func oublier_objet_porte(objet: Node) -> void:
+	if _objet_porte != objet:
+		return
+	_objet_porte = null
+	_interaction_objet_en_attente = false
+	_effacer_direction_buffer()
+	_reinitialiser_maintien()
 
 func commencer_transport_plateforme(joueur: CharacterBody2D, source: Node, destination: Vector2i) -> bool:
 	if source == null or not is_instance_valid(source) or _transport_plateforme_actif or _en_deplacement:
@@ -329,6 +350,78 @@ func obtenir_cellule_refusee_debug() -> Vector2i:
 func cellule_refusee_debug_presente() -> bool:
 	return _cellule_refusee_presente
 
+func _traiter_interaction_objet_porte(joueur: CharacterBody2D) -> bool:
+	_nettoyer_objet_porte_invalide()
+	if _objet_porte != null:
+		var direction_depot: Vector2i = _obtenir_direction_interaction_cardinale()
+		var destination: Vector2i = cellule_actuelle + direction_depot
+		if _objet_porte.has_method("deposer_par_joueur") and bool(_objet_porte.call("deposer_par_joueur", joueur, destination)):
+			_objet_porte = null
+		_effacer_direction_buffer()
+		_reinitialiser_maintien()
+		return true
+	var objet: Node = _trouver_objet_ramassable_adjacent(joueur)
+	if objet == null:
+		return false
+	if objet.has_method("ramasser_par_joueur") and bool(objet.call("ramasser_par_joueur", joueur)):
+		_objet_porte = objet
+		_annuler_preparation_dash()
+		_interaction_objet_en_attente = false
+		return true
+	return true
+
+func _trouver_objet_ramassable_adjacent(joueur: CharacterBody2D) -> Node:
+	_resoudre_gestionnaire_parcours()
+	if _gestionnaire_parcours == null:
+		return null
+	for direction in _obtenir_directions_interaction_priorisees():
+		var occupant: Node = _obtenir_occupant_parcours(cellule_actuelle + direction)
+		if occupant == null or not occupant.has_method("est_ramassable_par_joueur"):
+			continue
+		if not bool(occupant.call("est_ramassable_par_joueur")):
+			continue
+		if occupant.has_method("peut_etre_ramassee_par_joueur") and bool(occupant.call("peut_etre_ramassee_par_joueur", joueur)):
+			return occupant
+	return null
+
+func _obtenir_directions_interaction_priorisees() -> Array[Vector2i]:
+	var resultat: Array[Vector2i] = []
+	var principale: Vector2i = _obtenir_direction_interaction_cardinale()
+	resultat.append(principale)
+	for direction in [Vector2i.RIGHT, Vector2i.LEFT, Vector2i.DOWN, Vector2i.UP]:
+		if not resultat.has(direction):
+			resultat.append(direction)
+	return resultat
+
+func _obtenir_direction_interaction_cardinale() -> Vector2i:
+	var entree: Vector2i = _obtenir_direction_entree(true)
+	if abs(entree.x) + abs(entree.y) == 1:
+		return entree
+	if abs(_direction_derniere.x) + abs(_direction_derniere.y) == 1:
+		return _direction_derniere
+	if _direction_derniere.x != 0:
+		return Vector2i(_direction_derniere.x, 0)
+	if _direction_derniere.y != 0:
+		return Vector2i(0, _direction_derniere.y)
+	return Vector2i.RIGHT
+
+func _nettoyer_objet_porte_invalide() -> void:
+	if _objet_porte == null:
+		return
+	if not is_instance_valid(_objet_porte) or _objet_porte.is_queued_for_deletion():
+		_objet_porte = null
+		_interaction_objet_en_attente = false
+
+func _interrompre_objet_porte(joueur: CharacterBody2D) -> void:
+	_nettoyer_objet_porte_invalide()
+	if _objet_porte == null:
+		return
+	var objet: Node = _objet_porte
+	if objet.has_method("interrompre_portage_joueur") and bool(objet.call("interrompre_portage_joueur", joueur, cellule_actuelle)):
+		if _objet_porte == objet:
+			_objet_porte = null
+		_interaction_objet_en_attente = false
+
 func _essayer_demarrer_pas(joueur: CharacterBody2D, stats: StatsJoueur, direction: Vector2i) -> bool:
 	var direction_valide: Vector2i = _limiter_direction(direction)
 	if direction_valide == Vector2i.ZERO:
@@ -423,6 +516,9 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direct
 	return true
 
 func _dash_peut_etre_prepare(joueur: CharacterBody2D) -> bool:
+	_nettoyer_objet_porte_invalide()
+	if _objet_porte != null:
+		return false
 	if not joueur.dash_autorise or joueur.dash_t_restant_s > 0.0:
 		return false
 	return joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0
@@ -780,6 +876,7 @@ func _reinitialiser_etat_transitoire(joueur: CharacterBody2D) -> void:
 	_deplacement_force = false
 	_transport_plateforme_actif = false
 	_transport_plateforme_source = null
+	_interaction_objet_en_attente = false
 	_temps_deplacement_s = 0.0
 	_duree_deplacement_s = 0.0
 	_reinitialiser_maintien()
