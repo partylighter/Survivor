@@ -140,7 +140,7 @@ offset_right = 2100.0
 offset_bottom = 930.0
 theme_override_font_sizes/font_size = 24
 text = "SOL DYNAMIQUE : MOBILE x=2 | FRAGILE x=5,y=0
-BLOC x=4,y=-1 : pousser vers le vide | PLATEFORME x=12,y=-2 : E + direction"
+BLOC x=4,y=-1 : pousser vers le vide | PLATEFORME x=12,y=-2 : E prendre / E poser devant"
 horizontal_alignment = 1
 
 [node name="Arrivee" type="Label" parent="Reperes" unique_id=932443291]
@@ -162,6 +162,6 @@ offset_bottom = 190.0
 theme_override_font_sizes/font_size = 22
 text = "TEST DU KIT PARCOURS
 Sol vert = fixe | absence de tuile = vide | MOBILE/FRAGILE = sol dynamique
-BLOC = pousser en marchant | PLATEFORME = monter avec direction, déplacer avec E + direction
+BLOC = pousser en marchant | PLATEFORME = E pour prendre, se déplacer avec, E pour poser devant
 FRAGILE disparaît après 0,8 s | MOBILE transporte le joueur
 1→2→3 = puzzle | X = leurre | PORTE = sortie | A = déclencheur"
