@@ -375,14 +375,21 @@ func _trouver_objet_ramassable_adjacent(joueur: CharacterBody2D) -> Node:
 	if _gestionnaire_parcours == null:
 		return null
 	for direction in _obtenir_directions_interaction_priorisees():
-		var occupant: Node = _obtenir_occupant_parcours(cellule_actuelle + direction)
-		if occupant == null or not occupant.has_method("est_ramassable_par_joueur"):
-			continue
-		if not bool(occupant.call("est_ramassable_par_joueur")):
-			continue
-		if occupant.has_method("peut_etre_ramassee_par_joueur") and bool(occupant.call("peut_etre_ramassee_par_joueur", joueur)):
+		var cellule_interaction: Vector2i = cellule_actuelle + direction
+		var support: Node = _obtenir_support_parcours(cellule_interaction)
+		if _objet_est_ramassable_par_joueur(support, joueur):
+			return support
+		var occupant: Node = _obtenir_occupant_parcours(cellule_interaction)
+		if _objet_est_ramassable_par_joueur(occupant, joueur):
 			return occupant
 	return null
+
+func _objet_est_ramassable_par_joueur(objet: Node, joueur: CharacterBody2D) -> bool:
+	if objet == null or not objet.has_method("est_ramassable_par_joueur"):
+		return false
+	if not bool(objet.call("est_ramassable_par_joueur")):
+		return false
+	return objet.has_method("peut_etre_ramassee_par_joueur") and bool(objet.call("peut_etre_ramassee_par_joueur", joueur))
 
 func _obtenir_directions_interaction_priorisees() -> Array[Vector2i]:
 	var resultat: Array[Vector2i] = []
@@ -517,8 +524,6 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direct
 
 func _dash_peut_etre_prepare(joueur: CharacterBody2D) -> bool:
 	_nettoyer_objet_porte_invalide()
-	if _objet_porte != null:
-		return false
 	if not joueur.dash_autorise or joueur.dash_t_restant_s > 0.0:
 		return false
 	return joueur.dash_infini_actif or joueur.dash_charges_actuelles > 0
@@ -707,6 +712,12 @@ func _obtenir_occupant_parcours(cellule: Vector2i) -> Node:
 	if _gestionnaire_parcours == null or not _gestionnaire_parcours.has_method("obtenir_occupant"):
 		return null
 	return _gestionnaire_parcours.call("obtenir_occupant", cellule) as Node
+
+func _obtenir_support_parcours(cellule: Vector2i) -> Node:
+	_resoudre_gestionnaire_parcours()
+	if _gestionnaire_parcours == null or not _gestionnaire_parcours.has_method("obtenir_support"):
+		return null
+	return _gestionnaire_parcours.call("obtenir_support", cellule) as Node
 
 func _occupant_autorise_joueur(occupant: Node) -> bool:
 	if occupant == null:

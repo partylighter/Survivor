@@ -6,6 +6,8 @@ signal joueur_reapparu(cellule: Vector2i)
 signal checkpoint_change(cellule: Vector2i)
 signal occupant_entree(cellule: Vector2i, occupant: Node)
 signal occupant_sortie(cellule: Vector2i, occupant: Node)
+signal support_entree(cellule: Vector2i, support: Node)
+signal support_sortie(cellule: Vector2i, support: Node)
 signal reservations_changees
 
 const MAX_HISTORIQUE_CELLULES_SURES: int = 32
@@ -19,6 +21,7 @@ const MAX_HISTORIQUE_CELLULES_SURES: int = 32
 var _elements_par_cellule: Dictionary = {}
 var _sol_dynamique_par_cellule: Dictionary = {}
 var _occupants_par_cellule: Dictionary = {}
+var _supports_par_cellule: Dictionary = {}
 var _reservations_par_cellule: Dictionary = {}
 var _reservations_par_occupant: Dictionary = {}
 var _historique_cellules_sures: Array[Vector2i] = []
@@ -133,6 +136,52 @@ func cellule_est_occupee(cellule: Vector2i, occupant_ignore: Node = null) -> boo
 	var occupant: Node = obtenir_occupant(cellule)
 	return occupant != null and occupant != occupant_ignore
 
+func enregistrer_support(support: Node, cellule: Vector2i) -> bool:
+	if support == null or not is_instance_valid(support):
+		return false
+	var support_existant: Node = obtenir_support(cellule)
+	if support_existant != null and support_existant != support:
+		return false
+	if cellule_est_occupee(cellule):
+		return false
+	var reservataire: Node = obtenir_reservataire(cellule)
+	if reservataire != null and reservataire != support:
+		return false
+	if support_existant == support:
+		return true
+	_supports_par_cellule[cellule] = support
+	support_entree.emit(cellule, support)
+	return true
+
+func retirer_support(support: Node, cellule: Vector2i) -> void:
+	if support == null:
+		return
+	if obtenir_support(cellule) == support:
+		_supports_par_cellule.erase(cellule)
+		support_sortie.emit(cellule, support)
+	liberer_reservations_occupant(support)
+
+func obtenir_support(cellule: Vector2i) -> Node:
+	if not _supports_par_cellule.has(cellule):
+		return null
+	var valeur: Variant = _supports_par_cellule.get(cellule)
+	if not is_instance_valid(valeur):
+		_supports_par_cellule.erase(cellule)
+		return null
+	var support := valeur as Node
+	if support == null:
+		_supports_par_cellule.erase(cellule)
+		return null
+	return support
+
+func cellule_disponible_pour_support(cellule: Vector2i, support: Node) -> bool:
+	var support_existant: Node = obtenir_support(cellule)
+	if support_existant != null and support_existant != support:
+		return false
+	if cellule_est_occupee(cellule):
+		return false
+	return not cellule_est_reservee(cellule, support)
+
 func obtenir_reservataire(cellule: Vector2i) -> Node:
 	if not _reservations_par_cellule.has(cellule):
 		return null
@@ -173,6 +222,68 @@ func reserver_cellules_occupant(occupant: Node, cellules: Array[Vector2i]) -> bo
 	else:
 		_reservations_par_occupant[occupant] = cellules_uniques
 	reservations_changees.emit()
+	return true
+
+func reserver_poussee_chaine(reservataire: Node, occupants: Array, direction: Vector2i) -> bool:
+	if reservataire == null or not is_instance_valid(reservataire) or occupants.is_empty():
+		return false
+	if abs(direction.x) + abs(direction.y) != 1:
+		return false
+	var cellules_sources: Array[Vector2i] = []
+	var cellules_destinations: Array[Vector2i] = []
+	for valeur in occupants:
+		if not is_instance_valid(valeur):
+			return false
+		var element := valeur as ElementParcours
+		if element == null or obtenir_occupant(element.cellule) != valeur:
+			return false
+		cellules_sources.append(element.cellule)
+		cellules_destinations.append(element.cellule + direction)
+	for index in range(cellules_destinations.size()):
+		var destination: Vector2i = cellules_destinations[index]
+		var occupant_destination: Node = obtenir_occupant(destination)
+		if occupant_destination != null and not occupants.has(occupant_destination):
+			return false
+		var reservataire_existant: Node = obtenir_reservataire(destination)
+		if reservataire_existant != null and reservataire_existant != reservataire:
+			return false
+	liberer_reservations_occupant(reservataire)
+	for destination in cellules_destinations:
+		_reservations_par_cellule[destination] = reservataire
+	_reservations_par_occupant[reservataire] = cellules_destinations
+	reservations_changees.emit()
+	return true
+
+func terminer_poussee_chaine(reservataire: Node, occupants: Array, direction: Vector2i) -> bool:
+	if reservataire == null or occupants.is_empty() or abs(direction.x) + abs(direction.y) != 1:
+		return false
+	var cellules_sources: Array[Vector2i] = []
+	var cellules_destinations: Array[Vector2i] = []
+	for valeur in occupants:
+		if not is_instance_valid(valeur):
+			liberer_reservations_occupant(reservataire)
+			return false
+		var element := valeur as ElementParcours
+		if element == null or obtenir_occupant(element.cellule) != valeur:
+			liberer_reservations_occupant(reservataire)
+			return false
+		var destination: Vector2i = element.cellule + direction
+		if obtenir_reservataire(destination) != reservataire:
+			liberer_reservations_occupant(reservataire)
+			return false
+		cellules_sources.append(element.cellule)
+		cellules_destinations.append(destination)
+	for cellule_source in cellules_sources:
+		var occupant_source: Node = obtenir_occupant(cellule_source)
+		if occupant_source != null:
+			_occupants_par_cellule.erase(cellule_source)
+			occupant_sortie.emit(cellule_source, occupant_source)
+	liberer_reservations_occupant(reservataire)
+	for index in range(occupants.size()):
+		var occupant: Node = occupants[index]
+		var destination: Vector2i = cellules_destinations[index]
+		_occupants_par_cellule[destination] = occupant
+		occupant_entree.emit(destination, occupant)
 	return true
 
 func liberer_reservations_occupant(occupant: Node) -> void:

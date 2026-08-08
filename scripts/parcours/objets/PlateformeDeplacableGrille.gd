@@ -14,16 +14,23 @@ var _porteur: CharacterBody2D
 var _cellule_dernier_depot: Vector2i = Vector2i.ZERO
 
 func initialiser_parcours(gestionnaire) -> void:
-	super(gestionnaire)
+	gestionnaire_parcours = gestionnaire as GestionnaireParcoursGrille
+	if gestionnaire_parcours == null:
+		return
+	deplacement_grille = gestionnaire_parcours.deplacement_grille
+	if deplacement_grille == null:
+		return
 	_cellule_dernier_depot = cellule
-	if _enregistre and gestionnaire_parcours != null:
+	_enregistre = gestionnaire_parcours.enregistrer_support(self, cellule)
+	if _enregistre:
 		gestionnaire_parcours.enregistrer_sol_dynamique(self, cellule)
 		if not gestionnaire_parcours.joueur_tombe.is_connected(_quand_joueur_tombe):
 			gestionnaire_parcours.joueur_tombe.connect(_quand_joueur_tombe)
+	set_process(false)
 	set_physics_process(false)
 
 func autorise_joueur_sur_cellule() -> bool:
-	return not _est_portee
+	return true
 
 func autorise_reapparition_sur_sol() -> bool:
 	return false
@@ -32,7 +39,9 @@ func est_ramassable_par_joueur() -> bool:
 	return _enregistre and not _est_portee and not _en_deplacement_occupant
 
 func peut_etre_ramassee_par_joueur(joueur: CharacterBody2D) -> bool:
-	if not est_ramassable_par_joueur() or joueur == null or not is_instance_valid(joueur) or deplacement_grille == null:
+	if not est_ramassable_par_joueur() or joueur == null or not is_instance_valid(joueur) or deplacement_grille == null or gestionnaire_parcours == null:
+		return false
+	if gestionnaire_parcours.obtenir_occupant(cellule) != null:
 		return false
 	var cellule_joueur: Vector2i = deplacement_grille.obtenir_cellule_actuelle()
 	var delta: Vector2i = cellule - cellule_joueur
@@ -42,7 +51,7 @@ func ramasser_par_joueur(joueur: CharacterBody2D) -> bool:
 	if not peut_etre_ramassee_par_joueur(joueur) or gestionnaire_parcours == null:
 		return false
 	_cellule_dernier_depot = cellule
-	gestionnaire_parcours.retirer_occupant(self, cellule)
+	gestionnaire_parcours.retirer_support(self, cellule)
 	_enregistre = false
 	gestionnaire_parcours.retirer_sol_dynamique(self, cellule)
 	_porteur = joueur
@@ -99,7 +108,7 @@ func _physics_process(_dt: float) -> void:
 func _poser_sur_cellule(joueur: CharacterBody2D, destination: Vector2i, verifier_trajet: bool) -> bool:
 	if gestionnaire_parcours == null or deplacement_grille == null:
 		return false
-	if not gestionnaire_parcours.cellule_disponible_pour_occupant(destination, self):
+	if not gestionnaire_parcours.cellule_disponible_pour_support(destination, self):
 		return false
 	if not _depot_physiquement_accessible(joueur, destination, verifier_trajet):
 		return false
@@ -108,7 +117,7 @@ func _poser_sur_cellule(joueur: CharacterBody2D, destination: Vector2i, verifier
 		return false
 	var position_portee: Vector2 = global_position
 	global_position = deplacement_grille.cellule_vers_monde(destination)
-	if not gestionnaire_parcours.enregistrer_occupant(self, destination):
+	if not gestionnaire_parcours.enregistrer_support(self, destination):
 		gestionnaire_parcours.liberer_reservations_occupant(self)
 		global_position = position_portee
 		return false
@@ -160,7 +169,7 @@ func _trouver_cellule_restauration(joueur: CharacterBody2D, cellule_secours: Vec
 	for direction in [Vector2i.RIGHT, Vector2i.LEFT, Vector2i.DOWN, Vector2i.UP]:
 		_ajouter_candidat_unique(candidats, _cellule_dernier_depot + direction)
 	for candidat in candidats:
-		if gestionnaire_parcours.cellule_disponible_pour_occupant(candidat, self) and _depot_physiquement_accessible(joueur, candidat, false):
+		if gestionnaire_parcours.cellule_disponible_pour_support(candidat, self) and _depot_physiquement_accessible(joueur, candidat, false):
 			return [candidat]
 	return []
 
@@ -187,4 +196,5 @@ func _exit_tree() -> void:
 			gestionnaire_parcours.joueur_tombe.disconnect(_quand_joueur_tombe)
 		if _enregistre:
 			gestionnaire_parcours.retirer_sol_dynamique(self, cellule)
+			gestionnaire_parcours.retirer_support(self, cellule)
 	super()
