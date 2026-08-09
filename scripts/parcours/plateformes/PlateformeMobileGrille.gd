@@ -340,6 +340,12 @@ func interrompre_transport_passager(joueur: CharacterBody2D) -> void:
 		return
 	_annuler_segment(false)
 
+func quitter_transport_passager(joueur: CharacterBody2D) -> bool:
+	if not _en_deplacement or _passager != joueur:
+		return false
+	_passager = null
+	return true
+
 func _obtenir_prochain_index() -> int:
 	if _cellules_trajet.size() < 2:
 		return -1

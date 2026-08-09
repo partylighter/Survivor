@@ -85,6 +85,11 @@ func traiter(joueur: CharacterBody2D, stats: StatsJoueur, dt: float) -> void:
 	_mettre_a_jour_recharge_dash(joueur, stats, dt)
 	_nettoyer_objet_porte_invalide()
 	if _transport_plateforme_actif:
+		var direction_dash_transport: Vector2i = _obtenir_direction_entree(true)
+		if _dash_en_preparation:
+			_traiter_preparation_dash(joueur, stats, direction_dash_transport)
+		elif Input.is_action_just_pressed("dash"):
+			_commencer_preparation_dash(joueur, direction_dash_transport)
 		joueur.velocity = Vector2.ZERO
 		return
 	_mettre_a_jour_temps_buffers(dt)
@@ -502,6 +507,8 @@ func _essayer_demarrer_dash(joueur: CharacterBody2D, _stats: StatsJoueur, direct
 		cellule_test = prochaine_cellule
 	if chemin.is_empty():
 		return false
+	if _transport_plateforme_actif and not _quitter_transport_plateforme_pour_dash(joueur):
+		return false
 	_direction_derniere = direction
 	_chemin_dash_debug.clear()
 	_chemin_dash_debug.append(cellule_depart)
@@ -766,6 +773,18 @@ func _interrompre_transport_source(joueur: CharacterBody2D) -> void:
 		source.call("interrompre_transport_passager", joueur)
 	_transport_plateforme_actif = false
 	_transport_plateforme_source = null
+
+func _quitter_transport_plateforme_pour_dash(joueur: CharacterBody2D) -> bool:
+	if not _transport_plateforme_actif:
+		return true
+	var source: Node = _transport_plateforme_source
+	if source == null or not is_instance_valid(source) or not source.has_method("quitter_transport_passager"):
+		return false
+	if not bool(source.call("quitter_transport_passager", joueur)):
+		return false
+	_transport_plateforme_actif = false
+	_transport_plateforme_source = null
+	return true
 
 func _appliquer_courbe_interpolation(t: float) -> float:
 	var progression: float = clampf(t, 0.0, 1.0)
