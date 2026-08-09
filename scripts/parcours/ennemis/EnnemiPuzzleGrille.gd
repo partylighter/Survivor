@@ -189,10 +189,20 @@ func resoudre_etape_sans_deplacement(reussie: bool) -> void:
 		_avancer_pattern()
 	_actualiser_label()
 
-func appliquer_degats_joueur() -> bool:
+func appliquer_degats_joueur(joueur_cible: CharacterBody2D = null) -> bool:
 	if not inflige_degats or degats_joueur <= 0:
 		return false
-	var hurtbox_joueur := get_tree().get_first_node_in_group("player_hurtbox") as HurtBox
+	if joueur_cible == null and gestionnaire_parcours != null:
+		joueur_cible = gestionnaire_parcours.joueur
+	var hurtbox_joueur: HurtBox
+	if joueur_cible != null and is_instance_valid(joueur_cible):
+		for noeud in get_tree().get_nodes_in_group("player_hurtbox"):
+			var hurtbox_candidate := noeud as HurtBox
+			if hurtbox_candidate != null and joueur_cible.is_ancestor_of(hurtbox_candidate):
+				hurtbox_joueur = hurtbox_candidate
+				break
+	if hurtbox_joueur == null:
+		hurtbox_joueur = get_tree().get_first_node_in_group("player_hurtbox") as HurtBox
 	if hurtbox_joueur == null:
 		return false
 	return hurtbox_joueur.tek_it(degats_joueur, self)
@@ -260,6 +270,11 @@ func _apres_deplacement_occupant(_ancienne_cellule: Vector2i, _destination: Vect
 
 func _valider_pattern() -> void:
 	_pattern_valide = true
+	if pattern.is_empty():
+		if mode_activation != ModeActivation.IMMOBILE:
+			_pattern_valide = false
+			push_error("EnnemiPuzzleGrille %s: pattern vide interdit pour un ennemi mobile." % name)
+		return
 	for direction in pattern:
 		if direction == Vector2i.ZERO:
 			continue

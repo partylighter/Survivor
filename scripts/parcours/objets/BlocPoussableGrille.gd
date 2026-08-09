@@ -219,7 +219,7 @@ func _tomber() -> void:
 	queue_free()
 
 func _nettoyer_chaine(liberer_reservations: bool = true) -> void:
-	if liberer_reservations and gestionnaire_parcours != null:
+	if liberer_reservations and gestionnaire_parcours != null and is_instance_valid(gestionnaire_parcours):
 		gestionnaire_parcours.liberer_reservations_occupant(self)
 	_chaine_en_deplacement = false
 	_direction_chaine = Vector2i.ZERO
@@ -229,7 +229,19 @@ func _nettoyer_chaine(liberer_reservations: bool = true) -> void:
 	_duree_chaine_s = 0.0
 	_temps_chaine_s = 0.0
 
+func _annuler_poussee_chaine() -> void:
+	if not _chaine_en_deplacement:
+		return
+	for index in range(_chaine_validee.size()):
+		var bloc := _chaine_validee[index] as BlocPoussableGrille
+		if bloc == null or not is_instance_valid(bloc):
+			continue
+		if index < _positions_depart_chaine.size():
+			bloc.global_position = _positions_depart_chaine[index]
+		bloc._en_deplacement_occupant = false
+		bloc.set_process(false)
+	_nettoyer_chaine()
+
 func _exit_tree() -> void:
-	if _chaine_en_deplacement and gestionnaire_parcours != null and is_instance_valid(gestionnaire_parcours):
-		gestionnaire_parcours.liberer_reservations_occupant(self)
+	_annuler_poussee_chaine()
 	super()

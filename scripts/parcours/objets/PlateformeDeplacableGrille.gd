@@ -12,6 +12,7 @@ signal portage_interrompu(cellule: Vector2i)
 var _est_portee: bool = false
 var _porteur: CharacterBody2D
 var _cellule_dernier_depot: Vector2i = Vector2i.ZERO
+var _avertissement_restauration_emis: bool = false
 
 func initialiser_parcours(gestionnaire) -> void:
 	gestionnaire_parcours = gestionnaire as GestionnaireParcoursGrille
@@ -56,6 +57,7 @@ func ramasser_par_joueur(joueur: CharacterBody2D) -> bool:
 	gestionnaire_parcours.retirer_sol_dynamique(self, cellule)
 	_porteur = joueur
 	_est_portee = true
+	_avertissement_restauration_emis = false
 	global_position = joueur.global_position + decalage_visuel_portage
 	set_physics_process(true)
 	ramassee.emit(joueur)
@@ -100,9 +102,11 @@ func _physics_process(_dt: float) -> void:
 		var destinations: Array[Vector2i] = _trouver_cellule_restauration(null, _cellule_dernier_depot)
 		if not destinations.is_empty() and _poser_sur_cellule(null, destinations[0], false):
 			_notifier_fin_portage_deplacement()
-		else:
+		elif not _avertissement_restauration_emis:
+			_avertissement_restauration_emis = true
 			push_warning("PlateformeDeplacableGrille: porteur perdu sans cellule de restauration disponible.")
 		return
+	_avertissement_restauration_emis = false
 	global_position = _porteur.global_position + decalage_visuel_portage
 
 func _poser_sur_cellule(joueur: CharacterBody2D, destination: Vector2i, verifier_trajet: bool) -> bool:
@@ -128,6 +132,7 @@ func _poser_sur_cellule(joueur: CharacterBody2D, destination: Vector2i, verifier
 	gestionnaire_parcours.enregistrer_sol_dynamique(self, destination)
 	_est_portee = false
 	_porteur = null
+	_avertissement_restauration_emis = false
 	set_physics_process(false)
 	deposee.emit(destination)
 	return true

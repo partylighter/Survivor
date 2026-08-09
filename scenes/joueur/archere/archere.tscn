@@ -1365,7 +1365,6 @@ script = ExtResource("50_grille")
 duree_pas_s = 0.36
 diagonales_autorisees = false
 vitesse_reference_px_s = 1500.0
-distance_dash_cellules = 2
 
 [node name="DebugGrilleJoueur" type="Node2D" parent="." unique_id=2141677062]
 script = ExtResource("51_debug_grille")

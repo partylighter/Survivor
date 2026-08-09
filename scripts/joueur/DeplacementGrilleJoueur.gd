@@ -325,6 +325,8 @@ func appliquer_recul_cellules(joueur: CharacterBody2D, direction: Vector2i, dist
 	var distance_reelle: int = 0
 	for _index in range(distance_cellules):
 		var prochaine_cellule: Vector2i = destination + direction_recul
+		if not _cellule_logiquement_disponible_pour_joueur(prochaine_cellule):
+			break
 		var position_prochaine: Vector2 = cellule_vers_monde(prochaine_cellule)
 		if not _segment_est_accessible(joueur, position_segment_depart, position_prochaine):
 			break
@@ -741,11 +743,20 @@ func _obtenir_controleur(joueur: CharacterBody2D) -> GestionDeplacementJoueur:
 
 func _resoudre_gestionnaire_grille() -> void:
 	if _gestionnaire_grille == null or not is_instance_valid(_gestionnaire_grille):
-		_gestionnaire_grille = get_tree().get_first_node_in_group("grille_combat") as GestionnaireGrilleCombat
+		var joueur: Node = get_parent()
+		if joueur != null:
+			_gestionnaire_grille = joueur.get_node_or_null("GestionnaireGrilleCombat") as GestionnaireGrilleCombat
+		if _gestionnaire_grille == null:
+			_gestionnaire_grille = get_tree().get_first_node_in_group("grille_combat") as GestionnaireGrilleCombat
 
 func _resoudre_gestionnaire_parcours() -> void:
 	if _gestionnaire_parcours == null or not is_instance_valid(_gestionnaire_parcours):
-		_gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille")
+		var joueur: Node = get_parent()
+		var racine_niveau: Node = joueur.get_parent() if joueur != null else null
+		if racine_niveau != null:
+			_gestionnaire_parcours = racine_niveau.get_node_or_null("GestionnaireParcoursGrille")
+		if _gestionnaire_parcours == null:
+			_gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille")
 
 func _interrompre_transport_source(joueur: CharacterBody2D) -> void:
 	if not _transport_plateforme_actif:

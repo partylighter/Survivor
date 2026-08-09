@@ -384,17 +384,18 @@ func _resolve_hurtbox(o: Object) -> HurtBox:
 	var n: Node = o as Node
 	if n == null:
 		return null
-	if n is HurtBox:
-		return n as HurtBox
-	var direct: Node = n.get_node_or_null("HurtBox")
-	if direct is HurtBox:
-		return direct as HurtBox
-	for c in n.get_children():
-		if c is HurtBox:
-			return c as HurtBox
-	var p: Node = n.get_parent()
-	if p is HurtBox:
-		return p as HurtBox
+	for _index in range(3):
+		if n is HurtBox:
+			return n as HurtBox
+		var direct: Node = n.get_node_or_null("HurtBox")
+		if direct is HurtBox:
+			return direct as HurtBox
+		for enfant in n.get_children():
+			if enfant is HurtBox:
+				return enfant as HurtBox
+		if n.get_parent() == null:
+			break
+		n = n.get_parent()
 	return null
 
 func _appliquer_recul_commune(target: Object, origine: Node2D, force: float) -> void:

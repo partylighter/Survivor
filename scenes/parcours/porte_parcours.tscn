@@ -8,7 +8,7 @@ size = Vector2(220, 220)
 [node name="PorteParcours" type="Node2D" node_paths=PackedStringArray("collision_shape", "visuel")]
 script = ExtResource("1_script")
 collision_shape = NodePath("Corps/CollisionShape2D")
-visuel = NodePath("Visuel")
+visuel = NodePath(".")
 
 [node name="Corps" type="StaticBody2D" parent="."]
 collision_layer = 1

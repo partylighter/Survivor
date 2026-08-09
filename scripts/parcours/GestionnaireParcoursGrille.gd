@@ -343,15 +343,16 @@ func faire_tomber_joueur(cellule: Vector2i) -> void:
 	joueur_tombe.emit(cellule, _cellule_reapparition_en_attente)
 	call_deferred("_reapparaitre_checkpoint")
 
-func definir_checkpoint(cellule: Vector2i) -> void:
-	if not cellule_est_sure(cellule):
-		push_warning("GestionnaireParcoursGrille: checkpoint ignoré car la cellule %s n'a pas de sol." % str(cellule))
-		return
+func definir_checkpoint(cellule: Vector2i) -> bool:
+	if not cellule_est_stable_pour_reapparition(cellule):
+		push_warning("GestionnaireParcoursGrille: checkpoint ignoré car la cellule %s n'a pas de sol stable pour la réapparition." % str(cellule))
+		return false
 	if _checkpoint_initialise and _checkpoint_actuel == cellule:
-		return
+		return true
 	_checkpoint_actuel = cellule
 	_checkpoint_initialise = true
 	checkpoint_change.emit(cellule)
+	return true
 
 func obtenir_checkpoint_actuel() -> Vector2i:
 	return _checkpoint_actuel
@@ -402,7 +403,7 @@ func _cellule_reapparition_valide(cellule: Vector2i) -> bool:
 	return cellule_est_stable_pour_reapparition(cellule) and cellule_est_disponible_pour_joueur(cellule)
 
 func _cellule_checkpoint_reapparition_valide(cellule: Vector2i) -> bool:
-	return cellule_est_sure(cellule) and cellule_est_disponible_pour_joueur(cellule)
+	return cellule_est_stable_pour_reapparition(cellule) and cellule_est_disponible_pour_joueur(cellule)
 
 func _obtenir_cellule_reapparition() -> Vector2i:
 	if _cellule_reapparition_valide(_derniere_cellule_sure):
@@ -469,7 +470,10 @@ func _resoudre_references() -> void:
 	if joueur == null or not is_instance_valid(joueur):
 		joueur = get_tree().get_first_node_in_group("joueur_principal") as CharacterBody2D
 	if deplacement_grille == null or not is_instance_valid(deplacement_grille):
-		deplacement_grille = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
+		if joueur != null:
+			deplacement_grille = joueur.get_node_or_null("GestionDeplacementGrilleJoueur") as GestionDeplacementGrilleJoueur
+		if deplacement_grille == null:
+			deplacement_grille = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
 	var racine_niveau: Node = get_parent()
 	if sol_parcours == null and racine_niveau != null:
 		sol_parcours = racine_niveau.get_node_or_null("Parcours/SolParcours") as TileMapLayer

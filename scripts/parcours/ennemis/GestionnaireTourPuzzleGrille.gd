@@ -19,7 +19,7 @@ var _ennemis_en_mouvement: Array[EnnemiPuzzleGrille] = []
 var _resolution_en_cours: bool = false
 var _numero_tour: int = 0
 var _ignorer_arrivee_interne: bool = false
-var _process_mode_joueur_avant: int = Node.PROCESS_MODE_INHERIT
+var _process_mode_joueur_avant: Node.ProcessMode = Node.PROCESS_MODE_INHERIT
 var _joueur_verrouille: bool = false
 var _poussee_joueur_active: bool = false
 var _poussee_ennemi: EnnemiPuzzleGrille
@@ -42,23 +42,24 @@ func _initialiser() -> void:
 
 func _physics_process(dt: float) -> void:
 	_resoudre_references()
+	if joueur == null or deplacement_grille == null or gestionnaire_parcours == null:
+		return
+	_actualiser_ennemis()
+	var cellule_joueur: Vector2i = deplacement_grille.obtenir_cellule_actuelle()
+	var temps_reel_prets: Array[EnnemiPuzzleGrille] = []
+	if gestionnaire_parcours.cellule_est_sure(cellule_joueur) or deplacement_grille.est_en_transport_plateforme():
+		for ennemi in _ennemis:
+			if ennemi != null and is_instance_valid(ennemi) and ennemi.avancer_horloge_temps_reel(dt, cellule_joueur):
+				temps_reel_prets.append(ennemi)
 	if _resolution_en_cours:
 		_avancer_resolution(dt)
-		return
-	if joueur == null or deplacement_grille == null or gestionnaire_parcours == null:
 		return
 	if not joueur.can_process():
 		return
 	if deplacement_grille.est_en_deplacement() or deplacement_grille.est_en_transport_plateforme():
 		return
-	_actualiser_ennemis()
-	var cellule_joueur: Vector2i = deplacement_grille.obtenir_cellule_actuelle()
 	if not gestionnaire_parcours.cellule_est_sure(cellule_joueur):
 		return
-	var temps_reel_prets: Array[EnnemiPuzzleGrille] = []
-	for ennemi in _ennemis:
-		if ennemi != null and is_instance_valid(ennemi) and ennemi.avancer_horloge_temps_reel(dt, cellule_joueur):
-			temps_reel_prets.append(ennemi)
 	if temps_reel_prets.is_empty():
 		return
 	for ennemi in temps_reel_prets:
@@ -68,10 +69,17 @@ func _physics_process(dt: float) -> void:
 func reinitialiser() -> void:
 	_resoudre_references()
 	_actualiser_ennemis()
+	if _poussee_joueur_active and joueur != null and is_instance_valid(joueur):
+		joueur.global_position = _poussee_position_depart
+		joueur.velocity = Vector2.ZERO
+		if deplacement_grille != null and is_instance_valid(deplacement_grille):
+			deplacement_grille.synchroniser_sur_grille(joueur)
 	if _poussee_joueur_active and gestionnaire_parcours != null and _poussee_ennemi != null and is_instance_valid(_poussee_ennemi):
 		gestionnaire_parcours.liberer_reservations_occupant(_poussee_ennemi)
 	_poussee_joueur_active = false
 	_poussee_ennemi = null
+	_poussee_temps_s = 0.0
+	_ignorer_arrivee_interne = false
 	_ennemis_en_mouvement.clear()
 	for ennemi in _ennemis:
 		if ennemi != null and is_instance_valid(ennemi):
@@ -139,7 +147,6 @@ func _resoudre_intentions(ennemis_a_activer: Array[EnnemiPuzzleGrille]) -> void:
 	var contacts_joueur: Array[Dictionary] = []
 	for intention in intentions:
 		var ennemi := intention["ennemi"] as EnnemiPuzzleGrille
-		var direction: Vector2i = intention["direction"]
 		var destination: Vector2i = intention["destination"]
 		if ennemi == null or not is_instance_valid(ennemi):
 			continue
@@ -163,9 +170,9 @@ func _resoudre_contacts_joueur(contacts: Array[Dictionary], compte_destinations:
 		return
 	if contacts.size() > 1:
 		for intention in contacts:
-			var ennemi := intention["ennemi"] as EnnemiPuzzleGrille
-			if ennemi != null and is_instance_valid(ennemi):
-				ennemi.resoudre_etape_sans_deplacement(false)
+			var ennemi_contact := intention["ennemi"] as EnnemiPuzzleGrille
+			if ennemi_contact != null and is_instance_valid(ennemi_contact):
+				ennemi_contact.resoudre_etape_sans_deplacement(false)
 		return
 	var intention: Dictionary = contacts[0]
 	var ennemi := intention["ennemi"] as EnnemiPuzzleGrille
@@ -173,7 +180,7 @@ func _resoudre_contacts_joueur(contacts: Array[Dictionary], compte_destinations:
 	if ennemi == null or not is_instance_valid(ennemi):
 		return
 	if ennemi.inflige_degats:
-		ennemi.appliquer_degats_joueur()
+		ennemi.appliquer_degats_joueur(joueur)
 	if not ennemi.pousse_joueur:
 		ennemi.resoudre_etape_sans_deplacement(false)
 		return
@@ -287,7 +294,7 @@ func _actualiser_ennemis() -> void:
 	var trouves: Array[EnnemiPuzzleGrille] = []
 	for noeud in get_tree().get_nodes_in_group("ennemi_puzzle_grille"):
 		var ennemi := noeud as EnnemiPuzzleGrille
-		if ennemi != null and is_instance_valid(ennemi):
+		if ennemi != null and is_instance_valid(ennemi) and ennemi.gestionnaire_parcours == gestionnaire_parcours:
 			trouves.append(ennemi)
 	trouves.sort_custom(Callable(self, "_ennemi_avant"))
 	_ennemis = trouves
@@ -298,12 +305,26 @@ func _ennemi_avant(a: EnnemiPuzzleGrille, b: EnnemiPuzzleGrille) -> bool:
 	return a.ordre_resolution < b.ordre_resolution
 
 func _resoudre_references() -> void:
-	if joueur == null or not is_instance_valid(joueur):
-		joueur = get_tree().get_first_node_in_group("joueur_principal") as CharacterBody2D
-	if deplacement_grille == null or not is_instance_valid(deplacement_grille):
-		deplacement_grille = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
 	if gestionnaire_parcours == null or not is_instance_valid(gestionnaire_parcours):
-		gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille") as GestionnaireParcoursGrille
+		var racine_niveau: Node = get_parent()
+		if racine_niveau != null:
+			gestionnaire_parcours = racine_niveau.get_node_or_null("GestionnaireParcoursGrille") as GestionnaireParcoursGrille
+		if gestionnaire_parcours == null:
+			gestionnaire_parcours = get_tree().get_first_node_in_group("gestionnaire_parcours_grille") as GestionnaireParcoursGrille
+	if joueur == null or not is_instance_valid(joueur):
+		if gestionnaire_parcours != null:
+			joueur = gestionnaire_parcours.joueur
+		if joueur == null:
+			joueur = get_tree().get_first_node_in_group("joueur_principal") as CharacterBody2D
+	if deplacement_grille == null or not is_instance_valid(deplacement_grille):
+		if gestionnaire_parcours != null:
+			deplacement_grille = gestionnaire_parcours.deplacement_grille
+		if deplacement_grille == null and joueur != null:
+			deplacement_grille = joueur.get_node_or_null("GestionDeplacementGrilleJoueur") as GestionDeplacementGrilleJoueur
+		if deplacement_grille == null:
+			deplacement_grille = get_tree().get_first_node_in_group("deplacement_grille_joueur") as GestionDeplacementGrilleJoueur
 
 func _exit_tree() -> void:
+	if _resolution_en_cours:
+		reinitialiser()
 	_deverrouiller_joueur()
